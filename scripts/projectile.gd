@@ -62,6 +62,7 @@ func _check_shields() -> void:
 		global_position = w.global_position + n * (Wizard.SHIELD_RADIUS + 1.0)
 		caster = w
 		_travelled = 0.0
+		age = 0.0 # a new threat: bots need their reaction time again
 		sprite.rotation = direction.angle()
 		w.bubble_flash()
 		return

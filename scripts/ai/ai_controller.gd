@@ -212,7 +212,7 @@ func _score_staff() -> float:
 	if target == null or wizard.get_spell("A") == null or target.is_shielded():
 		return 0.0
 	var d := _target_distance()
-	if d > STAFF_ENGAGE:
+	if d > STAFF_ENGAGE or not _reachable(target):
 		return 0.0
 	return 0.8 + (0.4 if _lava_behind(target, wizard.global_position) else 0.0)
 
@@ -226,7 +226,7 @@ func _do_staff() -> void:
 ## Blink next to a target that stands near lava, on its far side from the
 ## lava, then shove it in with the staff.
 func _score_blink_in() -> float:
-	if target == null or not _can_cast("W") or target.is_shielded():
+	if target == null or not _can_cast("W") or target.is_shielded() or target.on_lava:
 		return 0.0
 	var d := _target_distance()
 	if d < 80.0 or d > 220.0 or _blink_in_point() == null:
@@ -372,6 +372,15 @@ func _dodge_point(p: Projectile):
 	return null
 
 
+## True if we can walk up to `w` without crossing lava (it isn't standing in
+## lava and the way there is clear).
+func _reachable(w: Wizard) -> bool:
+	if w.on_lava:
+		return false
+	var at := w.global_position
+	return _safe_step(at) == at
+
+
 ## True if `w`, hit from `from`, would fly toward lava.
 func _lava_behind(w: Wizard, from: Vector2) -> bool:
 	var dir := (w.global_position - from).normalized()
@@ -420,7 +429,9 @@ func _safe_step(goal):
 		var d := dir.rotated(angle)
 		if not _lava_within(pos + d * look, 12.0):
 			return goal if angle == 0.0 else pos + d * look
-	return null # boxed in: stand still rather than walk into lava
+	# Boxed in: head for the middle of the arena (always stone) instead.
+	var to_centre := (wizard.arena.get_center() - pos).normalized()
+	return pos + to_centre * look
 
 
 ## Where to aim at `w` for a projectile of `speed`: leads by the profile's

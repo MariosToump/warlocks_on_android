@@ -52,6 +52,8 @@ func _run() -> void:
 	await _test_brawler_uses_staff()
 	await _test_personalities_keep_different_distances()
 	await _test_dead_target()
+	await _test_reflect_resets_age()
+	await _test_no_freeze_at_shore()
 
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -266,6 +268,53 @@ func _test_dead_target() -> void:
 	_check(ai.target == null or ai.target.alive, "no dead target kept (%s)" % ai.target)
 	_check(blue.alive, "bot fine with nobody to fight")
 	await _seconds(1.5) # everyone respawns
+	_remove_bot(ai)
+
+
+func _test_reflect_resets_age() -> void:
+	print("reflection resets age")
+	_park_all()
+	_place(green, c)
+	green.raise_shield(1.0)
+	var p: Projectile = load("res://scenes/projectile_fireball.tscn").instantiate()
+	p.caster = blue
+	p.direction = Vector2.LEFT
+	p.age = 1.0
+	game.get_node("Wizards").add_child(p)
+	p.global_position = c + Vector2(30, 0)
+	await _frames(6)
+	_check(is_instance_valid(p) and p.caster == green, "fireball reflected by green's shield")
+	_check(is_instance_valid(p) and p.age < 0.2, "reflection restarts the projectile's age (%.2f)" % (p.age if is_instance_valid(p) else -1.0))
+	if is_instance_valid(p):
+		p.queue_free()
+	green.shield_left = 0.0
+
+
+## Target stands in the lava right by the shore: the brawler must not stall
+## on a staff swing it can never make.
+func _test_no_freeze_at_shore() -> void:
+	print("no freeze at shore")
+	_park_all()
+	var e := _edge_east()
+	var ai := _make_bot(blue, "brawler", "normal")
+	_place(blue, e - Vector2(30, 0))
+	_place(green, e + Vector2(40, 0))
+	green.lava_dps = 0.0
+	green.knockback_friction = 10000.0 # can't be blasted away
+	var staff_thinks := 0
+	var thinks := 0
+	var t := 0.0
+	while t < 4.0:
+		await _frames(1)
+		t += 1.0 / 60.0
+		if ai.current_action != "":
+			thinks += 1
+			if ai.current_action == "staff":
+				staff_thinks += 1
+	_check(staff_thinks == 0, "never picks the staff against a target in the lava (%d/%d frames)" % [staff_thinks, thinks])
+	_check(ai._safe_step(green.global_position) != null, "safe step from the shore always offers a way to go")
+	green.lava_dps = 8.0
+	green.knockback_friction = 3.0
 	_remove_bot(ai)
 
 
