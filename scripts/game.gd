@@ -11,7 +11,7 @@ const WIZARD := preload("res://scenes/wizard.tscn")
 @onready var arena: Arena = $Arena
 @onready var wizards: Node2D = $Wizards
 @onready var player: Wizard = $Wizards/Player
-@onready var spell_bar: SpellBar = $HUD/SpellBar
+@onready var touch: TouchControls = $HUD/TouchControls
 
 var _spawns := {} # Wizard -> spawn position
 
@@ -23,7 +23,7 @@ func _ready() -> void:
 		_spawn_dummy(Wizard.TeamColor.BLUE, Vector2(160, -40))
 		_spawn_dummy(Wizard.TeamColor.GREEN, Vector2(-150, 80))
 
-	spell_bar.wizard = player
+	touch.wizard = player
 
 	arena.camera.target = player
 	arena.camera.zoom = Vector2(follow_zoom, follow_zoom)
