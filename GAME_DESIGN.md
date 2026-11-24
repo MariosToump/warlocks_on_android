@@ -20,7 +20,7 @@ Two projects share this design:
 - [x] 3. Fireball + knockback physics.
 - [x] 4. Blink, Lightning, Shield (+ hurt and death animations).
 - [x] 5. AI bots (move, dodge, aim, avoid lava). _Done 2026-11-24 (PC and Android)._
-- [ ] 6. Rounds, score, shrinking arena, win screen. **← next**
+- [ ] 6. Rounds, score, shrinking arena, win screen. **← in progress** (shrinking arena + last-attacker tracking done on PC 2026-11-24; rounds, score, win screen still to do; not ported to Android yet)
 - [ ] 7. Shop between rounds, gold, upgrades, items.
 - [ ] 8. Polish: screen shake, hit flash, particles, sounds, menu.
 - [ ] 9. Remaining spells.
@@ -55,7 +55,9 @@ There are no rounds or winner yet.
 - Map: 108 x 108 tiles. Stone platform radius 38 tiles (~2400 px across), edge wobbled so it isn't a perfect circle, 16-tile lava ring around it.
 - Cracked-stone patches (glowing outlines) are placed with noise, decoration only.
 - Random layout every run (`seed_value = 0`).
-- No pillars/obstacles yet. Shrinking (milestone 6) will change vertices to lava and call `rebuild()`.
+- No pillars/obstacles yet.
+- **Shrinking** (2026-11-24): every 25 s the edge creeps in 9 tiles (4 s pulsing warning line, HUD "Lava rises in N"), down to 11 tiles, holds 25 s, then regrows. Tiles update incrementally. Dead wizards respawn at a random safe stone point far from others.
+- `Wizard.take_damage(amount, source)` remembers `last_attacker` (for kill credit in rounds); bots turn on whoever just hit them.
 
 ### Tests
 `godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai (+ test_touch on Android). All passing.
