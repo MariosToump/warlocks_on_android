@@ -19,7 +19,7 @@ Two projects share this design:
 - [x] 2. Player wizard: movement, animations, lava damage.
 - [x] 3. Fireball + knockback physics.
 - [x] 4. Blink, Lightning, Shield (+ hurt and death animations).
-- [x] 5. AI bots (move, dodge, aim, avoid lava). _PC done 2026-11-24; Android port pending._
+- [x] 5. AI bots (move, dodge, aim, avoid lava). _Done 2026-11-24 (PC and Android)._
 - [ ] 6. Rounds, score, shrinking arena, win screen. **← next**
 - [ ] 7. Shop between rounds, gold, upgrades, items.
 - [ ] 8. Polish: screen shake, hit flash, particles, sounds, menu.
