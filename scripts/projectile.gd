@@ -16,6 +16,8 @@ var max_range := 650.0
 var damage := 6.0
 var knockback := 380.0
 
+## Seconds since spawned (bots only notice projectiles after their reaction delay).
+var age := 0.0
 var _travelled := 0.0
 var _done := false
 
@@ -23,6 +25,7 @@ var _done := false
 
 
 func _ready() -> void:
+	add_to_group("projectiles")
 	rotation = 0.0
 	sprite.rotation = direction.angle()
 	sprite.play()
@@ -33,6 +36,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if _done:
 		return
+	age += delta
 	var step := direction * speed * delta
 	position += step
 	_travelled += step.length()

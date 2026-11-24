@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AIProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/ai/ai_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+think_interval = 0.5
+reaction_delay = 0.45
+aim_error_deg = 18.0
+lead_amount = 0.0
+dodge_chance = 0.3
+shield_reflect_chance = 0.1
+cast_pause = 1.0

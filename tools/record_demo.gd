@@ -11,6 +11,7 @@ var green: Wizard
 
 func _init() -> void:
 	game = load("res://scenes/game.tscn").instantiate()
+	game.bot_ai = false
 	root.add_child(game)
 	_run.call_deferred()
 
@@ -19,8 +20,8 @@ func _run() -> void:
 	await _frames(2)
 	var arena: Arena = game.get_node("Arena")
 	player = game.get_node("Wizards/Player")
-	blue = game.get_node("Wizards/DummyBlue")
-	green = game.get_node("Wizards/DummyGreen")
+	blue = game.get_node("Wizards/BotBlue")
+	green = game.get_node("Wizards/BotGreen")
 	game.get_node("Wizards/Player/PlayerController").process_mode = Node.PROCESS_MODE_DISABLED
 
 	# Stage it by the south shore so the lava is in shot.

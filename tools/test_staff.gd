@@ -15,6 +15,7 @@ func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	out_dir = args[0] if args.size() > 0 else ""
 	game = load("res://scenes/game.tscn").instantiate()
+	game.bot_ai = false
 	root.add_child(game)
 	_run.call_deferred()
 
@@ -23,8 +24,8 @@ func _run() -> void:
 	await _frames(5)
 	arena = game.get_node("Arena")
 	player = game.get_node("Wizards/Player")
-	blue = game.get_node("Wizards/DummyBlue")
-	green = game.get_node("Wizards/DummyGreen")
+	blue = game.get_node("Wizards/BotBlue")
+	green = game.get_node("Wizards/BotGreen")
 	var c := arena.get_center()
 	var staff := player.get_spell("A") as StaffStrikeSpell
 	_check(staff != null and staff.icon != null, "A is the staff strike, with an icon")
