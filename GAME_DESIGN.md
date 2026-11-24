@@ -3,6 +3,58 @@
 An original top-down pixel-art arena game inspired by the Warcraft III "Warlock" genre.
 Do not copy names, art, text or data from any existing map. Everything here is our own.
 
+## Progress (keep this up to date — read it before starting work)
+
+_Last updated: 2026-11-24_
+
+Two projects share this design:
+- **PC**: `D:\Godot\Projects\claude_mcp\lava-warlocks` (keyboard + mouse, Forward+ renderer). Local git only.
+- **Android**: `D:\Godot\Projects\claude_mcp\lava-warlocks-mobile` (touch controls, Compatibility renderer).
+  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.5.
+  Build + install on the phone: `bash tools/deploy_android.sh`. APK: `build/warlocks_on_android.apk`.
+  Gameplay changes are made in PC first, then ported (`git cherry-pick` from the `pc` remote).
+
+### Milestones
+- [x] 1. Project setup, arena with stone and lava tiles, camera.
+- [x] 2. Player wizard: movement, animations, lava damage.
+- [x] 3. Fireball + knockback physics.
+- [x] 4. Blink, Lightning, Shield (+ hurt and death animations).
+- [ ] 5. AI bots (move, dodge, aim, avoid lava). **← next**
+- [ ] 6. Rounds, score, shrinking arena, win screen.
+- [ ] 7. Shop between rounds, gold, upgrades, items.
+- [ ] 8. Polish: screen shake, hit flash, particles, sounds, menu.
+- [ ] 9. Remaining spells.
+
+Right now you fight two training dummies (blue, green) that respawn 2 s after dying.
+Nothing fights back, and there are no rounds or winner yet.
+
+### Added beyond the original plan
+- **Staff attack (slot A)**: auto-attack melee swing, 4 damage, shove 300, 0.5 s cooldown = swing animation.
+  - PC: right-click an enemy = walk up and keep attacking; A key = one swing.
+  - Android: big attack button swings on the spot (aims at an enemy within 70 px), hold to repeat, cooldown timer on the button.
+- **Android version**: floating joystick on the left; spell buttons on the right (drag to aim, tap to auto-aim, drag back to cancel); landscape, immersive.
+- **Feel**: physics interpolation (smooth on 90/120 Hz screens); camera zoom snapped so one art pixel = a whole number of screen pixels.
+- Demo video recorder: `tools/record_demo.gd` (Movie Maker).
+
+### Changed from the plan above
+- Move speed is **165** (not 140). Fireball flies 560 px/s.
+- Stretch mode is **canvas_items** (not "viewport"), to keep pixels sharp on phone screens.
+- Characters are 48 px PixelLab sprites (not 32 px). Diagonal staff-swing directions reuse the side/front/back swings.
+- Android zoom is closer than PC (3 vs 2 screen px per art pixel on a 1080p screen).
+
+### Arena as built
+- `scripts/arena.gd` builds the map in code every run, from PixelLab Wang tiles (32 px): `lava_stone` and `stone_cracked`.
+- Map: 108 x 108 tiles. Stone platform radius 38 tiles (~2400 px across), edge wobbled so it isn't a perfect circle, 16-tile lava ring around it.
+- Cracked-stone patches (glowing outlines) are placed with noise, decoration only.
+- Random layout every run (`seed_value = 0`).
+- No pillars/obstacles yet. Shrinking (milestone 6) will change vertices to lava and call `rebuild()`.
+
+### Tests
+`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff (+ test_touch on Android). All passing.
+
+### PixelLab
+Trial: 3 generations left (out of 40). Character id `2c9f98f0-5a77-4c63-aca5-e01bf03bf62d` (Red Warlock; team colours are a hue shader).
+
 ## Core idea
 - 2–4 wizards fight on a round stone platform surrounded by lava.
 - Spells mostly **knock back** instead of just doing damage. Being pushed into lava burns you.
