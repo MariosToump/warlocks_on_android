@@ -44,6 +44,10 @@ func _run() -> void:
 
 	await _test_fireball_in_range()
 	await _test_reposition_approaches()
+	await _test_never_walks_into_lava()
+	await _test_recovers_from_knockback()
+	await _test_hard_dodges()
+	_test_reflected_projectile_is_danger()
 
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -81,11 +85,117 @@ func _test_reposition_approaches() -> void:
 	_remove_bot(ai)
 
 
+## First lava point east of the centre.
+func _edge_east() -> Vector2:
+	var p := c
+	while not arena.is_lava_at(p):
+		p.x += 4.0
+	return p
+
+
+func _test_never_walks_into_lava() -> void:
+	print("lava safety")
+	_park_all()
+	var e := _edge_east()
+	var ai := _make_bot(blue, "brawler", "normal")
+	_place(blue, e - Vector2(40, 0))
+	_place(green, e + Vector2(70, 0)) # standing in the lava, fireproof
+	green.lava_dps = 0.0
+	var touched := 0
+	var t := 0.0
+	while t < 10.0:
+		await _frames(1)
+		t += 1.0 / 60.0
+		if arena.is_lava_at(blue.global_position):
+			touched += 1
+	_check(touched == 0 and blue.alive, "chasing a target in the lava, never steps on lava in 10 s (%d frames)" % touched)
+	green.lava_dps = 8.0
+	_remove_bot(ai)
+
+
+func _test_recovers_from_knockback() -> void:
+	print("knockback recovery")
+	var e := _edge_east()
+	var ok := 0
+	for i in 5:
+		_park_all()
+		var ai := _make_bot(blue, "survivor", "normal")
+		_place(blue, e - Vector2(120, 0))
+		await _frames(2)
+		blue.apply_knockback(Vector2(450, 0))
+		await _seconds(3.0)
+		if blue.alive and not arena.is_lava_at(blue.global_position):
+			ok += 1
+		_remove_bot(ai)
+		await _frames(1)
+	_check(ok >= 3, "knocked toward lava: back on stone after 3 s in %d/5 (need 3)" % ok)
+
+
+func _test_hard_dodges() -> void:
+	print("hard dodges")
+	var still := AIProfile.new() # never dodges or shields: the baseline
+	still.dodge_chance = 0.0
+	still.shield_reflect_chance = 0.0
+	var base := await _fireballs_avoided(still)
+	var hard := await _fireballs_avoided(PROF["hard"])
+	_check(base <= 2, "baseline: a bot that doesn't dodge avoids few (%d/8)" % base)
+	_check(hard >= 5, "hard bot dodges or shields fireballs: %d/8 avoided (need 5)" % hard)
+
+
+## Green shoots 8 fireballs at a survivor bot from 8 directions; returns how
+## many didn't hurt it.
+func _fireballs_avoided(prof: AIProfile) -> int:
+	_park_all()
+	var ai := _make_bot(blue, "survivor", "hard")
+	ai.profile = prof
+	var avoided := 0
+	for i in 8:
+		blue.reset(c)
+		green.reset(c + Vector2.from_angle(i * TAU / 8.0) * 400.0)
+		(green.get_spell("Q") as Spell).cooldown_left = 0.0
+		(blue.get_spell("R") as Spell).cooldown_left = 0.0
+		(blue.get_spell("W") as Spell).cooldown_left = 0.0
+		await _frames(2)
+		var cast := green.cast("Q", blue.global_position)
+		await _seconds(1.2)
+		if cast and blue.alive and blue.health >= 99.99:
+			avoided += 1
+	_remove_bot(ai)
+	return avoided
+
+
+func _test_reflected_projectile_is_danger() -> void:
+	print("reflected projectiles")
+	_park_all()
+	var ai := _make_bot(blue, "caster", "normal")
+	var p: Projectile = load("res://scenes/projectile_fireball.tscn").instantiate()
+	p.caster = blue
+	p.age = 1.0
+	p.speed = 0.0
+	game.get_node("Wizards").add_child(p)
+	p.global_position = blue.global_position + Vector2(200, 0)
+	_check(not ai._visible_projectiles().has(p), "own projectile is not a threat")
+	p.caster = green # as if reflected by green's shield
+	_check(ai._visible_projectiles().has(p), "projectile reflected by an enemy is a threat")
+	p.age = 0.0
+	_check(not ai._visible_projectiles().has(p), "a brand-new projectile is not seen yet (reaction delay)")
+	p.queue_free()
+	_remove_bot(ai)
+
+
 # --- helpers -----------------------------------------------------------------
 
+## "survivor" = a bot that only dodges, shields and recovers, and otherwise
+## stands still (so survival tests can't pass by accident).
 func _make_bot(w: Wizard, pers: String, prof: String) -> AIController:
 	var ai := AIController.new()
-	ai.personality = PERS[pers]
+	if pers == "survivor":
+		var sp := AIPersonality.new()
+		sp.weights = {"dodge": 1.0, "recover": 1.0, "shield": 1.0, "fireball": 0.0,
+			"lightning": 0.0, "staff": 0.0, "blink_in": 0.0, "reposition": 0.0}
+		ai.personality = sp
+	else:
+		ai.personality = PERS[pers]
 	ai.profile = PROF[prof]
 	w.add_child(ai)
 	return ai
