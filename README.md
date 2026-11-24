@@ -37,7 +37,9 @@ Made with Godot 4.7.2 (GDScript); pixel art made with PixelLab.
 | Purple | Trickster | Mid range, blinks in to shove you into the lava |
 
 ## Install
-Build a debug APK and install it on a USB-connected phone (USB debugging on):
+**Download:** grab the latest APK from [Releases](https://github.com/MariosToump/warlocks_on_android/releases) and open it on your phone.
+
+Or build a debug APK and install it on a USB-connected phone (USB debugging on):
 ```bash
 bash tools/deploy_android.sh
 ```

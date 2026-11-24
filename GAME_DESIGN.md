@@ -13,6 +13,8 @@ Two projects share this design:
 - **Android**: `D:\Godot\Projects\claude_mcp\lava-warlocks-mobile` (touch controls, Compatibility renderer).
   GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.6 (milestone 6, pushed 2026-11-24).
   Build + install on the phone: `bash tools/deploy_android.sh`. APK: `build/warlocks_on_android.apk`.
+  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 published 2026-11-24
+  (`gh release create vX.Y build/warlocks_on_android.apk`; bump `version/code` + `version/name` in export_presets.cfg first).
   Gameplay changes are made in PC first, then ported (`git cherry-pick` from the `pc` remote).
 
 ### Milestones
