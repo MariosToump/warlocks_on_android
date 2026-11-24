@@ -2,8 +2,8 @@ class_name PlayerController
 extends Node
 ## Drives the parent Wizard from keyboard + mouse.
 ## CLICK: right-click (or hold) to walk to the mouse, like WC3.
-## WASD: walk with W/A/S/D. Note: W is also the Blink key from milestone 4,
-## so WASD mode will need different spell keys when spells arrive.
+## WASD: walk with W/A/S/D. Note: W is also the Blink key and D a spell
+## slot, so WASD mode needs its own spell keys before it is offered.
 
 enum MoveMode { CLICK, WASD }
 

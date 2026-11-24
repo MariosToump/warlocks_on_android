@@ -1,0 +1,75 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/blink_puff.png" id="1_n1r7u"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ot4jm"]
+atlas = ExtResource("1_n1r7u")
+region = Rect2(0, 0, 67, 52)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_csioa"]
+atlas = ExtResource("1_n1r7u")
+region = Rect2(67, 0, 67, 52)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pcl65"]
+atlas = ExtResource("1_n1r7u")
+region = Rect2(134, 0, 67, 52)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ut77c"]
+atlas = ExtResource("1_n1r7u")
+region = Rect2(0, 52, 67, 52)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bb70e"]
+atlas = ExtResource("1_n1r7u")
+region = Rect2(67, 52, 67, 52)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tn1v3"]
+atlas = ExtResource("1_n1r7u")
+region = Rect2(134, 52, 67, 52)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i440i"]
+atlas = ExtResource("1_n1r7u")
+region = Rect2(0, 104, 67, 52)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_to1jm"]
+atlas = ExtResource("1_n1r7u")
+region = Rect2(67, 104, 67, 52)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3qwxw"]
+atlas = ExtResource("1_n1r7u")
+region = Rect2(134, 104, 67, 52)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ot4jm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_csioa")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pcl65")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ut77c")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bb70e")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tn1v3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i440i")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_to1jm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3qwxw")
+}],
+"loop": 0,
+"name": &"default",
+"speed": 12.0
+}]
+metadata/pivot_px = Vector2(2.5, 29)

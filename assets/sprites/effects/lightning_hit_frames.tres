@@ -1,0 +1,75 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/lightning_hit.png" id="1_l4jfb"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_we4ay"]
+atlas = ExtResource("1_l4jfb")
+region = Rect2(0, 0, 64, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_phe8m"]
+atlas = ExtResource("1_l4jfb")
+region = Rect2(64, 0, 64, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fh3o7"]
+atlas = ExtResource("1_l4jfb")
+region = Rect2(128, 0, 64, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r4y8q"]
+atlas = ExtResource("1_l4jfb")
+region = Rect2(0, 46, 64, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qgvdt"]
+atlas = ExtResource("1_l4jfb")
+region = Rect2(64, 46, 64, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_etjdx"]
+atlas = ExtResource("1_l4jfb")
+region = Rect2(128, 46, 64, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8trkx"]
+atlas = ExtResource("1_l4jfb")
+region = Rect2(0, 92, 64, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_plaxw"]
+atlas = ExtResource("1_l4jfb")
+region = Rect2(64, 92, 64, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cdlyv"]
+atlas = ExtResource("1_l4jfb")
+region = Rect2(128, 92, 64, 46)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_we4ay")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_phe8m")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fh3o7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r4y8q")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qgvdt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_etjdx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8trkx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_plaxw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cdlyv")
+}],
+"loop": 0,
+"name": &"default",
+"speed": 18.0
+}]
+metadata/pivot_px = Vector2(-7, 19)

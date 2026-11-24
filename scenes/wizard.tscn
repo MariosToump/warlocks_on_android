@@ -5,6 +5,9 @@
 [ext_resource type="Script" path="res://scripts/health_bar.gd" id="3_hp"]
 [ext_resource type="Shader" path="res://shaders/team_color.gdshader" id="4_team"]
 [ext_resource type="Script" path="res://scripts/spells/fireball.gd" id="5_fireball"]
+[ext_resource type="Script" path="res://scripts/spells/blink.gd" id="6_blink"]
+[ext_resource type="Script" path="res://scripts/spells/lightning.gd" id="7_lightning"]
+[ext_resource type="Script" path="res://scripts/spells/shield.gd" id="8_shield"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_team"]
 shader = ExtResource("4_team")
@@ -75,6 +78,11 @@ scale_amount_max = 7.0
 scale_amount_curve = SubResource("Curve_grow")
 color_ramp = SubResource("Gradient_smoke")
 
+[node name="Bubble" type="AnimatedSprite2D" parent="."]
+visible = false
+z_index = 1
+position = Vector2(0, 7)
+
 [node name="HealthBar" type="Node2D" parent="."]
 position = Vector2(0, -40)
 z_index = 10
@@ -84,3 +92,12 @@ script = ExtResource("3_hp")
 
 [node name="Q" type="Node" parent="Spells"]
 script = ExtResource("5_fireball")
+
+[node name="W" type="Node" parent="Spells"]
+script = ExtResource("6_blink")
+
+[node name="E" type="Node" parent="Spells"]
+script = ExtResource("7_lightning")
+
+[node name="R" type="Node" parent="Spells"]
+script = ExtResource("8_shield")

@@ -1,0 +1,45 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Lava Warlocks lightning hit",
+ "fps": 18,
+ "frame_ms": 56,
+ "frames": 10,
+ "loop": false,
+ "canvas": {
+  "w": 70,
+  "h": 56
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 28,
+  "y": 49
+ },
+ "clips": [
+  {
+   "name": "part-zap_hit",
+   "title": "the zap hit part",
+   "part": "zap_hit",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 9,
+   "frame": {
+    "w": 64,
+    "h": 46
+   },
+   "sheets": [
+    {
+     "file": "part-zap_hit.png",
+     "first_frame": 0,
+     "frames": 9,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -25,
+    "y": -42
+   }
+  }
+ ]
+}

@@ -1,91 +1,133 @@
 [gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/east/frame_000.png" id="1_k42df"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/east/frame_001.png" id="2_wq2nb"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/east/frame_002.png" id="3_phxmn"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/east/frame_003.png" id="4_ksdyx"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/east/frame_004.png" id="5_op4rc"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/east/frame_005.png" id="6_23xhx"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north/frame_000.png" id="7_iskd6"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north/frame_001.png" id="8_7pj2d"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north/frame_002.png" id="9_5w87j"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north/frame_003.png" id="10_33x2f"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north/frame_004.png" id="11_q5rcq"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north/frame_005.png" id="12_tnxkq"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north-east/frame_000.png" id="13_6lx32"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north-east/frame_001.png" id="14_orgy4"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north-east/frame_002.png" id="15_pjabc"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north-east/frame_003.png" id="16_u70rf"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north-east/frame_004.png" id="17_mr7im"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north-east/frame_005.png" id="18_x0qpu"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south/frame_000.png" id="19_rngei"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south/frame_001.png" id="20_cl242"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south/frame_002.png" id="21_5ggo0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south/frame_003.png" id="22_jye6e"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south/frame_004.png" id="23_exqk2"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south/frame_005.png" id="24_kjj4n"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south-east/frame_000.png" id="25_82h02"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south-east/frame_001.png" id="26_3amv8"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south-east/frame_002.png" id="27_kv15s"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south-east/frame_003.png" id="28_4xffn"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south-east/frame_004.png" id="29_v10lv"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south-east/frame_005.png" id="30_uk3f4"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/rotations/east.png" id="31_ubnef"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/rotations/north.png" id="32_jrxwx"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/rotations/north-east.png" id="33_dp10a"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/rotations/south.png" id="34_f215g"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/rotations/south-east.png" id="35_e0d87"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/east/frame_000.png" id="36_sf5j1"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/east/frame_001.png" id="37_ng3t6"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/east/frame_002.png" id="38_15jf4"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/east/frame_003.png" id="39_w31wj"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/east/frame_004.png" id="40_ikad8"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/east/frame_005.png" id="41_6riev"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north/frame_000.png" id="42_d8gwi"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north/frame_001.png" id="43_jin81"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north/frame_002.png" id="44_phty2"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north/frame_003.png" id="45_nivln"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north/frame_004.png" id="46_egsb0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north/frame_005.png" id="47_33shu"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north-east/frame_000.png" id="48_vsoy6"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north-east/frame_001.png" id="49_7sd3v"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north-east/frame_002.png" id="50_j8kpo"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north-east/frame_003.png" id="51_8nejl"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north-east/frame_004.png" id="52_36e5m"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north-east/frame_005.png" id="53_j2tnx"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south/frame_000.png" id="54_k01xj"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south/frame_001.png" id="55_3liej"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south/frame_002.png" id="56_2yq5o"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south/frame_003.png" id="57_y8si5"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south/frame_004.png" id="58_ypavo"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south/frame_005.png" id="59_6mht6"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south-east/frame_000.png" id="60_wjtij"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south-east/frame_001.png" id="61_yduio"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south-east/frame_002.png" id="62_jjkw7"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south-east/frame_003.png" id="63_bg8qc"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south-east/frame_004.png" id="64_slumu"]
-[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south-east/frame_005.png" id="65_qitj7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/east/frame_000.png" id="1_jin81"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/east/frame_001.png" id="2_phty2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/east/frame_002.png" id="3_nivln"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/east/frame_003.png" id="4_egsb0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/east/frame_004.png" id="5_33shu"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/east/frame_005.png" id="6_vsoy6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north/frame_000.png" id="7_7sd3v"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north/frame_001.png" id="8_j8kpo"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north/frame_002.png" id="9_8nejl"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north/frame_003.png" id="10_36e5m"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north/frame_004.png" id="11_j2tnx"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north/frame_005.png" id="12_k01xj"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north-east/frame_000.png" id="13_3liej"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north-east/frame_001.png" id="14_2yq5o"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north-east/frame_002.png" id="15_y8si5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north-east/frame_003.png" id="16_ypavo"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north-east/frame_004.png" id="17_6mht6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/north-east/frame_005.png" id="18_wjtij"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south/frame_000.png" id="19_yduio"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south/frame_001.png" id="20_jjkw7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south/frame_002.png" id="21_bg8qc"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south/frame_003.png" id="22_slumu"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south/frame_004.png" id="23_qitj7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south/frame_005.png" id="24_63ai2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south-east/frame_000.png" id="25_lukxk"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south-east/frame_001.png" id="26_o1iw0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south-east/frame_002.png" id="27_f27dl"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south-east/frame_003.png" id="28_l1pu8"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south-east/frame_004.png" id="29_ni20t"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/cast/south-east/frame_005.png" id="30_os103"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/north/frame_000.png" id="31_h2rot"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/north/frame_001.png" id="32_r361t"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/north/frame_002.png" id="33_uk8qn"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/north/frame_003.png" id="34_obkxj"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/north/frame_004.png" id="35_wpmik"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/north/frame_005.png" id="36_tfw15"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/south/frame_000.png" id="37_fm5ik"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/south/frame_001.png" id="38_nlcho"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/south/frame_002.png" id="39_jcasm"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/south/frame_003.png" id="40_3yroh"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/south/frame_004.png" id="41_kpq2b"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/south/frame_005.png" id="42_b7qfy"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/south-east/frame_000.png" id="43_40i7w"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/south-east/frame_001.png" id="44_1y6yr"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/south-east/frame_002.png" id="45_hmfvw"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/south-east/frame_003.png" id="46_pq02t"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/south-east/frame_004.png" id="47_7axcm"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/death/south-east/frame_005.png" id="48_5kd70"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/north/frame_000.png" id="49_w6pbh"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/north/frame_001.png" id="50_o2r1a"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/north/frame_002.png" id="51_pyckt"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/north/frame_003.png" id="52_m5k5h"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/north/frame_004.png" id="53_x8v3t"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/north/frame_005.png" id="54_6s0vu"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/north-east/frame_000.png" id="55_6epi2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/north-east/frame_001.png" id="56_25bf6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/north-east/frame_002.png" id="57_rt7xc"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/north-east/frame_003.png" id="58_amwf2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/north-east/frame_004.png" id="59_xgplq"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/north-east/frame_005.png" id="60_x1nsa"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/south/frame_000.png" id="61_fbs43"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/south/frame_001.png" id="62_vp274"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/south/frame_002.png" id="63_025xq"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/south/frame_003.png" id="64_x0v8k"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/south/frame_004.png" id="65_0pc56"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/south/frame_005.png" id="66_k1yxb"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/south-east/frame_000.png" id="67_3wij7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/south-east/frame_001.png" id="68_clmru"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/south-east/frame_002.png" id="69_a454x"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/south-east/frame_003.png" id="70_qo0oj"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/south-east/frame_004.png" id="71_js7yp"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/hurt/south-east/frame_005.png" id="72_1dym7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/rotations/east.png" id="73_el21m"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/rotations/north.png" id="74_hho0m"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/rotations/north-east.png" id="75_b23q3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/rotations/south.png" id="76_chvo7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/rotations/south-east.png" id="77_v4tp8"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/east/frame_000.png" id="78_yla7x"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/east/frame_001.png" id="79_loohq"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/east/frame_002.png" id="80_1gdps"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/east/frame_003.png" id="81_k3cc6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/east/frame_004.png" id="82_wll8t"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/east/frame_005.png" id="83_vviqn"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north/frame_000.png" id="84_y2lx6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north/frame_001.png" id="85_oeh5t"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north/frame_002.png" id="86_8fgi7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north/frame_003.png" id="87_8rqma"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north/frame_004.png" id="88_n01lv"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north/frame_005.png" id="89_y4jnw"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north-east/frame_000.png" id="90_0lfyg"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north-east/frame_001.png" id="91_fqxwh"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north-east/frame_002.png" id="92_wif8e"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north-east/frame_003.png" id="93_yfm0k"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north-east/frame_004.png" id="94_dcx7s"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/north-east/frame_005.png" id="95_3n6w2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south/frame_000.png" id="96_lsde7"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south/frame_001.png" id="97_q1q34"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south/frame_002.png" id="98_yispx"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south/frame_003.png" id="99_2xsfu"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south/frame_004.png" id="100_b6mt2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south/frame_005.png" id="101_k4chd"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south-east/frame_000.png" id="102_ao0w6"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south-east/frame_001.png" id="103_y2mx2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south-east/frame_002.png" id="104_cxeq0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south-east/frame_003.png" id="105_fd862"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south-east/frame_004.png" id="106_qvs0t"]
+[ext_resource type="Texture2D" path="res://assets/sprites/red_warlock/animations/walk/south-east/frame_005.png" id="107_j0ee8"]
 
 [resource]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("1_k42df")
+"texture": ExtResource("1_jin81")
 }, {
 "duration": 1.0,
-"texture": ExtResource("2_wq2nb")
+"texture": ExtResource("2_phty2")
 }, {
 "duration": 1.0,
-"texture": ExtResource("3_phxmn")
+"texture": ExtResource("3_nivln")
 }, {
 "duration": 1.0,
-"texture": ExtResource("4_ksdyx")
+"texture": ExtResource("4_egsb0")
 }, {
 "duration": 1.0,
-"texture": ExtResource("5_op4rc")
+"texture": ExtResource("5_33shu")
 }, {
 "duration": 1.0,
-"texture": ExtResource("6_23xhx")
+"texture": ExtResource("6_vsoy6")
 }],
 "loop": 0,
 "name": &"cast_east",
@@ -93,22 +135,22 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("7_iskd6")
+"texture": ExtResource("7_7sd3v")
 }, {
 "duration": 1.0,
-"texture": ExtResource("8_7pj2d")
+"texture": ExtResource("8_j8kpo")
 }, {
 "duration": 1.0,
-"texture": ExtResource("9_5w87j")
+"texture": ExtResource("9_8nejl")
 }, {
 "duration": 1.0,
-"texture": ExtResource("10_33x2f")
+"texture": ExtResource("10_36e5m")
 }, {
 "duration": 1.0,
-"texture": ExtResource("11_q5rcq")
+"texture": ExtResource("11_j2tnx")
 }, {
 "duration": 1.0,
-"texture": ExtResource("12_tnxkq")
+"texture": ExtResource("12_k01xj")
 }],
 "loop": 0,
 "name": &"cast_north",
@@ -116,22 +158,22 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("13_6lx32")
+"texture": ExtResource("13_3liej")
 }, {
 "duration": 1.0,
-"texture": ExtResource("14_orgy4")
+"texture": ExtResource("14_2yq5o")
 }, {
 "duration": 1.0,
-"texture": ExtResource("15_pjabc")
+"texture": ExtResource("15_y8si5")
 }, {
 "duration": 1.0,
-"texture": ExtResource("16_u70rf")
+"texture": ExtResource("16_ypavo")
 }, {
 "duration": 1.0,
-"texture": ExtResource("17_mr7im")
+"texture": ExtResource("17_6mht6")
 }, {
 "duration": 1.0,
-"texture": ExtResource("18_x0qpu")
+"texture": ExtResource("18_wjtij")
 }],
 "loop": 0,
 "name": &"cast_north-east",
@@ -139,22 +181,22 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("19_rngei")
+"texture": ExtResource("19_yduio")
 }, {
 "duration": 1.0,
-"texture": ExtResource("20_cl242")
+"texture": ExtResource("20_jjkw7")
 }, {
 "duration": 1.0,
-"texture": ExtResource("21_5ggo0")
+"texture": ExtResource("21_bg8qc")
 }, {
 "duration": 1.0,
-"texture": ExtResource("22_jye6e")
+"texture": ExtResource("22_slumu")
 }, {
 "duration": 1.0,
-"texture": ExtResource("23_exqk2")
+"texture": ExtResource("23_qitj7")
 }, {
 "duration": 1.0,
-"texture": ExtResource("24_kjj4n")
+"texture": ExtResource("24_63ai2")
 }],
 "loop": 0,
 "name": &"cast_south",
@@ -162,22 +204,22 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("25_82h02")
+"texture": ExtResource("25_lukxk")
 }, {
 "duration": 1.0,
-"texture": ExtResource("26_3amv8")
+"texture": ExtResource("26_o1iw0")
 }, {
 "duration": 1.0,
-"texture": ExtResource("27_kv15s")
+"texture": ExtResource("27_f27dl")
 }, {
 "duration": 1.0,
-"texture": ExtResource("28_4xffn")
+"texture": ExtResource("28_l1pu8")
 }, {
 "duration": 1.0,
-"texture": ExtResource("29_v10lv")
+"texture": ExtResource("29_ni20t")
 }, {
 "duration": 1.0,
-"texture": ExtResource("30_uk3f4")
+"texture": ExtResource("30_os103")
 }],
 "loop": 0,
 "name": &"cast_south-east",
@@ -185,7 +227,168 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("31_ubnef")
+"texture": ExtResource("31_h2rot")
+}, {
+"duration": 1.0,
+"texture": ExtResource("32_r361t")
+}, {
+"duration": 1.0,
+"texture": ExtResource("33_uk8qn")
+}, {
+"duration": 1.0,
+"texture": ExtResource("34_obkxj")
+}, {
+"duration": 1.0,
+"texture": ExtResource("35_wpmik")
+}, {
+"duration": 1.0,
+"texture": ExtResource("36_tfw15")
+}],
+"loop": 0,
+"name": &"death_north",
+"speed": 9.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("37_fm5ik")
+}, {
+"duration": 1.0,
+"texture": ExtResource("38_nlcho")
+}, {
+"duration": 1.0,
+"texture": ExtResource("39_jcasm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("40_3yroh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("41_kpq2b")
+}, {
+"duration": 1.0,
+"texture": ExtResource("42_b7qfy")
+}],
+"loop": 0,
+"name": &"death_south",
+"speed": 9.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("43_40i7w")
+}, {
+"duration": 1.0,
+"texture": ExtResource("44_1y6yr")
+}, {
+"duration": 1.0,
+"texture": ExtResource("45_hmfvw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("46_pq02t")
+}, {
+"duration": 1.0,
+"texture": ExtResource("47_7axcm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("48_5kd70")
+}],
+"loop": 0,
+"name": &"death_south-east",
+"speed": 9.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("49_w6pbh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("50_o2r1a")
+}, {
+"duration": 1.0,
+"texture": ExtResource("51_pyckt")
+}, {
+"duration": 1.0,
+"texture": ExtResource("52_m5k5h")
+}, {
+"duration": 1.0,
+"texture": ExtResource("53_x8v3t")
+}, {
+"duration": 1.0,
+"texture": ExtResource("54_6s0vu")
+}],
+"loop": 0,
+"name": &"hurt_north",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("55_6epi2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("56_25bf6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("57_rt7xc")
+}, {
+"duration": 1.0,
+"texture": ExtResource("58_amwf2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("59_xgplq")
+}, {
+"duration": 1.0,
+"texture": ExtResource("60_x1nsa")
+}],
+"loop": 0,
+"name": &"hurt_north-east",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("61_fbs43")
+}, {
+"duration": 1.0,
+"texture": ExtResource("62_vp274")
+}, {
+"duration": 1.0,
+"texture": ExtResource("63_025xq")
+}, {
+"duration": 1.0,
+"texture": ExtResource("64_x0v8k")
+}, {
+"duration": 1.0,
+"texture": ExtResource("65_0pc56")
+}, {
+"duration": 1.0,
+"texture": ExtResource("66_k1yxb")
+}],
+"loop": 0,
+"name": &"hurt_south",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("67_3wij7")
+}, {
+"duration": 1.0,
+"texture": ExtResource("68_clmru")
+}, {
+"duration": 1.0,
+"texture": ExtResource("69_a454x")
+}, {
+"duration": 1.0,
+"texture": ExtResource("70_qo0oj")
+}, {
+"duration": 1.0,
+"texture": ExtResource("71_js7yp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("72_1dym7")
+}],
+"loop": 0,
+"name": &"hurt_south-east",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("73_el21m")
 }],
 "loop": 1,
 "name": &"idle_east",
@@ -193,7 +396,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("32_jrxwx")
+"texture": ExtResource("74_hho0m")
 }],
 "loop": 1,
 "name": &"idle_north",
@@ -201,7 +404,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("33_dp10a")
+"texture": ExtResource("75_b23q3")
 }],
 "loop": 1,
 "name": &"idle_north-east",
@@ -209,7 +412,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("34_f215g")
+"texture": ExtResource("76_chvo7")
 }],
 "loop": 1,
 "name": &"idle_south",
@@ -217,7 +420,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("35_e0d87")
+"texture": ExtResource("77_v4tp8")
 }],
 "loop": 1,
 "name": &"idle_south-east",
@@ -225,22 +428,22 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("36_sf5j1")
+"texture": ExtResource("78_yla7x")
 }, {
 "duration": 1.0,
-"texture": ExtResource("37_ng3t6")
+"texture": ExtResource("79_loohq")
 }, {
 "duration": 1.0,
-"texture": ExtResource("38_15jf4")
+"texture": ExtResource("80_1gdps")
 }, {
 "duration": 1.0,
-"texture": ExtResource("39_w31wj")
+"texture": ExtResource("81_k3cc6")
 }, {
 "duration": 1.0,
-"texture": ExtResource("40_ikad8")
+"texture": ExtResource("82_wll8t")
 }, {
 "duration": 1.0,
-"texture": ExtResource("41_6riev")
+"texture": ExtResource("83_vviqn")
 }],
 "loop": 1,
 "name": &"walk_east",
@@ -248,22 +451,22 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("42_d8gwi")
+"texture": ExtResource("84_y2lx6")
 }, {
 "duration": 1.0,
-"texture": ExtResource("43_jin81")
+"texture": ExtResource("85_oeh5t")
 }, {
 "duration": 1.0,
-"texture": ExtResource("44_phty2")
+"texture": ExtResource("86_8fgi7")
 }, {
 "duration": 1.0,
-"texture": ExtResource("45_nivln")
+"texture": ExtResource("87_8rqma")
 }, {
 "duration": 1.0,
-"texture": ExtResource("46_egsb0")
+"texture": ExtResource("88_n01lv")
 }, {
 "duration": 1.0,
-"texture": ExtResource("47_33shu")
+"texture": ExtResource("89_y4jnw")
 }],
 "loop": 1,
 "name": &"walk_north",
@@ -271,22 +474,22 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("48_vsoy6")
+"texture": ExtResource("90_0lfyg")
 }, {
 "duration": 1.0,
-"texture": ExtResource("49_7sd3v")
+"texture": ExtResource("91_fqxwh")
 }, {
 "duration": 1.0,
-"texture": ExtResource("50_j8kpo")
+"texture": ExtResource("92_wif8e")
 }, {
 "duration": 1.0,
-"texture": ExtResource("51_8nejl")
+"texture": ExtResource("93_yfm0k")
 }, {
 "duration": 1.0,
-"texture": ExtResource("52_36e5m")
+"texture": ExtResource("94_dcx7s")
 }, {
 "duration": 1.0,
-"texture": ExtResource("53_j2tnx")
+"texture": ExtResource("95_3n6w2")
 }],
 "loop": 1,
 "name": &"walk_north-east",
@@ -294,22 +497,22 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("54_k01xj")
+"texture": ExtResource("96_lsde7")
 }, {
 "duration": 1.0,
-"texture": ExtResource("55_3liej")
+"texture": ExtResource("97_q1q34")
 }, {
 "duration": 1.0,
-"texture": ExtResource("56_2yq5o")
+"texture": ExtResource("98_yispx")
 }, {
 "duration": 1.0,
-"texture": ExtResource("57_y8si5")
+"texture": ExtResource("99_2xsfu")
 }, {
 "duration": 1.0,
-"texture": ExtResource("58_ypavo")
+"texture": ExtResource("100_b6mt2")
 }, {
 "duration": 1.0,
-"texture": ExtResource("59_6mht6")
+"texture": ExtResource("101_k4chd")
 }],
 "loop": 1,
 "name": &"walk_south",
@@ -317,22 +520,22 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("60_wjtij")
+"texture": ExtResource("102_ao0w6")
 }, {
 "duration": 1.0,
-"texture": ExtResource("61_yduio")
+"texture": ExtResource("103_y2mx2")
 }, {
 "duration": 1.0,
-"texture": ExtResource("62_jjkw7")
+"texture": ExtResource("104_cxeq0")
 }, {
 "duration": 1.0,
-"texture": ExtResource("63_bg8qc")
+"texture": ExtResource("105_fd862")
 }, {
 "duration": 1.0,
-"texture": ExtResource("64_slumu")
+"texture": ExtResource("106_qvs0t")
 }, {
 "duration": 1.0,
-"texture": ExtResource("65_qitj7")
+"texture": ExtResource("107_j0ee8")
 }],
 "loop": 1,
 "name": &"walk_south-east",

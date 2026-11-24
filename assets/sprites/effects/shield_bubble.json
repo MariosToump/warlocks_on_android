@@ -1,0 +1,45 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Lava Warlocks shield bubble",
+ "fps": 10,
+ "frame_ms": 100,
+ "frames": 12,
+ "loop": true,
+ "canvas": {
+  "w": 61,
+  "h": 61
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 30,
+  "y": 53
+ },
+ "clips": [
+  {
+   "name": "part-bubble_shield",
+   "title": "the bubble shield part",
+   "part": "bubble_shield",
+   "depth": "both",
+   "loop": true,
+   "start_frame": 0,
+   "frames": 12,
+   "frame": {
+    "w": 55,
+    "h": 55
+   },
+   "sheets": [
+    {
+     "file": "part-bubble_shield.png",
+     "first_frame": 0,
+     "frames": 12,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -27,
+    "y": -50
+   }
+  }
+ ]
+}

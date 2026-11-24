@@ -8,7 +8,7 @@ extends SceneTree
 ## west-facing ones with flip_h so idle and walk always match.
 
 const DIRS := ["south", "south-east", "east", "north-east", "north"]
-const FPS := {"walk": 10.0}
+const FPS := {"walk": 10.0, "hurt": 12.0, "death": 9.0}
 
 
 func _init() -> void:

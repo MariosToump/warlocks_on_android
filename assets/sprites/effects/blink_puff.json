@@ -1,0 +1,45 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Lava Warlocks blink puff",
+ "fps": 12,
+ "frame_ms": 83,
+ "frames": 10,
+ "loop": false,
+ "canvas": {
+  "w": 73,
+  "h": 61
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 39,
+  "y": 58
+ },
+ "clips": [
+  {
+   "name": "part-smoke_poof",
+   "title": "the smoke poof part",
+   "part": "smoke_poof",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 9,
+   "frame": {
+    "w": 67,
+    "h": 52
+   },
+   "sheets": [
+    {
+     "file": "part-smoke_poof.png",
+     "first_frame": 0,
+     "frames": 9,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -36,
+    "y": -55
+   }
+  }
+ ]
+}

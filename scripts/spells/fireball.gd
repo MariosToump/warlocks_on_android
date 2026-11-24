@@ -3,6 +3,7 @@ extends Spell
 ## Q: fast projectile, small damage, medium knockback.
 
 const PROJECTILE := preload("res://scenes/projectile_fireball.tscn")
+const FRAMES := preload("res://assets/sprites/effects/fireball_frames.tres")
 
 @export var damage_by_level: Array[float] = [6.0, 8.0, 10.0, 12.0]
 @export var knockback_by_level: Array[float] = [380.0, 420.0, 460.0, 500.0]
@@ -12,6 +13,7 @@ const PROJECTILE := preload("res://scenes/projectile_fireball.tscn")
 
 func _init() -> void:
 	spell_name = "Fireball"
+	icon = FRAMES.get_frame_texture("default", 0)
 	cooldown_by_level = [2.0, 1.8, 1.6, 1.4]
 	cast_time = 0.35
 	release_time = 0.22

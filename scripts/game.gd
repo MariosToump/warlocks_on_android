@@ -3,7 +3,6 @@ extends Node2D
 ## until the AI bots in milestone 5). Rounds and scoring come later.
 
 const WIZARD := preload("res://scenes/wizard.tscn")
-const FIREBALL_FRAMES := preload("res://assets/sprites/effects/fireball_frames.tres")
 
 @export var respawn_delay := 2.0
 @export var follow_zoom := 1.5 ## camera zoom while following the player
@@ -24,10 +23,6 @@ func _ready() -> void:
 		_spawn_dummy(Wizard.TeamColor.BLUE, Vector2(160, -40))
 		_spawn_dummy(Wizard.TeamColor.GREEN, Vector2(-150, 80))
 
-	# Placeholder icon until the UI art milestone.
-	var q := player.get_spell("Q")
-	if q:
-		q.icon = FIREBALL_FRAMES.get_frame_texture("default", 0)
 	spell_bar.wizard = player
 
 	arena.camera.target = player
