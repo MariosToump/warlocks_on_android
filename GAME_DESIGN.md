@@ -5,12 +5,13 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-24_
+_Last updated: 2026-11-24 (milestone 6 done, docs + READMEs added)_
 
+Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
 - **PC**: `D:\Godot\Projects\claude_mcp\lava-warlocks` (keyboard + mouse, Forward+ renderer). Local git only.
 - **Android**: `D:\Godot\Projects\claude_mcp\lava-warlocks-mobile` (touch controls, Compatibility renderer).
-  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.5.
+  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.6 (milestone 6, pushed 2026-11-24).
   Build + install on the phone: `bash tools/deploy_android.sh`. APK: `build/warlocks_on_android.apk`.
   Gameplay changes are made in PC first, then ported (`git cherry-pick` from the `pc` remote).
 
@@ -45,7 +46,7 @@ No shop yet (milestone 7), so every round is the same 4 spells + staff.
   - `game.gd` `bot_debug` draws each bot's current action. `tools/sim_ai.gd -- <easy|normal|hard> [s]` runs a bots-only fight and prints stats.
   - Known: Caster tends to survive longest; few lava deaths because the arena is huge (shrinking in M6 will fix).
 
-- **Rounds** (`game.gd`, `scripts/round_hud.gd`, 2026-11-24):
+- **Rounds** (`game.gd`, `scripts/round_hud.gd`, 2026-11-24; design record `docs/superpowers/specs/2026-11-24-rounds-design.md`):
   - Each round: everyone placed on a flat ellipse around the middle (260 x 130 px, random rotation, facing in),
     3 s countdown with the camera showing the whole field and controls off, then "Fight!" and the camera glides to the player.
   - The dead stay dead. Round ends the frame only one is left (all dead on the same tick = draw, nobody scores).
