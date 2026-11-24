@@ -14,7 +14,7 @@ extends Camera2D
 @export var target: Node2D
 @export var pan_speed := 600.0
 @export var min_zoom := 0.5
-@export var max_zoom := 2.0
+@export var max_zoom := 3.0
 @export var zoom_step := 0.1
 @export var start_zoom := 0.5
 

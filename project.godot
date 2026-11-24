@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Lava Warlocks Mobile"
+config/name="Warlocks on Android"
 run/main_scene="res://scenes/game.tscn"
 config/features=PackedStringArray("4.7")
 config/icon="res://icon.png"

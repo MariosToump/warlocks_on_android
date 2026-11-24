@@ -92,31 +92,40 @@ func _run() -> void:
 	await _seconds(0.2)
 	_check(player.get_spell("E").cooldown_left > 0.0, "lightning cast on release")
 
-	# Attack button: tap = walk up to the nearest enemy and hit it once.
+	# Attack button: swings on the spot, never walks toward anyone.
 	await _seconds(0.6)
 	var enemy2 := touch._nearest_enemy()
 	player.global_position = enemy2.global_position + Vector2(-110, 0)
 	player.reset_physics_interpolation()
 	await _frames(2)
 	var hp := enemy2.health
+	var before := player.global_position
 	var a_pos := touch._button_center("A")
 	_touch(7, a_pos, true)
 	_touch(7, a_pos, false)
-	_check(player.attack_target == enemy2, "tap attack targets the nearest enemy")
-	await _seconds(1.2)
-	_check(enemy2.health < hp, "walks up and hits (hp %.1f -> %.1f)" % [hp, enemy2.health])
-	_check(player.attack_target == null, "a tap is one hit")
-	await _shot("5_attack")
+	_check(player.is_casting(), "tap attack swings at once")
+	await _seconds(0.8)
+	_check(player.global_position.distance_to(before) < 2.0, "attack doesn't walk anywhere")
+	_check(is_equal_approx(enemy2.health, hp), "out of reach: no hit")
+	_check(player.attack_target == null, "no auto-target")
 
-	# Hold attack: keeps hitting.
-	hp = enemy2.health
-	player.global_position = enemy2.global_position + Vector2(-26, 0)
+	# In reach: turns to the enemy and hits; holding keeps swinging.
+	player.global_position = enemy2.global_position + Vector2(0, 24)
 	enemy2.knockback = Vector2.ZERO
 	player.reset_physics_interpolation()
+	await _frames(2)
 	_touch(7, a_pos, true)
-	await _seconds(2.2) # each hit shoves it away, so it chases between hits
+	await _seconds(0.3)
+	_check(enemy2.health < hp, "hits an enemy in reach (hp %.1f)" % enemy2.health)
+	_check(player.get_spell("A").cooldown_left > 0.0, "attack cooldown runs (timer on the button)")
+	await _shot("5_attack")
+	await _seconds(0.5)
+	_check(player.is_casting(), "holding swings again")
 	_touch(7, a_pos, false)
-	_check(hp - enemy2.health >= 7.9, "holding attack hits repeatedly (%.1f dmg)" % (hp - enemy2.health))
+
+	# Zoomed in: 3 screen px per art pixel at 1080p-height screens, 2 here.
+	var cam: ArenaCamera = game.get_node("Arena").camera
+	_check(cam.zoom.x * cam.screen_scale() >= 2.0, "zoom %.2f px per art px" % (cam.zoom.x * cam.screen_scale()))
 
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)

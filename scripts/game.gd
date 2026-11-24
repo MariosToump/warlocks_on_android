@@ -5,7 +5,7 @@ extends Node2D
 const WIZARD := preload("res://scenes/wizard.tscn")
 
 @export var respawn_delay := 2.0
-@export var follow_zoom := 1.5 ## camera zoom while following the player (snapped to whole pixels)
+@export var follow_zoom := 2.0 ## camera zoom while following the player (snapped to whole pixels)
 @export var spawn_dummies := true
 
 @onready var arena: Arena = $Arena
