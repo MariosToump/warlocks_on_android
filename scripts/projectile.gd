@@ -11,7 +11,7 @@ const IMPACT := preload("res://scenes/effect_one_shot.tscn")
 
 var caster: Wizard
 var direction := Vector2.RIGHT
-var speed := 460.0
+var speed := 560.0
 var max_range := 650.0
 var damage := 6.0
 var knockback := 380.0
@@ -27,6 +27,7 @@ func _ready() -> void:
 	sprite.rotation = direction.angle()
 	sprite.play()
 	body_entered.connect(_on_body_entered)
+	reset_physics_interpolation() # don't slide in from the origin
 
 
 func _physics_process(delta: float) -> void:

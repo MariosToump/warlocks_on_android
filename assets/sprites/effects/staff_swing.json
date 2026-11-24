@@ -1,0 +1,45 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Lava Warlocks staff swing",
+ "fps": 16,
+ "frame_ms": 63,
+ "frames": 9,
+ "loop": false,
+ "canvas": {
+  "w": 37,
+  "h": 34
+ },
+ "anchor": {
+  "kind": "origin",
+  "x": 17,
+  "y": 20
+ },
+ "clips": [
+  {
+   "name": "part-swing_slash",
+   "title": "the swing slash part",
+   "part": "swing_slash",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 7,
+   "frame": {
+    "w": 31,
+    "h": 28
+   },
+   "sheets": [
+    {
+     "file": "part-swing_slash.png",
+     "first_frame": 0,
+     "frames": 7,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -14,
+    "y": -17
+   }
+  }
+ ]
+}

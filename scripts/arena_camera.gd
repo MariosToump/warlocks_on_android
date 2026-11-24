@@ -5,6 +5,11 @@ extends Camera2D
 ## - Otherwise free camera: arrow keys or middle-mouse drag to pan.
 ## - Mouse wheel zooms. Home key re-centres on the arena.
 ## Limits are set by the arena so the view never leaves the lava field.
+##
+## Crisp pixels: the game stretches to the window (canvas_items), so the
+## zoom is always picked so one art pixel covers a whole number of screen
+## pixels (2, 3, ...) whatever the window or phone size. A fractional
+## size like 2.25 is what makes pixel art look uneven and soft.
 
 @export var target: Node2D
 @export var pan_speed := 600.0
@@ -15,12 +20,18 @@ extends Camera2D
 
 var _home := Vector2.ZERO
 var _dragging := false
+## Wanted zoom (in base-resolution units); the real zoom is snapped from it.
+var _design_zoom := 1.0
 
 
 func _ready() -> void:
+	# Follow on physics ticks (also set in arena.tscn): with physics interpolation on, the camera is
+	# then interpolated together with what it follows, so no jitter.
+	process_callback = Camera2D.CAMERA2D_PROCESS_PHYSICS
 	position_smoothing_enabled = true
 	position_smoothing_speed = 8.0
-	zoom = Vector2(start_zoom, start_zoom)
+	get_tree().root.size_changed.connect(_apply_zoom)
+	set_design_zoom(start_zoom)
 
 
 ## Called by the arena: world-space bounds of the map and its centre.
@@ -34,7 +45,29 @@ func setup_bounds(bounds: Rect2, home: Vector2) -> void:
 	reset_smoothing()
 
 
-func _process(delta: float) -> void:
+## Zoom as it would be at the base 1280x720 resolution; snapped to whole
+## screen pixels per art pixel.
+func set_design_zoom(z: float) -> void:
+	_design_zoom = clampf(z, min_zoom, max_zoom)
+	_apply_zoom()
+
+
+func _apply_zoom() -> void:
+	var s := screen_scale()
+	var px := maxf(roundf(_design_zoom * s), 1.0) # screen px per art px
+	zoom = Vector2(px, px) / s
+	_clamp_to_limits()
+
+
+## How many screen pixels one base-resolution pixel covers right now.
+func screen_scale() -> float:
+	var win := get_tree().root
+	var base := Vector2(ProjectSettings.get_setting("display/window/size/viewport_width"),
+			ProjectSettings.get_setting("display/window/size/viewport_height"))
+	return minf(win.size.x / base.x, win.size.y / base.y)
+
+
+func _physics_process(delta: float) -> void:
 	if target:
 		global_position = target.global_position
 		return
@@ -47,10 +80,12 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
+		# Wheel steps one whole pixel size in or out.
+		var step := 1.0 / screen_scale()
 		if mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_UP:
-			_set_zoom(zoom.x + zoom_step)
+			set_design_zoom(zoom.x + step)
 		elif mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			_set_zoom(zoom.x - zoom_step)
+			set_design_zoom(zoom.x - step)
 		elif mb.button_index == MOUSE_BUTTON_MIDDLE:
 			_dragging = mb.pressed
 	elif event is InputEventMouseMotion and _dragging and not target:
@@ -58,12 +93,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_clamp_to_limits()
 	elif event is InputEventKey and event.pressed and (event as InputEventKey).keycode == KEY_HOME:
 		global_position = _home
-
-
-func _set_zoom(z: float) -> void:
-	z = clampf(z, min_zoom, max_zoom)
-	zoom = Vector2(z, z)
-	_clamp_to_limits()
 
 
 ## Keep the camera's own position inside the area it can actually show,

@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/spells/blink.gd" id="6_blink"]
 [ext_resource type="Script" path="res://scripts/spells/lightning.gd" id="7_lightning"]
 [ext_resource type="Script" path="res://scripts/spells/shield.gd" id="8_shield"]
+[ext_resource type="Script" path="res://scripts/spells/staff_strike.gd" id="9_staff"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_team"]
 shader = ExtResource("4_team")
@@ -89,6 +90,9 @@ z_index = 10
 script = ExtResource("3_hp")
 
 [node name="Spells" type="Node" parent="."]
+
+[node name="A" type="Node" parent="Spells"]
+script = ExtResource("9_staff")
 
 [node name="Q" type="Node" parent="Spells"]
 script = ExtResource("5_fireball")

@@ -27,11 +27,11 @@ func _run() -> void:
 	_check(is_equal_approx(player.health, 100.0), "starts with 100 HP")
 	await _shot("1_spawn")
 
-	# Walk east for 1 s: speed ~140 px/s, walk animation, facing east.
+	# Walk east for 1 s: speed ~165 px/s, walk animation, facing east.
 	player.move_target = start + Vector2(1000, 0)
 	await _seconds(1.0)
 	var moved := player.global_position.x - start.x
-	_check(moved > 120 and moved < 160, "moves ~140 px/s (moved %.0f)" % moved)
+	_check(moved > 145 and moved < 185, "moves ~165 px/s (moved %.0f)" % moved)
 	_check(player.sprite.animation == &"walk_east", "walk_east anim (%s)" % player.sprite.animation)
 	await _shot("2_walking")
 

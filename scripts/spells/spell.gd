@@ -13,6 +13,13 @@ extends Node
 ## When in the cast the spell actually fires (seconds after starting).
 @export var release_time := 0.15
 @export_range(0, 3) var level := 0
+## Wizard animation played while casting ("cast" -> cast_<dir>).
+var anim := "cast"
+## If true the animation is stretched to exactly cast_time (attacks), else
+## it may run a little past it as follow-through.
+var anim_fits_cast := false
+## If true, walking after the spell has fired cuts the follow-through short.
+var cancel_on_move := false
 
 var cooldown_left := 0.0
 var caster: Wizard

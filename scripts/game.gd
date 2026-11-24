@@ -5,7 +5,7 @@ extends Node2D
 const WIZARD := preload("res://scenes/wizard.tscn")
 
 @export var respawn_delay := 2.0
-@export var follow_zoom := 1.5 ## camera zoom while following the player
+@export var follow_zoom := 1.5 ## camera zoom while following the player (snapped to whole pixels)
 @export var spawn_dummies := true
 
 @onready var arena: Arena = $Arena
@@ -26,7 +26,7 @@ func _ready() -> void:
 	touch.wizard = player
 
 	arena.camera.target = player
-	arena.camera.zoom = Vector2(follow_zoom, follow_zoom)
+	arena.camera.set_design_zoom(follow_zoom)
 	arena.camera.global_position = player.global_position
 	arena.camera.reset_smoothing()
 

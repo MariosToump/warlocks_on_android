@@ -42,7 +42,7 @@ func _run() -> void:
 	_touch(1, q_pos, true)
 	_touch(1, q_pos, false)
 	_check(player.is_casting() and player.get_spell("Q").cooldown_left > 0.0, "tap Q casts fireball")
-	await _seconds(0.3)
+	await _seconds(0.2)
 	var p := _find_projectile()
 	var enemy := touch._nearest_enemy()
 	_check(p != null and enemy != null and p.direction.dot((enemy.global_position - player.global_position).normalized()) > 0.98, "tap auto-aims at nearest enemy")
@@ -91,6 +91,32 @@ func _run() -> void:
 	_touch(5, Vector2(250, 420), false)
 	await _seconds(0.2)
 	_check(player.get_spell("E").cooldown_left > 0.0, "lightning cast on release")
+
+	# Attack button: tap = walk up to the nearest enemy and hit it once.
+	await _seconds(0.6)
+	var enemy2 := touch._nearest_enemy()
+	player.global_position = enemy2.global_position + Vector2(-110, 0)
+	player.reset_physics_interpolation()
+	await _frames(2)
+	var hp := enemy2.health
+	var a_pos := touch._button_center("A")
+	_touch(7, a_pos, true)
+	_touch(7, a_pos, false)
+	_check(player.attack_target == enemy2, "tap attack targets the nearest enemy")
+	await _seconds(1.2)
+	_check(enemy2.health < hp, "walks up and hits (hp %.1f -> %.1f)" % [hp, enemy2.health])
+	_check(player.attack_target == null, "a tap is one hit")
+	await _shot("5_attack")
+
+	# Hold attack: keeps hitting.
+	hp = enemy2.health
+	player.global_position = enemy2.global_position + Vector2(-26, 0)
+	enemy2.knockback = Vector2.ZERO
+	player.reset_physics_interpolation()
+	_touch(7, a_pos, true)
+	await _seconds(2.2) # each hit shoves it away, so it chases between hits
+	_touch(7, a_pos, false)
+	_check(hp - enemy2.health >= 7.9, "holding attack hits repeatedly (%.1f dmg)" % (hp - enemy2.health))
 
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)

@@ -8,7 +8,10 @@ extends SceneTree
 ## west-facing ones with flip_h so idle and walk always match.
 
 const DIRS := ["south", "south-east", "east", "north-east", "north"]
-const FPS := {"walk": 10.0, "hurt": 12.0, "death": 9.0}
+const FPS := {"walk": 12.0, "hurt": 12.0, "death": 9.0, "attack": 20.0}
+## Animations whose frame 0 is just the standing pose (PixelLab's reference
+## frame): dropped so the move starts at once.
+const SKIP_FIRST := ["attack"]
 
 
 func _init() -> void:
@@ -39,6 +42,8 @@ func _init() -> void:
 				continue
 			var files := Array(DirAccess.get_files_at(dir)).filter(func(f): return f.ends_with(".png"))
 			files.sort()
+			if kind in SKIP_FIRST:
+				files = files.slice(1)
 			if files.is_empty():
 				continue
 			var anim := "%s_%s" % [kind, d]

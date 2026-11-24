@@ -1,0 +1,61 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/staff_swing.png" id="1_1f14n"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bf81a"]
+atlas = ExtResource("1_1f14n")
+region = Rect2(0, 0, 31, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hkdds"]
+atlas = ExtResource("1_1f14n")
+region = Rect2(31, 0, 31, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8jlfh"]
+atlas = ExtResource("1_1f14n")
+region = Rect2(62, 0, 31, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_myx57"]
+atlas = ExtResource("1_1f14n")
+region = Rect2(0, 28, 31, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dqws6"]
+atlas = ExtResource("1_1f14n")
+region = Rect2(31, 28, 31, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1c4dh"]
+atlas = ExtResource("1_1f14n")
+region = Rect2(62, 28, 31, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sxf4p"]
+atlas = ExtResource("1_1f14n")
+region = Rect2(0, 56, 31, 28)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bf81a")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hkdds")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8jlfh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_myx57")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dqws6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1c4dh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sxf4p")
+}],
+"loop": 0,
+"name": &"default",
+"speed": 16.0
+}]
+metadata/pivot_px = Vector2(-1.5, 3)

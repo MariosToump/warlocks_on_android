@@ -2,7 +2,10 @@ class_name TouchControls
 extends Control
 ## On-screen controls for phones.
 ## - Left half: a floating joystick appears where the thumb lands; drag to walk.
-## - Bottom right: spell buttons. Drag a button to aim (a guide shows in the
+## - Bottom right, big: staff attack. Tap = walk up to the nearest enemy and
+##   hit it once; hold = keep attacking. While walking with the stick it only
+##   swings at enemies already in reach.
+## - Around it: spell buttons. Drag a button to aim (a guide shows in the
 ##   arena), release to cast. A quick tap auto-aims at the nearest enemy.
 ##   Drag back onto the button before releasing to cancel. Shield casts on touch.
 ## Works with a mouse too (project setting emulate_touch_from_mouse).
@@ -13,12 +16,16 @@ const AIM_DEAD := 22.0 ## drag shorter than this = tap (auto-aim)
 const AIM_FULL := 110.0 ## drag length for full blink distance
 const MARGIN := 34.0
 const INSTANT_SLOTS := ["R"]
-## Button layout around the main (Q) button, bottom right.
+## Attack looks for enemies this close (world px) to walk up to.
+const ATTACK_ACQUIRE := 170.0
+## Button layout: the attack button bottom right, spells in an arc round it
+## (radius 170, every 32 degrees from straight left to straight up).
 const LAYOUT := {
-	"Q": {"offset": Vector2.ZERO, "r": 62.0},
-	"E": {"offset": Vector2(-158, 14), "r": 48.0},
-	"W": {"offset": Vector2(-124, -112), "r": 48.0},
-	"R": {"offset": Vector2(-10, -158), "r": 48.0},
+	"A": {"offset": Vector2.ZERO, "r": 64.0},
+	"Q": {"offset": Vector2(-170, 0), "r": 44.0},
+	"W": {"offset": Vector2(-144, -90), "r": 44.0},
+	"E": {"offset": Vector2(-74, -153), "r": 44.0},
+	"R": {"offset": Vector2(18, -169), "r": 44.0},
 }
 
 var wizard: Wizard
@@ -29,6 +36,8 @@ var _stick_pos := Vector2.ZERO
 var _aim_index := -1
 var _aim_slot := ""
 var _aim_vec := Vector2.ZERO
+var _attack_index := -1
+var _swings_since_press := 0
 var _flash := {} # slot -> seconds of press flash left
 var _guide: AimGuide
 
@@ -42,12 +51,17 @@ func _process(delta: float) -> void:
 	if wizard and _guide == null and wizard.is_inside_tree():
 		_guide = AimGuide.new()
 		wizard.get_parent().add_child(_guide)
+		wizard.cast_started.connect(_on_cast_started)
 	for k in _flash.keys():
 		_flash[k] = maxf(_flash[k] - delta, 0.0)
 	if wizard and _stick_index >= 0:
 		var v := (_stick_pos - _stick_origin) / STICK_R
 		wizard.move_target = null
 		wizard.move_dir = v.limit_length(1.0) if v.length() > STICK_DEAD else Vector2.ZERO
+		if wizard.move_dir != Vector2.ZERO:
+			wizard.attack(null) # steering yourself beats chasing
+	if wizard and _attack_index >= 0:
+		_hold_attack()
 	_update_guide()
 	queue_redraw()
 
@@ -75,7 +89,12 @@ func _touch_down(index: int, pos: Vector2) -> void:
 	var slot := _button_at(pos)
 	if slot != "":
 		get_viewport().set_input_as_handled()
-		if slot in INSTANT_SLOTS:
+		if slot == "A":
+			if _attack_index < 0:
+				_attack_index = index
+				_swings_since_press = 0
+				_hold_attack()
+		elif slot in INSTANT_SLOTS:
 			_cast(slot, Vector2.ZERO, true)
 		elif _aim_index < 0:
 			_aim_index = index
@@ -90,7 +109,13 @@ func _touch_down(index: int, pos: Vector2) -> void:
 
 
 func _touch_up(index: int) -> void:
-	if index == _stick_index:
+	if index == _attack_index:
+		_attack_index = -1
+		if _swings_since_press > 0:
+			wizard.attack(null) # the swing in progress still lands
+		elif wizard.attack_target:
+			wizard.attack_once = true # a tap: still walk up and hit once
+	elif index == _stick_index:
 		_stick_index = -1
 		wizard.move_dir = Vector2.ZERO
 	elif index == _aim_index:
@@ -102,6 +127,29 @@ func _touch_up(index: int) -> void:
 		var r: float = LAYOUT[slot].r
 		if v.length() < AIM_DEAD or v.length() > r:
 			_cast(slot, v, v.length() < AIM_DEAD)
+
+
+func _on_cast_started(slot: String) -> void:
+	if slot == "A":
+		_swings_since_press += 1
+
+
+## Called every frame while the attack button is held.
+func _hold_attack() -> void:
+	if not wizard.alive:
+		return
+	if wizard.move_dir != Vector2.ZERO:
+		# Walking with the stick: swing only at someone already in reach.
+		var near := _nearest_enemy()
+		if near and near.global_position.distance_to(wizard.global_position) <= wizard.attack_range() + 6.0:
+			wizard.cast("A", near.global_position)
+		return
+	if wizard.attack_target == null:
+		var enemy := _nearest_enemy()
+		if enemy and enemy.global_position.distance_to(wizard.global_position) <= ATTACK_ACQUIRE:
+			wizard.attack(enemy)
+		elif wizard.cast("A", wizard.global_position + _facing_vec() * 20.0):
+			_flash["A"] = 0.15 # nobody near: swing at the air
 
 
 func _cast(slot: String, aim_vec: Vector2, tapped: bool) -> void:
@@ -173,7 +221,7 @@ func _update_guide() -> void:
 # --- layout & drawing ---------------------------------------------------------
 
 func _button_center(slot: String) -> Vector2:
-	var q_r: float = LAYOUT.Q.r
+	var q_r: float = LAYOUT.A.r
 	var base := size - Vector2(MARGIN + q_r + 24.0, MARGIN + q_r)
 	return base + LAYOUT[slot].offset
 
@@ -205,14 +253,14 @@ func _draw() -> void:
 			continue
 		var c := _button_center(slot)
 		var r: float = LAYOUT[slot].r
-		var held: bool = slot == _aim_slot
+		var held: bool = slot == _aim_slot or (slot == "A" and _attack_index >= 0)
 		draw_circle(c, r, Color(0.1, 0.06, 0.06, 0.8 if held else 0.65), true, -1.0, true)
 		if spell.icon:
 			var s := spell.icon.get_size()
 			var box := r * 1.25
 			var k := box / maxf(s.x, s.y)
 			draw_texture_rect(spell.icon, Rect2(c - s * k / 2.0, s * k), false)
-		var cd := spell.cooldown_ratio()
+		var cd := spell.cooldown_ratio() if slot != "A" else 0.0 # attack: too quick to show
 		if cd > 0.0:
 			_draw_pie(c, r, cd, Color(0, 0, 0, 0.6))
 			draw_string(font, c + Vector2(-r, 9), "%.1f" % spell.cooldown_left,

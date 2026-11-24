@@ -22,7 +22,7 @@ const SHIELD_FRAMES := preload("res://assets/sprites/effects/shield_bubble_frame
 const SHIELD_RADIUS := 22.0
 
 @export var max_health := 100.0
-@export var move_speed := 140.0
+@export var move_speed := 165.0
 @export var lava_dps := 8.0
 ## Exponential damping of knockback velocity (higher = stops sooner).
 @export var knockback_friction := 3.0
@@ -47,6 +47,11 @@ var cooldown_multiplier := 1.0
 ## Set by a controller. move_target wins if both are set.
 var move_target = null # Vector2 or null
 var move_dir := Vector2.ZERO
+## Auto-attack: walk up to this wizard and keep hitting it with the staff
+## (slot "A"). Cleared when it dies; controllers clear it when you move.
+var attack_target: Wizard = null
+## Stop auto-attacking after the next swing (a single tap of attack).
+var attack_once := false
 
 var knockback := Vector2.ZERO
 var facing := "south"
@@ -84,8 +89,12 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not alive:
 		return
+	_update_auto_attack()
 	_update_cast(delta)
 	_update_shield(delta)
+	# Attacks can be cut short by walking once the hit has landed.
+	if _casting and _casting.cancel_on_move and _cast_released and _wants_to_walk():
+		_casting = null
 	var walk := Vector2.ZERO if _casting else _walk_velocity()
 	knockback *= exp(-knockback_friction * delta)
 	if knockback.length() < 2.0:
@@ -95,6 +104,10 @@ func _physics_process(delta: float) -> void:
 	_clamp_to_arena()
 	_update_lava(delta)
 	_update_animation(walk)
+
+
+func _wants_to_walk() -> bool:
+	return move_target != null or move_dir != Vector2.ZERO
 
 
 func _walk_velocity() -> Vector2:
@@ -130,6 +143,33 @@ func cast(slot: String, target: Vector2) -> bool:
 	_play_cast_anim()
 	cast_started.emit(slot)
 	return true
+
+
+## Start auto-attacking `target` (null stops). `once` = a single swing.
+func attack(target: Wizard, once := false) -> void:
+	attack_target = target
+	attack_once = once
+
+
+## Distance (centre to centre) at which the staff swing is started.
+func attack_range() -> float:
+	var staff := get_spell("A")
+	return staff.attack_range if staff is StaffStrikeSpell else 0.0
+
+
+func _update_auto_attack() -> void:
+	if attack_target == null:
+		return
+	if not is_instance_valid(attack_target) or not attack_target.alive or get_spell("A") == null:
+		attack_target = null
+		return
+	var to := attack_target.global_position - global_position
+	if to.length() <= attack_range():
+		move_target = null # in reach: stand and swing
+		if cast("A", attack_target.global_position) and attack_once:
+			attack_target = null
+	elif not _casting:
+		move_target = attack_target.global_position # chase
 
 
 func is_casting() -> bool:
@@ -221,6 +261,7 @@ func reset(at: Vector2) -> void:
 	knockback = Vector2.ZERO
 	move_target = null
 	move_dir = Vector2.ZERO
+	attack_target = null
 	alive = true
 	_casting = null
 	shield_left = 0.0
@@ -232,10 +273,12 @@ func reset(at: Vector2) -> void:
 	scale = Vector2.ONE
 	health_changed.emit(health, max_health)
 	_play("idle")
+	reset_physics_interpolation() # a jump, not a slide
 
 
 func _die() -> void:
 	alive = false
+	attack_target = null
 	_cancel_cast()
 	on_lava = false
 	smoke.emitting = false
@@ -305,11 +348,15 @@ func face(point: Vector2) -> void:
 ## Plays cast_<dir>, sped up so it fits the spell's cast time (a bit of
 ## follow-through past it is fine: walking takes over after).
 func _play_cast_anim() -> void:
-	_play("cast")
+	var kind := _casting.anim
+	_play(kind)
 	var frames := sprite.sprite_frames
-	if frames and sprite.animation.begins_with("cast"):
+	if frames and sprite.animation.begins_with(kind):
 		var length := frames.get_frame_count(sprite.animation) / frames.get_animation_speed(sprite.animation)
-		sprite.speed_scale = maxf(1.0, length / (_casting.cast_time * 1.6))
+		if _casting.anim_fits_cast:
+			sprite.speed_scale = length / _casting.cast_time
+		else:
+			sprite.speed_scale = maxf(1.0, length / (_casting.cast_time * 1.6))
 		sprite.frame = 0
 		sprite.play()
 
@@ -341,9 +388,10 @@ func _play(kind: String) -> void:
 				break
 	if not sprite.sprite_frames.has_animation(anim):
 		anim = "idle_%s" % dir
-	if kind != "cast":
+	var timed := kind == "cast" or kind == "attack" # speed set by _play_cast_anim
+	if not timed:
 		sprite.speed_scale = 1.0
-	if sprite.animation != anim or (kind != "cast" and not sprite.is_playing()):
+	if sprite.animation != anim or (not timed and not sprite.is_playing()):
 		sprite.play(anim)
 	# Idle is a single still frame: give it a 1px "breathing" bob.
 	sprite.offset.y = _sprite_base_y - (1.0 if kind == "idle" and int(Time.get_ticks_msec() / 600.0) % 2 == 1 else 0.0)
