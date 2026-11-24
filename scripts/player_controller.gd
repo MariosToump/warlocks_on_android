@@ -7,6 +7,8 @@ extends Node
 
 enum MoveMode { CLICK, WASD }
 
+const SPELL_SLOTS := ["Q", "W", "E", "R", "D", "F"]
+
 @export var move_mode := MoveMode.CLICK
 
 @onready var wizard: Wizard = get_parent()
@@ -35,7 +37,14 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if move_mode != MoveMode.CLICK or not wizard.alive:
+	if not wizard.alive:
+		return
+	for slot in SPELL_SLOTS:
+		if event.is_action_pressed("spell_" + slot.to_lower()):
+			wizard.cast(slot, wizard.get_global_mouse_position())
+			get_viewport().set_input_as_handled()
+			return
+	if move_mode != MoveMode.CLICK:
 		return
 	var mb := event as InputEventMouseButton
 	if mb and mb.pressed and mb.button_index == MOUSE_BUTTON_RIGHT:

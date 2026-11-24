@@ -1,0 +1,339 @@
+{
+ "frames": [
+  {
+   "filename": "lava-warlocks-fireball-impact 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 51,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.49019607843137253,
+    "y": 0.5
+   },
+   "duration": 71
+  },
+  {
+   "filename": "lava-warlocks-fireball-impact 1.png",
+   "frame": {
+    "x": 51,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 51,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.49019607843137253,
+    "y": 0.5
+   },
+   "duration": 71
+  },
+  {
+   "filename": "lava-warlocks-fireball-impact 2.png",
+   "frame": {
+    "x": 102,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 51,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.49019607843137253,
+    "y": 0.5
+   },
+   "duration": 71
+  },
+  {
+   "filename": "lava-warlocks-fireball-impact 3.png",
+   "frame": {
+    "x": 153,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 51,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.49019607843137253,
+    "y": 0.5
+   },
+   "duration": 71
+  },
+  {
+   "filename": "lava-warlocks-fireball-impact 4.png",
+   "frame": {
+    "x": 0,
+    "y": 50,
+    "w": 51,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 51,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.49019607843137253,
+    "y": 0.5
+   },
+   "duration": 71
+  },
+  {
+   "filename": "lava-warlocks-fireball-impact 5.png",
+   "frame": {
+    "x": 51,
+    "y": 50,
+    "w": 51,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 51,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.49019607843137253,
+    "y": 0.5
+   },
+   "duration": 71
+  },
+  {
+   "filename": "lava-warlocks-fireball-impact 6.png",
+   "frame": {
+    "x": 102,
+    "y": 50,
+    "w": 51,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 51,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.49019607843137253,
+    "y": 0.5
+   },
+   "duration": 71
+  },
+  {
+   "filename": "lava-warlocks-fireball-impact 7.png",
+   "frame": {
+    "x": 153,
+    "y": 50,
+    "w": 51,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 51,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.49019607843137253,
+    "y": 0.5
+   },
+   "duration": 71
+  },
+  {
+   "filename": "lava-warlocks-fireball-impact 8.png",
+   "frame": {
+    "x": 0,
+    "y": 100,
+    "w": 51,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 51,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.49019607843137253,
+    "y": 0.5
+   },
+   "duration": 71
+  },
+  {
+   "filename": "lava-warlocks-fireball-impact 9.png",
+   "frame": {
+    "x": 51,
+    "y": 100,
+    "w": 51,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 51,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.49019607843137253,
+    "y": 0.5
+   },
+   "duration": 71
+  },
+  {
+   "filename": "lava-warlocks-fireball-impact 10.png",
+   "frame": {
+    "x": 102,
+    "y": 100,
+    "w": 51,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 51,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.49019607843137253,
+    "y": 0.5
+   },
+   "duration": 71
+  },
+  {
+   "filename": "lava-warlocks-fireball-impact 11.png",
+   "frame": {
+    "x": 153,
+    "y": 100,
+    "w": 51,
+    "h": 50
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 50
+   },
+   "sourceSize": {
+    "w": 51,
+    "h": 50
+   },
+   "pivot": {
+    "x": 0.49019607843137253,
+    "y": 0.5
+   },
+   "duration": 71
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "lava-warlocks-fireball-impact.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 204,
+   "h": 150
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 25,
+   "y": 25
+  },
+  "frameTags": [
+   {
+    "name": "lava-warlocks-fireball-impact",
+    "from": 0,
+    "to": 11,
+    "direction": "forward"
+   }
+  ]
+ }
+}

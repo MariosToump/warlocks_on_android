@@ -6,6 +6,11 @@ extends CharacterBody2D
 
 signal health_changed(current: float, maximum: float)
 signal died(wizard: Wizard)
+signal cast_started(slot: String)
+
+enum TeamColor { RED, BLUE, GREEN, PURPLE }
+## Hue rotation applied to the red robe for each team colour.
+const TEAM_HUE := {TeamColor.RED: 0.0, TeamColor.BLUE: 0.62, TeamColor.GREEN: 0.33, TeamColor.PURPLE: 0.8}
 
 const DIRS := ["east", "south-east", "south", "south-west", "west", "north-west", "north", "north-east"]
 const MIRROR := {"west": "east", "south-west": "south-east", "north-west": "north-east"}
@@ -19,12 +24,19 @@ const MIRROR := {"west": "east", "south-west": "south-east", "north-west": "nort
 ## (0.01 -> at 50 damage taken you fly 1.5x as far).
 @export var knockback_per_damage := 0.01
 @export var sprite_frames: SpriteFrames
+@export var team_color := TeamColor.RED:
+	set(v):
+		team_color = v
+		if is_node_ready():
+			_apply_team_color()
 
 var health := max_health
 var damage_taken := 0.0
 var alive := true
 var on_lava := false
 var arena: Arena
+## Items (Focus Gem) lower this; spells multiply their cooldown by it.
+var cooldown_multiplier := 1.0
 
 ## Set by a controller. move_target wins if both are set.
 var move_target = null # Vector2 or null
@@ -34,9 +46,17 @@ var knockback := Vector2.ZERO
 var facing := "south"
 var _sprite_base_y := 0.0
 
+# Casting: the wizard stands still for the spell's cast_time and the
+# spell fires at its release_time.
+var _casting: Spell = null
+var _cast_elapsed := 0.0
+var _cast_target := Vector2.ZERO
+var _cast_released := false
+
 @onready var sprite: AnimatedSprite2D = $Sprite
 @onready var smoke: CPUParticles2D = $Smoke
 @onready var glow: PointLight2D = $Glow
+@onready var spells: Node = $Spells
 
 
 func _ready() -> void:
@@ -44,13 +64,15 @@ func _ready() -> void:
 		sprite.sprite_frames = sprite_frames
 	_sprite_base_y = sprite.offset.y
 	health = max_health
+	_apply_team_color()
 	_play("idle")
 
 
 func _physics_process(delta: float) -> void:
 	if not alive:
 		return
-	var walk := _walk_velocity()
+	_update_cast(delta)
+	var walk := Vector2.ZERO if _casting else _walk_velocity()
 	knockback *= exp(-knockback_friction * delta)
 	if knockback.length() < 2.0:
 		knockback = Vector2.ZERO
@@ -73,6 +95,48 @@ func _walk_velocity() -> Vector2:
 	return Vector2.ZERO
 
 
+# --- spells -------------------------------------------------------------------
+
+func get_spell(slot: String) -> Spell:
+	return spells.get_node_or_null(slot) as Spell
+
+
+## Start casting the spell in `slot` toward a world point. Returns false if
+## it can't be cast right now (dead, already casting, on cooldown, empty).
+func cast(slot: String, target: Vector2) -> bool:
+	var spell := get_spell(slot)
+	if not alive or _casting or spell == null or not spell.is_ready():
+		return false
+	_casting = spell
+	_cast_elapsed = 0.0
+	_cast_target = target
+	_cast_released = false
+	spell.start_cooldown()
+	face(target)
+	_play_cast_anim()
+	cast_started.emit(slot)
+	return true
+
+
+func is_casting() -> bool:
+	return _casting != null
+
+
+func _update_cast(delta: float) -> void:
+	if not _casting:
+		return
+	_cast_elapsed += delta
+	if not _cast_released and _cast_elapsed >= _casting.release_time:
+		_cast_released = true
+		_casting.release(_cast_target)
+	if _cast_elapsed >= _casting.cast_time:
+		_casting = null
+
+
+func _cancel_cast() -> void:
+	_casting = null
+
+
 # --- health & knockback -----------------------------------------------------
 
 func take_damage(amount: float) -> void:
@@ -83,6 +147,13 @@ func take_damage(amount: float) -> void:
 	health_changed.emit(health, max_health)
 	if health <= 0.0:
 		_die()
+
+
+## Brief white flash when hit by a spell.
+func flash_hit() -> void:
+	sprite.self_modulate = Color(4, 4, 4)
+	var t := create_tween()
+	t.tween_property(sprite, "self_modulate", Color.WHITE, 0.15)
 
 
 ## Push the wizard. Scaled up by how much damage it has taken.
@@ -99,6 +170,7 @@ func reset(at: Vector2) -> void:
 	move_target = null
 	move_dir = Vector2.ZERO
 	alive = true
+	_casting = null
 	visible = true
 	modulate = Color.WHITE
 	scale = Vector2.ONE
@@ -108,6 +180,7 @@ func reset(at: Vector2) -> void:
 
 func _die() -> void:
 	alive = false
+	_cancel_cast()
 	on_lava = false
 	smoke.emitting = false
 	glow.enabled = false
@@ -145,9 +218,13 @@ func _clamp_to_arena() -> void:
 # --- animation --------------------------------------------------------------
 
 func _update_animation(walk: Vector2) -> void:
+	if _casting:
+		return # cast animation keeps playing
 	if walk.length() > 1.0:
 		facing = dir_name(walk)
 		_play("walk")
+	elif sprite.animation.begins_with("cast") and sprite.is_playing():
+		return # let the cast follow-through finish when standing still
 	else:
 		_play("idle")
 
@@ -155,6 +232,26 @@ func _update_animation(walk: Vector2) -> void:
 ## Face a point without moving (used when casting).
 func face(point: Vector2) -> void:
 	facing = dir_name(point - global_position)
+
+
+## Plays cast_<dir>, sped up so it fits the spell's cast time (a bit of
+## follow-through past it is fine: walking takes over after).
+func _play_cast_anim() -> void:
+	_play("cast")
+	var frames := sprite.sprite_frames
+	if frames and sprite.animation.begins_with("cast"):
+		var length := frames.get_frame_count(sprite.animation) / frames.get_animation_speed(sprite.animation)
+		sprite.speed_scale = maxf(1.0, length / (_casting.cast_time * 1.6))
+		sprite.frame = 0
+		sprite.play()
+
+
+func _apply_team_color() -> void:
+	var mat := sprite.material as ShaderMaterial
+	if mat:
+		mat = mat.duplicate() # each wizard its own colour
+		mat.set_shader_parameter("hue_shift", TEAM_HUE[team_color])
+		sprite.material = mat
 
 
 static func dir_name(v: Vector2) -> String:
@@ -171,7 +268,9 @@ func _play(kind: String) -> void:
 	var anim := "%s_%s" % [kind, dir]
 	if not sprite.sprite_frames.has_animation(anim):
 		anim = "idle_%s" % dir
-	if sprite.animation != anim or not sprite.is_playing():
+	if kind != "cast":
+		sprite.speed_scale = 1.0
+	if sprite.animation != anim or (kind != "cast" and not sprite.is_playing()):
 		sprite.play(anim)
 	# Idle is a single still frame: give it a 1px "breathing" bob.
 	sprite.offset.y = _sprite_base_y - (1.0 if kind == "idle" and int(Time.get_ticks_msec() / 600.0) % 2 == 1 else 0.0)

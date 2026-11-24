@@ -1,8 +1,14 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/wizard.gd" id="1_wiz"]
 [ext_resource type="SpriteFrames" path="res://assets/sprites/red_warlock/red_warlock_frames.tres" id="2_frames"]
 [ext_resource type="Script" path="res://scripts/health_bar.gd" id="3_hp"]
+[ext_resource type="Shader" path="res://shaders/team_color.gdshader" id="4_team"]
+[ext_resource type="Script" path="res://scripts/spells/fireball.gd" id="5_fireball"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_team"]
+shader = ExtResource("4_team")
+shader_parameter/hue_shift = 0.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
 radius = 7.0
@@ -45,6 +51,7 @@ energy = 1.2
 texture = SubResource("GradientTexture2D_glow")
 
 [node name="Sprite" type="AnimatedSprite2D" parent="."]
+material = SubResource("ShaderMaterial_team")
 sprite_frames = ExtResource("2_frames")
 animation = &"idle_south"
 offset = Vector2(0, -16)
@@ -72,3 +79,8 @@ color_ramp = SubResource("Gradient_smoke")
 position = Vector2(0, -40)
 z_index = 10
 script = ExtResource("3_hp")
+
+[node name="Spells" type="Node" parent="."]
+
+[node name="Q" type="Node" parent="Spells"]
+script = ExtResource("5_fireball")
