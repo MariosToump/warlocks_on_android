@@ -49,7 +49,7 @@ func release(target: Vector2) -> void:
 			w.bubble_flash()
 			caster.apply_knockback(-push * knockback_by_level[level] * 0.5)
 			continue
-		w.take_damage(damage_by_level[level])
+		w.take_damage(damage_by_level[level], caster)
 		w.apply_knockback(push * knockback_by_level[level])
 		w.flash_hit(push)
 		_spawn_hit(w.global_position, push)

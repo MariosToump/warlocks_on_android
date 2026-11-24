@@ -12,6 +12,7 @@ var green: Wizard
 func _init() -> void:
 	game = load("res://scenes/game.tscn").instantiate()
 	game.bot_ai = false
+	game.shrink_arena = false
 	root.add_child(game)
 	_run.call_deferred()
 

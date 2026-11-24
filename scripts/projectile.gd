@@ -74,7 +74,7 @@ func _on_body_entered(body: Node) -> void:
 	var w := body as Wizard
 	if w.is_shielded():
 		return # _check_shields bounces it
-	w.take_damage(damage)
+	w.take_damage(damage, caster)
 	w.apply_knockback(direction * knockback)
 	w.flash_hit(direction)
 	_explode(impact_scale)

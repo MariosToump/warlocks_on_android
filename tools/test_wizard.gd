@@ -15,6 +15,7 @@ func _init() -> void:
 	out_dir = args[0] if args.size() > 0 else ""
 	game = load("res://scenes/game.tscn").instantiate()
 	game.bot_ai = false
+	game.shrink_arena = false
 	root.add_child(game)
 	_run.call_deferred()
 

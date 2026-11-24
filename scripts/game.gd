@@ -1,6 +1,7 @@
 extends Node2D
 ## Top-level game scene: the player plus three AI bots, free-for-all.
-## Rounds and scoring come in milestone 6; until then the dead respawn.
+## The platform shrinks over time. Rounds and scoring come in milestone 6;
+## until then the dead respawn.
 
 const WIZARD := preload("res://scenes/wizard.tscn")
 
@@ -26,16 +27,20 @@ const BOTS := [
 @export var bot_spawn_distance := 250.0
 ## Draw each bot's current action and target line.
 @export var bot_debug := false
+## The platform shrinks over time (tests turn this off).
+@export var shrink_arena := true
 
 @onready var arena: Arena = $Arena
 @onready var wizards: Node2D = $Wizards
 @onready var player: Wizard = $Wizards/Player
 @onready var touch: TouchControls = $HUD/TouchControls
 
-var _spawns := {} # Wizard -> spawn position
+var _lava_label: Label
 
 
 func _ready() -> void:
+	arena.shrinks = shrink_arena
+	_lava_label = _make_lava_label()
 	# Arena builds its map in its own _ready (children are ready first).
 	_add_wizard(player, arena.get_center())
 	if spawn_bots:
@@ -54,7 +59,6 @@ func _ready() -> void:
 func _add_wizard(w: Wizard, at: Vector2) -> void:
 	w.arena = arena
 	w.global_position = at
-	_spawns[w] = at
 	w.health_changed.emit(w.health, w.max_health)
 	w.died.connect(_on_wizard_died)
 
@@ -75,7 +79,42 @@ func _spawn_bot(color: Wizard.TeamColor, personality: AIPersonality, offset: Vec
 	return w
 
 
-## Temporary until rounds exist (milestone 6): respawn where they started.
+## Temporary until rounds exist (milestone 6): respawn on safe stone, as far
+## from the living as a few random tries allow.
 func _on_wizard_died(w: Wizard) -> void:
 	await get_tree().create_timer(respawn_delay).timeout
-	w.reset(_spawns[w])
+	var best := arena.random_stone_point()
+	var best_gap := -1.0
+	for i in 8:
+		var p := arena.random_stone_point()
+		var gap := INF
+		for other in get_tree().get_nodes_in_group("wizards"):
+			if other != w and other.alive:
+				gap = minf(gap, p.distance_to(other.global_position))
+		if gap > best_gap:
+			best_gap = gap
+			best = p
+	w.reset(best)
+
+
+func _process(_delta: float) -> void:
+	_lava_label.text = arena.status_text()
+	_lava_label.modulate = Color(1, 0.55, 0.2) if arena.warning_active() else Color(1, 1, 1, 0.85)
+
+
+## Top-centre line: "Lava rises in 12" etc.
+func _make_lava_label() -> Label:
+	var l := Label.new()
+	l.name = "LavaTimer"
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.add_theme_font_size_override("font_size", 20)
+	l.add_theme_color_override("font_outline_color", Color.BLACK)
+	l.add_theme_constant_override("outline_size", 6)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$HUD.add_child(l)
+	l.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	l.offset_left = -200
+	l.offset_right = 200
+	l.offset_top = 10
+	l.offset_bottom = 40
+	return l

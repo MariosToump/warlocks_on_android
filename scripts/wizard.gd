@@ -38,6 +38,9 @@ const SHIELD_RADIUS := 22.0
 
 var health := max_health
 var damage_taken := 0.0
+## Who hit us last, and when (seconds, Time.get_ticks_msec() based).
+var last_attacker: Wizard = null
+var last_hit_at := -100.0
 var alive := true
 var on_lava := false
 var arena: Arena
@@ -223,9 +226,13 @@ func _update_shield(delta: float) -> void:
 
 # --- health & knockback -----------------------------------------------------
 
-func take_damage(amount: float) -> void:
+## `source` = the wizard who dealt it (null for lava etc.).
+func take_damage(amount: float, source: Wizard = null) -> void:
 	if not alive or amount <= 0.0:
 		return
+	if source != null and source != self:
+		last_attacker = source
+		last_hit_at = Time.get_ticks_msec() / 1000.0
 	health = maxf(health - amount, 0.0)
 	damage_taken += amount
 	health_changed.emit(health, max_health)
@@ -258,6 +265,7 @@ func reset(at: Vector2) -> void:
 	global_position = at
 	health = max_health
 	damage_taken = 0.0
+	last_attacker = null
 	knockback = Vector2.ZERO
 	move_target = null
 	move_dir = Vector2.ZERO

@@ -13,6 +13,9 @@ const ACTIONS := ["dodge", "recover", "shield", "reposition", "fireball", "light
 ## Bonus for sticking with the current action / target (stops jitter).
 const KEEP_ACTION_BONUS := 0.1
 const KEEP_TARGET_BONUS := 80.0
+## Whoever hit us in the last RETALIATE_TIME s counts this much closer.
+const RETALIATE_BONUS := 300.0
+const RETALIATE_TIME := 4.0
 ## "Near lava" for targeting: lava within this distance.
 const NEAR_LAVA := 110.0
 ## A projectile is dangerous if it will pass this close within DANGER_TIME s.
@@ -48,6 +51,10 @@ var _strafe := 1.0
 var _strafe_left := 0.0
 ## Per projectile (instance id): [tries to dodge, would shield] rolled once.
 var _rolls := {}
+## Per enemy (instance id) mid-cast: shield against this cast? Rolled once.
+var _cast_rolls := {}
+## How long we've been flying toward lava without having reacted yet.
+var _knocked_for := 0.0
 ## The projectile the current think is reacting to (or null).
 var _danger: Projectile = null
 var _debug: DebugView
@@ -73,7 +80,17 @@ func _physics_process(delta: float) -> void:
 		target = null
 		_goal = null
 		return
+	if target != null and not is_instance_valid(target):
+		target = null
 	_now += delta
+	# Being knocked toward lava is felt between thinks too (after half the
+	# reaction delay), so slow thinkers don't fly in waiting for their tick.
+	if current_action != "recover" and _knocked_toward_lava():
+		_knocked_for += delta
+		if _knocked_for >= profile.reaction_delay * 0.5:
+			_think_left = 0.0
+	else:
+		_knocked_for = 0.0
 	_strafe_left -= delta
 	if _strafe_left <= 0.0:
 		_strafe_left = randf_range(1.5, 3.5)
@@ -90,6 +107,10 @@ func _physics_process(delta: float) -> void:
 func _think() -> void:
 	target = _pick_target()
 	_danger = _danger_projectile()
+	for id in _cast_rolls.keys():
+		var w := instance_from_id(id) as Wizard
+		if w == null or not w.is_casting():
+			_cast_rolls.erase(id)
 	var best := ""
 	var best_score := -INF
 	for action in ACTIONS:
@@ -123,6 +144,8 @@ func _pick_target() -> Wizard:
 			cost -= 150.0
 		if w == target:
 			cost -= KEEP_TARGET_BONUS
+		if w == wizard.last_attacker and Time.get_ticks_msec() / 1000.0 - wizard.last_hit_at < RETALIATE_TIME:
+			cost -= RETALIATE_BONUS
 		if cost < best_cost:
 			best_cost = cost
 			best = w
@@ -158,7 +181,9 @@ func _score_reposition() -> float:
 
 func _do_reposition() -> void:
 	if target == null:
-		_goal = null
+		# Nobody to fight: drift around the middle, the safest place.
+		if _goal == null or wizard.global_position.distance_to(_goal) < 20.0 				or _goal.distance_to(wizard.arena.get_center()) > 160.0:
+			_goal = wizard.arena.get_center() + Vector2.from_angle(randf() * TAU) * randf_range(0.0, 150.0)
 		return
 	var from_target := wizard.global_position - target.global_position
 	var d := from_target.length()
@@ -246,12 +271,13 @@ func _blink_in_point():
 	var lava_dir := Vector2.ZERO
 	for i in 8:
 		var d := Vector2.from_angle(i * TAU / 8.0)
-		if wizard.arena.is_lava_at(target.global_position + d * NEAR_LAVA):
+		if _unsafe(target.global_position + d * NEAR_LAVA):
 			lava_dir += d
 	if lava_dir == Vector2.ZERO:
 		return null
 	var at := target.global_position - lava_dir.normalized() * 26.0
-	if _lava_within(at, 12.0):
+	var blink := wizard.get_spell("W") as BlinkSpell
+	if _lava_within(at, 12.0) or blink == null 			or wizard.global_position.distance_to(at) > blink.max_distance:
 		return null
 	return at
 
@@ -271,6 +297,8 @@ func _do_dodge() -> void:
 func _score_recover() -> float:
 	if wizard.on_lava:
 		return 3.0
+	if wizard.arena.is_lava_soon(wizard.global_position):
+		return 2.6
 	if _knocked_toward_lava():
 		return 2.5
 	if _lava_within(wizard.global_position, 50.0):
@@ -292,8 +320,7 @@ func _do_recover() -> void:
 ## Bubble up against a projectile we won't (or can't) dodge, or an enemy
 ## winding up a spell right next to us.
 func _score_shield() -> float:
-	var shield := wizard.get_spell("R")
-	if shield == null or not shield.is_ready() or wizard.is_casting() or wizard.is_shielded():
+	if not _can_cast("R") or wizard.is_shielded():
 		return 0.0
 	if _danger:
 		var r: Array = _roll(_danger)
@@ -304,7 +331,10 @@ func _score_shield() -> float:
 		# like the shield (weight > ~1.1) pick this over dodging.
 		return 1.8 if r[1] else 0.0
 	if target and target.is_casting() and _target_distance() < 60.0:
-		return 0.9 if randf() < profile.shield_reflect_chance else 0.0
+		var id := target.get_instance_id()
+		if not _cast_rolls.has(id):
+			_cast_rolls[id] = randf() < profile.shield_reflect_chance
+		return 0.9 if _cast_rolls[id] else 0.0
 	return 0.0
 
 
@@ -353,7 +383,9 @@ func _roll(p: Projectile) -> Array:
 	var id := p.get_instance_id()
 	if not _rolls.has(id):
 		if _rolls.size() > 64:
-			_rolls.clear()
+			for old in _rolls.keys():
+				if not is_instance_id_valid(old):
+					_rolls.erase(old)
 		_rolls[id] = [randf() < profile.dodge_chance, randf() < profile.shield_reflect_chance]
 	return _rolls[id]
 
@@ -384,7 +416,7 @@ func _reachable(w: Wizard) -> bool:
 ## True if `w`, hit from `from`, would fly toward lava.
 func _lava_behind(w: Wizard, from: Vector2) -> bool:
 	var dir := (w.global_position - from).normalized()
-	return wizard.arena.is_lava_at(w.global_position + dir * BEHIND)
+	return _unsafe(w.global_position + dir * BEHIND)
 
 
 ## True if the current knockback will carry us onto lava before it dies out.
@@ -393,7 +425,7 @@ func _knocked_toward_lava() -> bool:
 	if kb.length() < 80.0:
 		return false
 	var stop := wizard.global_position + kb / wizard.knockback_friction
-	return wizard.arena.is_lava_at(stop)
+	return _unsafe(stop)
 
 
 # --- movement & aim -----------------------------------------------------------
@@ -446,13 +478,18 @@ func _aim_at(w: Wizard, speed: float) -> Vector2:
 	return from + (at - from).rotated(err)
 
 
-## True if there is lava within `radius` of `p` (8 samples on a ring + centre).
+## Lava now, or stone the shrinking edge is about to swallow.
+func _unsafe(p: Vector2) -> bool:
+	return wizard.arena.is_lava_at(p) or wizard.arena.is_lava_soon(p)
+
+
+## True if there is (soon) lava within `radius` of `p` (8 samples on a ring
+## + centre).
 func _lava_within(p: Vector2, radius: float) -> bool:
-	var arena := wizard.arena
-	if arena.is_lava_at(p):
+	if _unsafe(p):
 		return true
 	for i in 8:
-		if arena.is_lava_at(p + Vector2.from_angle(i * TAU / 8.0) * radius):
+		if _unsafe(p + Vector2.from_angle(i * TAU / 8.0) * radius):
 			return true
 	return false
 

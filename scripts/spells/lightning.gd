@@ -51,7 +51,7 @@ func release(target: Vector2) -> void:
 			EffectOneShot.spawn_at_feet(HIT, parent, end).scale = Vector2(0.6, 0.6)
 		else:
 			end = from + dir * best_t
-			best.take_damage(damage_by_level[level])
+			best.take_damage(damage_by_level[level], caster)
 			best.apply_knockback(dir * knockback_by_level[level])
 			best.flash_hit(dir)
 			EffectOneShot.spawn_at_feet(HIT, parent, best.global_position)
