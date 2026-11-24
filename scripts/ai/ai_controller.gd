@@ -9,7 +9,7 @@ extends Node
 ## movement actions set a goal that is followed every physics frame.
 
 ## Every action has _score_<name>() -> float and _do_<name>() -> void.
-const ACTIONS := ["dodge", "recover", "shield", "reposition", "fireball"]
+const ACTIONS := ["dodge", "recover", "shield", "reposition", "fireball", "lightning", "staff", "blink_in"]
 ## Bonus for sticking with the current action / target (stops jitter).
 const KEEP_ACTION_BONUS := 0.1
 const KEEP_TARGET_BONUS := 80.0
@@ -22,6 +22,12 @@ const DANGER_TIME := 0.8
 const DODGE_STEP := 50.0
 ## Lava look-ahead for walking (seconds of walk).
 const LAVA_LOOKAHEAD := 0.3
+## Staff: start walking in to swing from this far away.
+const STAFF_ENGAGE := 90.0
+## Lightning is used up to this distance (its range is 230).
+const LIGHTNING_REACH := 215.0
+## "Lava behind the target": this far past it, seen from the attacker.
+const BEHIND := 80.0
 
 @export var profile: AIProfile
 @export var personality: AIPersonality
@@ -44,6 +50,7 @@ var _strafe_left := 0.0
 var _rolls := {}
 ## The projectile the current think is reacting to (or null).
 var _danger: Projectile = null
+var _debug: DebugView
 
 
 func _ready() -> void:
@@ -53,6 +60,12 @@ func _ready() -> void:
 		personality = AIPersonality.new()
 	_strafe = 1.0 if randf() < 0.5 else -1.0
 	_think_left = randf() * profile.think_interval # bots don't think in lockstep
+	if debug_draw:
+		_debug = DebugView.new()
+		_debug.ai = self
+		_debug.top_level = true
+		_debug.z_index = 20
+		wizard.add_child.call_deferred(_debug)
 
 
 func _physics_process(delta: float) -> void:
@@ -90,6 +103,8 @@ func _think() -> void:
 			best_score = s
 			best = action
 	current_action = best
+	if best != "staff" and wizard.attack_target != null:
+		wizard.attack(null) # stop chasing with the staff
 	if best != "":
 		call("_do_" + best)
 
@@ -135,7 +150,10 @@ func _target_distance() -> float:
 
 ## Default: keep the personality's preferred distance, circling the target.
 func _score_reposition() -> float:
-	return 0.3
+	if target == null:
+		return 0.3
+	var off := absf(_target_distance() - personality.preferred_distance)
+	return 0.3 + 0.3 * clampf(off / 300.0, 0.0, 1.0)
 
 
 func _do_reposition() -> void:
@@ -156,17 +174,86 @@ func _do_reposition() -> void:
 
 func _score_fireball() -> float:
 	var spell := wizard.get_spell("Q") as FireballSpell
-	if target == null or spell == null or not _can_cast("Q"):
+	if target == null or spell == null or not _can_cast("Q") or target.is_shielded():
 		return 0.0
 	var d := _target_distance()
 	if d > spell.max_range * 0.9:
 		return 0.0
-	return 0.6 + 0.2 * (1.0 - d / spell.max_range)
+	return 0.6 + 0.2 * d / spell.max_range # better at range; lightning covers close
 
 
 func _do_fireball() -> void:
 	var spell := wizard.get_spell("Q") as FireballSpell
 	_cast("Q", _aim_at(target, spell.speed))
+
+
+## Instant short bolt with big knockback: best when there's lava behind them.
+func _score_lightning() -> float:
+	if target == null or not _can_cast("E") or target.is_shielded():
+		return 0.0
+	if _target_distance() > LIGHTNING_REACH:
+		return 0.0
+	var d := _target_distance()
+	if _lava_behind(target, wizard.global_position):
+		return 1.2 + 0.5 * (1.0 - d / LIGHTNING_REACH)
+	var s := 0.7 + 0.5 * (1.0 - d / LIGHTNING_REACH)
+	# Blasting them away is pointless for a bot that's trying to close in.
+	if d > personality.preferred_distance + 60.0:
+		s *= 0.4
+	return s
+
+
+func _do_lightning() -> void:
+	_cast("E", _aim_at(target, 0.0))
+
+
+## Walk in and swing (Wizard.attack chases and keeps swinging).
+func _score_staff() -> float:
+	if target == null or wizard.get_spell("A") == null or target.is_shielded():
+		return 0.0
+	var d := _target_distance()
+	if d > STAFF_ENGAGE:
+		return 0.0
+	return 0.8 + (0.4 if _lava_behind(target, wizard.global_position) else 0.0)
+
+
+func _do_staff() -> void:
+	_goal = null
+	if wizard.attack_target != target:
+		wizard.attack(target)
+
+
+## Blink next to a target that stands near lava, on its far side from the
+## lava, then shove it in with the staff.
+func _score_blink_in() -> float:
+	if target == null or not _can_cast("W") or target.is_shielded():
+		return 0.0
+	var d := _target_distance()
+	if d < 80.0 or d > 220.0 or _blink_in_point() == null:
+		return 0.0
+	return 1.0
+
+
+func _do_blink_in() -> void:
+	var at = _blink_in_point()
+	if at != null and _cast("W", at):
+		wizard.attack(target)
+
+
+## 26 px from the target on the side away from its nearest lava, or null if
+## the target isn't near lava or that spot is lava itself.
+func _blink_in_point():
+	var lava_dir := Vector2.ZERO
+	for i in 8:
+		var d := Vector2.from_angle(i * TAU / 8.0)
+		if wizard.arena.is_lava_at(target.global_position + d * NEAR_LAVA):
+			lava_dir += d
+	if lava_dir == Vector2.ZERO:
+		return null
+	var at := target.global_position - lava_dir.normalized() * 26.0
+	if _lava_within(at, 12.0):
+		return null
+	return at
 
 
 ## Sidestep a projectile that is about to hit (if this one's roll says so).
@@ -213,7 +300,9 @@ func _score_shield() -> float:
 		var can_dodge: bool = r[0] and _dodge_point(_danger) != null
 		if r[1] and not can_dodge:
 			return 2.2
-		return 0.0
+		# Could dodge, but reflecting it back is nicer: personalities that
+		# like the shield (weight > ~1.1) pick this over dodging.
+		return 1.8 if r[1] else 0.0
 	if target and target.is_casting() and _target_distance() < 60.0:
 		return 0.9 if randf() < profile.shield_reflect_chance else 0.0
 	return 0.0
@@ -283,6 +372,12 @@ func _dodge_point(p: Projectile):
 	return null
 
 
+## True if `w`, hit from `from`, would fly toward lava.
+func _lava_behind(w: Wizard, from: Vector2) -> bool:
+	var dir := (w.global_position - from).normalized()
+	return wizard.arena.is_lava_at(w.global_position + dir * BEHIND)
+
+
 ## True if the current knockback will carry us onto lava before it dies out.
 func _knocked_toward_lava() -> bool:
 	var kb := wizard.knockback
@@ -295,7 +390,15 @@ func _knocked_toward_lava() -> bool:
 # --- movement & aim -----------------------------------------------------------
 
 func _steer() -> void:
-	if wizard.is_casting() or wizard.attack_target != null:
+	if wizard.attack_target != null:
+		# Wizard chases its attack target on its own, so check that path too.
+		var chase := wizard.attack_target.global_position
+		var safe = _safe_step(chase)
+		if safe == chase:
+			return
+		wizard.attack(null)
+		_goal = safe
+	if wizard.is_casting():
 		return
 	wizard.move_dir = Vector2.ZERO
 	wizard.move_target = _safe_step(_goal)
@@ -341,3 +444,20 @@ func _lava_within(p: Vector2, radius: float) -> bool:
 		if arena.is_lava_at(p + Vector2.from_angle(i * TAU / 8.0) * radius):
 			return true
 	return false
+
+
+## debug_draw: the current action above the bot and a line to its target.
+class DebugView extends Node2D:
+	var ai: AIController
+
+	func _process(_delta: float) -> void:
+		queue_redraw()
+
+	func _draw() -> void:
+		if not is_instance_valid(ai) or not ai.wizard.alive:
+			return
+		var p := ai.wizard.global_position
+		if ai.target:
+			draw_line(p, ai.target.global_position, Color(1, 1, 0, 0.4), 1.0)
+		draw_string(ThemeDB.fallback_font, p + Vector2(-30, -44), ai.current_action,
+			HORIZONTAL_ALIGNMENT_CENTER, 60, 10, Color.YELLOW)

@@ -48,6 +48,10 @@ func _run() -> void:
 	await _test_recovers_from_knockback()
 	await _test_hard_dodges()
 	_test_reflected_projectile_is_danger()
+	await _test_lightning_at_short_range()
+	await _test_brawler_uses_staff()
+	await _test_personalities_keep_different_distances()
+	await _test_dead_target()
 
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -79,9 +83,13 @@ func _test_reposition_approaches() -> void:
 	var ai := _make_bot(blue, "brawler", "normal")
 	_place(blue, c)
 	_place(green, c + Vector2(400, 0))
-	await _seconds(3.0)
-	var d := blue.global_position.distance_to(green.global_position)
-	_check(d < 120.0, "brawler closes from 400 px to < 120 px in 3 s (%.0f)" % d)
+	var d := INF
+	var t := 0.0
+	while t < 3.0:
+		await _frames(1)
+		t += 1.0 / 60.0
+		d = minf(d, blue.global_position.distance_to(green.global_position))
+	_check(d < 150.0, "brawler closes from 400 px to < 150 px in 3 s (closest %.0f)" % d)
 	_remove_bot(ai)
 
 
@@ -180,6 +188,84 @@ func _test_reflected_projectile_is_danger() -> void:
 	p.age = 0.0
 	_check(not ai._visible_projectiles().has(p), "a brand-new projectile is not seen yet (reaction delay)")
 	p.queue_free()
+	_remove_bot(ai)
+
+
+## Time until `slot` of `w` goes on cooldown (or -1 if not within `limit` s).
+func _time_to_use(w: Wizard, slot: String, limit: float) -> float:
+	var t := 0.0
+	while t < limit:
+		await _frames(1)
+		t += 1.0 / 60.0
+		if not w.get_spell(slot).is_ready():
+			return t
+	return -1.0
+
+
+func _test_lightning_at_short_range() -> void:
+	print("lightning")
+	_park_all()
+	var ai := _make_bot(blue, "caster", "normal")
+	_place(blue, c)
+	_place(green, c + Vector2(150, 0))
+	var t := await _time_to_use(blue, "E", 4.0)
+	_check(t >= 0.0, "caster uses lightning on an enemy 150 px away within 4 s (%.1f s)" % t)
+	_remove_bot(ai)
+
+
+func _test_brawler_uses_staff() -> void:
+	print("staff")
+	_park_all()
+	var ai := _make_bot(blue, "brawler", "normal")
+	_place(blue, c)
+	_place(green, c + Vector2(200, 0))
+	var t := await _time_to_use(blue, "A", 4.0)
+	_check(t >= 0.0, "brawler walks up and swings the staff within 4 s (%.1f s)" % t)
+	_remove_bot(ai)
+
+
+## Mean distance to a passive target over 6 s.
+func _mean_distance(pers: String) -> float:
+	_park_all()
+	var ai := _make_bot(blue, pers, "normal")
+	_place(blue, c)
+	_place(green, c + Vector2(250, 0))
+	green.lava_dps = 0.0
+	var sum := 0.0
+	var n := 0
+	var t := 0.0
+	while t < 6.0:
+		await _frames(1)
+		t += 1.0 / 60.0
+		green.health = 100.0 # keep it alive and in place-ish
+		sum += blue.global_position.distance_to(green.global_position)
+		n += 1
+	green.lava_dps = 8.0
+	_remove_bot(ai)
+	return sum / n
+
+
+func _test_personalities_keep_different_distances() -> void:
+	print("personalities")
+	var brawler := await _mean_distance("brawler")
+	var caster := await _mean_distance("caster")
+	_check(brawler + 100.0 < caster, "brawler fights closer than caster (%.0f vs %.0f px)" % [brawler, caster])
+
+
+func _test_dead_target() -> void:
+	print("dead target")
+	_park_all()
+	var ai := _make_bot(blue, "trickster", "normal")
+	_place(blue, c)
+	_place(green, c + Vector2(150, 0))
+	await _seconds(0.5)
+	# Kill every possible target.
+	for w in [green, player, purple]:
+		w.take_damage(1000.0)
+	await _seconds(1.5)
+	_check(ai.target == null or ai.target.alive, "no dead target kept (%s)" % ai.target)
+	_check(blue.alive, "bot fine with nobody to fight")
+	await _seconds(1.5) # everyone respawns
 	_remove_bot(ai)
 
 

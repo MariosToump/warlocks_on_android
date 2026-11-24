@@ -19,14 +19,14 @@ Two projects share this design:
 - [x] 2. Player wizard: movement, animations, lava damage.
 - [x] 3. Fireball + knockback physics.
 - [x] 4. Blink, Lightning, Shield (+ hurt and death animations).
-- [ ] 5. AI bots (move, dodge, aim, avoid lava). **← next**
-- [ ] 6. Rounds, score, shrinking arena, win screen.
+- [x] 5. AI bots (move, dodge, aim, avoid lava). _PC done 2026-11-24; Android port pending._
+- [ ] 6. Rounds, score, shrinking arena, win screen. **← next**
 - [ ] 7. Shop between rounds, gold, upgrades, items.
 - [ ] 8. Polish: screen shake, hit flash, particles, sounds, menu.
 - [ ] 9. Remaining spells.
 
-Right now you fight two training dummies (blue, green) that respawn 2 s after dying.
-Nothing fights back, and there are no rounds or winner yet.
+Right now it's a free-for-all against three AI bots that fight you and each other, and respawn 2 s after dying.
+There are no rounds or winner yet.
 
 ### Added beyond the original plan
 - **Staff attack (slot A)**: auto-attack melee swing, 4 damage, shove 300, 0.5 s cooldown = swing animation.
@@ -35,6 +35,14 @@ Nothing fights back, and there are no rounds or winner yet.
 - **Android version**: floating joystick on the left; spell buttons on the right (drag to aim, tap to auto-aim, drag back to cancel); landscape, immersive.
 - **Feel**: physics interpolation (smooth on 90/120 Hz screens); camera zoom snapped so one art pixel = a whole number of screen pixels.
 - Demo video recorder: `tools/record_demo.gd` (Movie Maker).
+- **AI bots** (`scripts/ai/`, 2026-11-24): `AIController` on each bot scores actions every think tick
+  (dodge, recover, shield, reposition, fireball, lightning, staff, blink-in) × personality weight.
+  Lava check runs every physics frame. Design: `docs/superpowers/specs/2026-11-24-ai-bots-design.md`.
+  - Personalities (`ai/personalities/`): Blue = Brawler (close, staff + lightning, reflects with shield),
+    Green = Caster (keeps ~350 px, fireballs, zaps anyone who closes in), Purple = Trickster (mid range, blink-in to shove into lava).
+  - Difficulty (`ai/profiles/`, `game.gd` `bot_difficulty`, default Normal): think rate, reaction delay, aim error, leading, dodge and shield chance.
+  - `game.gd` `bot_debug` draws each bot's current action. `tools/sim_ai.gd -- <easy|normal|hard> [s]` runs a bots-only fight and prints stats.
+  - Known: Caster tends to survive longest; few lava deaths because the arena is huge (shrinking in M6 will fix).
 
 ### Changed from the plan above
 - Move speed is **165** (not 140). Fireball flies 560 px/s.
@@ -50,7 +58,8 @@ Nothing fights back, and there are no rounds or winner yet.
 - No pillars/obstacles yet. Shrinking (milestone 6) will change vertices to lava and call `rebuild()`.
 
 ### Tests
-`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff (+ test_touch on Android). All passing.
+`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai (+ test_touch on Android). All passing.
+Tests set `game.bot_ai = false` so bots are passive dummies (`BotBlue`, `BotGreen`, `BotPurple`).
 
 ### PixelLab
 Trial: 3 generations left (out of 40). Character id `2c9f98f0-5a77-4c63-aca5-e01bf03bf62d` (Red Warlock; team colours are a hue shader).
