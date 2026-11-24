@@ -15,6 +15,7 @@ func _init() -> void:
 	var secs := float(args[1]) if args.size() > 1 else 60.0
 	game = load("res://scenes/game.tscn").instantiate()
 	game.bot_difficulty = {"easy": 0, "normal": 1, "hard": 2}[diff]
+	game.rounds = false # endless, the dead respawn
 	root.add_child(game)
 	_run.call_deferred(diff, secs)
 

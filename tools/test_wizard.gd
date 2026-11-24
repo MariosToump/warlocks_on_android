@@ -16,6 +16,7 @@ func _init() -> void:
 	game = load("res://scenes/game.tscn").instantiate()
 	game.bot_ai = false
 	game.shrink_arena = false
+	game.rounds = false
 	root.add_child(game)
 	_run.call_deferred()
 

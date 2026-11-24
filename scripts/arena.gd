@@ -12,11 +12,12 @@ extends Node2D
 ##
 ## Shrinking: while `shrinks` is on, every `shrink_delay` seconds the edge
 ## creeps in by `shrink_step_tiles` (a glowing line warns `shrink_warning` s
-## ahead), down to `min_radius_tiles`. After `min_hold` s at the minimum the
-## platform regrows (a stand-in until rounds exist, milestone 6).
+## ahead), down to `min_radius_tiles`. After `min_hold` s at the minimum
+## either the platform regrows (`regrows`, endless mode) or sudden death
+## starts: the edge keeps creeping in until no stone is left (rounds).
 
 enum Terrain { LAVA, STONE, CRACKED }
-enum Phase { WAIT, SHRINK, HOLD }
+enum Phase { WAIT, SHRINK, HOLD, FINAL }
 
 const LAVA_SHEET := "res://assets/tiles/lava_stone"
 const CRACK_SHEET := "res://assets/tiles/stone_cracked"
@@ -33,7 +34,9 @@ const CRACK_SHEET := "res://assets/tiles/stone_cracked"
 @export var shrink_speed := 3.0 ## tiles per second while creeping
 @export var shrink_warning := 4.0 ## seconds of warning line before a shrink
 @export var min_radius_tiles := 11.0 ## 3 steps of 9 from 38
-@export var min_hold := 25.0 ## seconds at the minimum before it regrows
+@export var min_hold := 25.0 ## seconds at the minimum before it regrows / sudden death
+@export var regrows := true ## false = sudden death after the hold (the game turns this off for rounds)
+@export var final_shrink_speed := 0.6 ## tiles per second during sudden death
 @export_group("")
 
 @onready var tiles: TileMapLayer = $Tiles
@@ -103,7 +106,7 @@ func is_lava_soon(world_pos: Vector2) -> bool:
 func warning_active() -> bool:
 	if not shrinks:
 		return false
-	if phase == Phase.SHRINK:
+	if phase == Phase.SHRINK or phase == Phase.FINAL:
 		return true
 	return phase == Phase.WAIT and time_left <= shrink_warning and radius_tiles > min_radius_tiles + 0.01
 
@@ -127,7 +130,11 @@ func status_text() -> String:
 		Phase.SHRINK:
 			return "The lava is rising!"
 		Phase.HOLD:
-			return "Platform regrows in %d" % ceili(time_left)
+			if regrows:
+				return "Platform regrows in %d" % ceili(time_left)
+			return "Sudden death in %d" % ceili(time_left)
+		Phase.FINAL:
+			return "Sudden death!"
 	if radius_tiles <= min_radius_tiles + 0.01:
 		return ""
 	return "Lava rises in %d" % ceili(time_left)
@@ -170,7 +177,15 @@ func _physics_process(delta: float) -> void:
 		Phase.HOLD:
 			time_left -= delta
 			if time_left <= 0.0:
-				regrow()
+				if regrows:
+					regrow()
+				else:
+					phase = Phase.FINAL
+					next_radius_tiles = maxf(radius_tiles - 2.0, 0.0)
+		Phase.FINAL:
+			# The warning line runs 2 tiles ahead of the creeping edge.
+			_set_radius(maxf(radius_tiles - final_shrink_speed * delta, 0.0))
+			next_radius_tiles = maxf(radius_tiles - 2.0, 0.0)
 
 
 func _start_hold() -> void:
@@ -192,7 +207,7 @@ func _set_radius(r: float) -> void:
 			if vertices[row][col] == Terrain.LAVA:
 				continue
 			var d := Vector2(col, row) - center
-			if d.length() > r + _wobble(d.angle()):
+			if r <= 0.0 or d.length() > r + _wobble(d.angle()):
 				vertices[row][col] = Terrain.LAVA
 				changed.append(Vector2i(col, row))
 	if changed.is_empty():

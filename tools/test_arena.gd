@@ -12,6 +12,7 @@ func _init() -> void:
 	game = load("res://scenes/game.tscn").instantiate()
 	game.bot_ai = false
 	game.shrink_arena = false
+	game.rounds = false
 	root.add_child(game)
 	_run.call_deferred()
 
@@ -63,6 +64,26 @@ func _run() -> void:
 	await _frames(2)
 	_check(is_equal_approx(arena.radius_tiles, full) and not arena.is_lava_at(doomed), "platform regrows after holding at the minimum")
 	_check(_tiles_match_full_rebuild(), "tiles correct after regrowing")
+
+	print("sudden death (rounds: no regrowing)")
+	arena.regrows = false
+	arena.final_shrink_speed = 30.0
+	arena.restart_shrink_timer()
+	var saw_final := false
+	var hold_text := ""
+	t = 0.0
+	while t < 10.0 and arena.radius_tiles > 0.0:
+		await _frames(1)
+		t += 1.0 / 60.0
+		saw_final = saw_final or arena.phase == Arena.Phase.FINAL
+		if arena.phase == Arena.Phase.HOLD:
+			hold_text = arena.status_text()
+	_check(hold_text.begins_with("Sudden death in"), "warns while holding ('%s')" % hold_text)
+	_check(saw_final and arena.radius_tiles == 0.0, "after the hold the edge creeps in to nothing (r %.1f)" % arena.radius_tiles)
+	_check(arena.is_lava_at(c), "even the middle is lava in the end")
+	_check(_tiles_match_full_rebuild(), "tiles correct after sudden death")
+	arena.regrows = true
+	arena.regrow()
 
 	print("random stone point")
 	arena.shrinks = false

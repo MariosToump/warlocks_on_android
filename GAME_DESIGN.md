@@ -20,13 +20,14 @@ Two projects share this design:
 - [x] 3. Fireball + knockback physics.
 - [x] 4. Blink, Lightning, Shield (+ hurt and death animations).
 - [x] 5. AI bots (move, dodge, aim, avoid lava). _Done 2026-11-24 (PC and Android)._
-- [ ] 6. Rounds, score, shrinking arena, win screen. **← in progress** (shrinking arena + last-attacker tracking done on PC 2026-11-24; rounds, score, win screen still to do; not ported to Android yet)
-- [ ] 7. Shop between rounds, gold, upgrades, items.
+- [x] 6. Rounds, score, shrinking arena, win screen. _Done 2026-11-24 (PC and Android)._
+- [ ] 7. Shop between rounds, gold, upgrades, items. **← next**
 - [ ] 8. Polish: screen shake, hit flash, particles, sounds, menu.
 - [ ] 9. Remaining spells.
 
-Right now it's a free-for-all against three AI bots that fight you and each other, and respawn 2 s after dying.
-There are no rounds or winner yet.
+Right now it's a match of rounds against three AI bots (they fight you and each other). Last wizard standing
+wins the round; first to 5 round wins takes the match, then a results screen with "Play again".
+No shop yet (milestone 7), so every round is the same 4 spells + staff.
 
 ### Added beyond the original plan
 - **Staff attack (slot A)**: auto-attack melee swing, 4 damage, shove 300, 0.5 s cooldown = swing animation.
@@ -44,6 +45,21 @@ There are no rounds or winner yet.
   - `game.gd` `bot_debug` draws each bot's current action. `tools/sim_ai.gd -- <easy|normal|hard> [s]` runs a bots-only fight and prints stats.
   - Known: Caster tends to survive longest; few lava deaths because the arena is huge (shrinking in M6 will fix).
 
+- **Rounds** (`game.gd`, `scripts/round_hud.gd`, 2026-11-24):
+  - Each round: everyone placed on a flat ellipse around the middle (260 x 130 px, random rotation, facing in),
+    3 s countdown with the camera showing the whole field and controls off, then "Fight!" and the camera glides to the player.
+  - The dead stay dead. Round ends the frame only one is left (all dead on the same tick = draw, nobody scores).
+    3 s banner ("You win the round!" / "Blue wins the round!" / "Draw!"), then the next round: platform back to full,
+    full health, cooldowns reset, leftover projectiles cleared, bot brains reset.
+  - Kills: a death counts for whoever last hit the victim within 10 s (so knocking someone into lava counts).
+    Tracked per match for the shop's gold (milestone 7). Kill feed top-right ("Blue took out Green").
+  - Scoreboard top-left: colour, name, round-win pips, kills; the dead are dimmed during a fight.
+  - When the player dies, after 1.5 s the camera follows their killer (or anyone alive).
+  - Sudden death: in rounds the platform no longer regrows; after holding at the minimum for 25 s the edge keeps
+    creeping in (0.6 tiles/s) until nothing is left. Bots-only rounds take 60-100 s.
+  - `game.rounds = false` = the old endless free-for-all with respawns (all tests except test_rounds, and the AI sim).
+  - Android: `TouchControls.locked` between rounds (no moving/casting; new touches pass through to the Play again button).
+
 ### Changed from the plan above
 - Move speed is **165** (not 140). Fireball flies 560 px/s.
 - Stretch mode is **canvas_items** (not "viewport"), to keep pixels sharp on phone screens.
@@ -60,7 +76,7 @@ There are no rounds or winner yet.
 - `Wizard.take_damage(amount, source)` remembers `last_attacker` (for kill credit in rounds); bots turn on whoever just hit them.
 
 ### Tests
-`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai (+ test_touch on Android). All passing.
+`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai, test_arena, test_rounds (+ test_touch on Android, which needs a window: no `--headless`). All passing.
 Tests set `game.bot_ai = false` so bots are passive dummies (`BotBlue`, `BotGreen`, `BotPurple`).
 
 ### PixelLab

@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/wizard.tscn" id="3_wiz"]
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="4_pc"]
 [ext_resource type="Script" path="res://scripts/touch_controls.gd" id="5_touch"]
+[ext_resource type="Script" path="res://scripts/round_hud.gd" id="6_round"]
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_game")
@@ -30,3 +31,13 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("5_touch")
+
+[node name="RoundHud" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("6_round")

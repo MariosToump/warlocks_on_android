@@ -75,6 +75,18 @@ func _ready() -> void:
 		wizard.add_child.call_deferred(_debug)
 
 
+## Forget everything from the last round (the game calls this at round start).
+func reset() -> void:
+	target = null
+	current_action = ""
+	_goal = null
+	_danger = null
+	_rolls.clear()
+	_cast_rolls.clear()
+	_knocked_for = 0.0
+	_think_left = randf() * profile.think_interval
+
+
 func _physics_process(delta: float) -> void:
 	if not wizard.alive or wizard.arena == null:
 		target = null

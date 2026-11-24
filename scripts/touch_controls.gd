@@ -30,6 +30,9 @@ const LAYOUT := {
 }
 
 var wizard: Wizard
+## True between rounds (countdown, results): no moving or casting, and
+## new touches pass through to the HUD (e.g. the Play again button).
+var locked := false
 
 var _stick_index := -1
 var _stick_origin := Vector2.ZERO
@@ -56,7 +59,7 @@ func _process(delta: float) -> void:
 	if wizard and _stick_index >= 0:
 		var v := (_stick_pos - _stick_origin) / STICK_R
 		wizard.move_target = null
-		wizard.move_dir = v.limit_length(1.0) if v.length() > STICK_DEAD else Vector2.ZERO
+		wizard.move_dir = v.limit_length(1.0) if v.length() > STICK_DEAD and not locked else Vector2.ZERO
 	if wizard and _attack_index >= 0:
 		_hold_attack()
 	_update_guide()
@@ -71,7 +74,8 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		var t := event as InputEventScreenTouch
 		if t.pressed:
-			_touch_down(t.index, t.position)
+			if not locked:
+				_touch_down(t.index, t.position)
 		else:
 			_touch_up(t.index)
 	elif event is InputEventScreenDrag:
@@ -124,7 +128,7 @@ func _touch_up(index: int) -> void:
 ## Called every frame while the attack button is held: swing whenever the
 ## staff is ready, on the spot.
 func _hold_attack() -> void:
-	if not wizard.alive:
+	if not wizard.alive or locked:
 		return
 	var aim := wizard.global_position + _facing_vec() * 20.0
 	var near := _nearest_enemy()
@@ -135,6 +139,8 @@ func _hold_attack() -> void:
 
 
 func _cast(slot: String, aim_vec: Vector2, tapped: bool) -> void:
+	if locked:
+		return
 	if wizard.cast(slot, _target_for(slot, aim_vec, tapped)):
 		_flash[slot] = 0.15
 
@@ -263,6 +269,9 @@ func _draw() -> void:
 
 ## Cooldown shade: a pie slice covering `ratio` of the button, clockwise from top.
 func _draw_pie(c: Vector2, r: float, ratio: float, col: Color) -> void:
+	ratio = minf(ratio, 1.0)
+	if ratio < 0.01:
+		return # a sliver would be a degenerate polygon
 	var pts := PackedVector2Array([c])
 	var steps := maxi(int(48 * ratio), 2)
 	for i in steps + 1:
