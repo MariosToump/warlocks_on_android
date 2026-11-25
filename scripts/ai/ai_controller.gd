@@ -9,7 +9,7 @@ extends Node
 ## movement actions set a goal that is followed every physics frame.
 
 ## Every action has _score_<name>() -> float and _do_<name>() -> void.
-const ACTIONS := ["dodge", "recover", "shield", "reposition", "fireball", "lightning", "staff", "blink_in"]
+const ACTIONS := ["dodge", "recover", "shield", "reposition", "fireball", "lightning", "staff", "blink_in", "homing"]
 ## Bonus for sticking with the current action / target (stops jitter).
 const KEEP_ACTION_BONUS := 0.1
 const KEEP_TARGET_BONUS := 80.0
@@ -207,6 +207,22 @@ func _do_reposition() -> void:
 		want = lerpf(d, want, personality.retreat_bias)
 	var dir := from_target.normalized().rotated(_strafe * 0.35)
 	_goal = target.global_position + dir * want
+
+
+## Homing Orb (slot D, bought in the shop): slow but it curves, so good at
+## mid/long range; useless point-blank (it can't turn in time).
+func _score_homing() -> float:
+	var spell := wizard.get_spell("D") as HomingOrbSpell
+	if target == null or spell == null or not _can_cast("D") or target.is_shielded():
+		return 0.0
+	var d := _target_distance()
+	if d < 140.0 or d > 700.0:
+		return 0.0
+	return 0.85
+
+
+func _do_homing() -> void:
+	_cast("D", target.global_position)
 
 
 func _score_fireball() -> float:

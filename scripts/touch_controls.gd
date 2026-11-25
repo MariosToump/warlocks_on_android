@@ -29,6 +29,8 @@ const LAYOUT := {
 	"W": {"offset": Vector2(-144, -90), "r": 44.0},
 	"E": {"offset": Vector2(-74, -153), "r": 44.0},
 	"R": {"offset": Vector2(18, -169), "r": 44.0},
+	# Bought in the shop (Homing Orb): left of Q; only drawn once owned.
+	"D": {"offset": Vector2(-266, 0), "r": 44.0},
 }
 
 var wizard: Wizard
@@ -186,6 +188,8 @@ func _reach(spell: Spell) -> float:
 		return spell.max_range
 	if spell is FireballSpell:
 		return spell.max_range
+	if spell is HomingOrbSpell:
+		return 600.0 # it curves, so aim roughly; tap picks targets this close
 	return 100.0
 
 
@@ -292,7 +296,7 @@ func _draw() -> void:
 			var s := spell.icon.get_size()
 			var box := r * 1.25
 			var k := box / maxf(s.x, s.y)
-			draw_texture_rect(spell.icon, Rect2(c - s * k / 2.0, s * k), false)
+			draw_texture_rect(spell.icon, Rect2(c - s * k / 2.0, s * k), false, spell.icon_tint)
 		var cd := spell.cooldown_ratio()
 		if cd > 0.0 and slot == "A":
 			# Attack: quick, so a thin ring that runs down plus a small timer.

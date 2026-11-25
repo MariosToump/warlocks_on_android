@@ -15,6 +15,11 @@ var speed := 560.0
 var max_range := 650.0
 var damage := 6.0
 var knockback := 380.0
+## Homing (Homing Orb): turn toward the nearest living enemy of the current
+## caster within `homing_radius`, at up to this many radians per second.
+## 0 = flies straight. After a shield reflection it hunts the new owner's enemies.
+var homing_turn := 0.0
+var homing_radius := 520.0
 
 ## Seconds since spawned (bots only notice projectiles after their reaction delay).
 var age := 0.0
@@ -37,12 +42,39 @@ func _physics_process(delta: float) -> void:
 	if _done:
 		return
 	age += delta
+	if homing_turn > 0.0:
+		_steer(delta)
 	var step := direction * speed * delta
 	position += step
 	_travelled += step.length()
 	_check_shields()
 	if _travelled >= max_range:
 		_explode(0.6)
+
+
+func _steer(delta: float) -> void:
+	var prey := homing_target()
+	if prey == null:
+		return
+	var want := global_position.direction_to(prey.global_position)
+	var turn := clampf(direction.angle_to(want), -homing_turn * delta, homing_turn * delta)
+	direction = direction.rotated(turn)
+	sprite.rotation = direction.angle()
+
+
+## The wizard a homing projectile is chasing (nearest living enemy in range).
+func homing_target() -> Wizard:
+	var best: Wizard = null
+	var best_d := homing_radius
+	for node in get_tree().get_nodes_in_group("wizards"):
+		var w := node as Wizard
+		if w == caster or not w.alive:
+			continue
+		var d := global_position.distance_to(w.global_position)
+		if d < best_d:
+			best = w
+			best_d = d
+	return best
 
 
 ## Bounce off any enemy shield bubble we're inside and moving into: the

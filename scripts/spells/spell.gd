@@ -7,6 +7,8 @@ extends Node
 
 @export var spell_name := "Spell"
 @export var icon: Texture2D
+## Tint for the icon on buttons (spells that share art look different).
+var icon_tint := Color.WHITE
 @export var cooldown_by_level: Array[float] = [2.0, 2.0, 2.0, 2.0]
 ## Seconds the caster stands still while casting.
 @export var cast_time := 0.3

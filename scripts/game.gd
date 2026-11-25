@@ -14,6 +14,8 @@ signal fight_started
 signal round_ended(winner: Wizard) ## null = draw
 signal match_ended(winner: Wizard)
 signal kill_scored(killer: Wizard, victim: Wizard)
+signal shop_opened
+signal shop_closed
 
 const WIZARD := preload("res://scenes/wizard.tscn")
 
@@ -30,13 +32,20 @@ const BOTS := [
 	[Wizard.TeamColor.PURPLE, preload("res://ai/personalities/trickster.tres")],
 ]
 
-enum State { FREE, COUNTDOWN, FIGHT, ROUND_OVER, MATCH_OVER }
+enum State { FREE, COUNTDOWN, FIGHT, ROUND_OVER, SHOP, MATCH_OVER }
 
 ## False = endless free-for-all with respawns (tests and the AI sim).
 @export var rounds := true
 @export var wins_to_take_match := 5
 @export var countdown_time := 3.0
 @export var round_over_time := 3.0
+## Seconds the shop stays open between rounds (Ready closes it sooner).
+@export var shop_time := 15.0
+## Gold after every round: everyone gets the base, plus per kill that round,
+## plus the round winner's bonus.
+@export var gold_per_round := 10
+@export var gold_per_kill := 5
+@export var gold_for_win := 5
 ## Everyone starts each round on a flat ellipse this wide (radius, px) and
 ## half as tall, so the whole field fits on screen at the follow zoom.
 @export var spawn_distance := 260.0
@@ -73,6 +82,8 @@ var state_left := 0.0
 var all_wizards: Array[Wizard] = []
 var wins := {} ## Wizard -> round wins this match
 var kills := {} ## Wizard -> kills this match
+var gold := {} ## Wizard -> gold to spend in the shop
+var round_kills := {} ## Wizard -> kills this round (for gold)
 var round_winner: Wizard = null
 var match_winner: Wizard = null
 
@@ -87,6 +98,7 @@ var minimap: Minimap
 var damage_numbers: DamageNumbers
 var vignette: DangerVignette
 var pause_menu: PauseMenu
+var shop_panel: ShopPanel
 
 
 func _ready() -> void:
@@ -119,6 +131,8 @@ func _ready() -> void:
 	for w in all_wizards:
 		wins[w] = 0
 		kills[w] = 0
+		gold[w] = 0
+		round_kills[w] = 0
 	if rounds:
 		start_match()
 	else:
@@ -176,6 +190,8 @@ func start_match() -> void:
 	for w in all_wizards:
 		wins[w] = 0
 		kills[w] = 0
+		gold[w] = 0
+		Shop.clear(w)
 	round_number = 0
 	match_winner = null
 	start_round()
@@ -185,6 +201,8 @@ func start_round() -> void:
 	round_number += 1
 	round_winner = null
 	_player_dead_for = 0.0
+	for w in all_wizards:
+		round_kills[w] = 0
 	_clear_effects()
 	arena.shrinks = false
 	arena.regrow()
@@ -236,6 +254,32 @@ func _end_round(winner: Wizard) -> void:
 	round_ended.emit(winner)
 
 
+## Between rounds: pay everyone, let the bots spend, then the player gets
+## `shop_time` seconds (or until Ready).
+func open_shop() -> void:
+	for w in all_wizards:
+		gold[w] = gold.get(w, 0) + gold_per_round + round_kills.get(w, 0) * gold_per_kill 				+ (gold_for_win if w == round_winner else 0)
+	for w in all_wizards:
+		if w != player:
+			Shop.bot_shop(self, w)
+	state = State.SHOP
+	state_left = shop_time
+	shop_opened.emit()
+
+
+## Ready (or time's up): next round.
+func close_shop() -> void:
+	if state != State.SHOP:
+		return
+	shop_closed.emit()
+	start_round()
+
+
+## Gold this round's result pays `w` (shown in the shop).
+func round_income(w: Wizard) -> int:
+	return gold_per_round + round_kills.get(w, 0) * gold_per_kill + (gold_for_win if w == round_winner else 0)
+
+
 ## Player and bot brains on/off (wizards still animate and get knocked about).
 func _set_controls(on: bool) -> void:
 	touch.locked = not on
@@ -279,7 +323,11 @@ func _process(delta: float) -> void:
 					state = State.MATCH_OVER
 					match_ended.emit(match_winner)
 				else:
-					start_round()
+					open_shop()
+		State.SHOP:
+			state_left -= delta
+			if state_left <= 0.0:
+				close_shop()
 
 
 ## Once the player is out, watch whoever killed them (or anyone alive).
@@ -310,6 +358,7 @@ func _on_wizard_died(w: Wizard) -> void:
 	if is_instance_valid(k) and k != w and now - w.last_hit_at <= kill_credit_window \
 			and state in [State.FIGHT, State.FREE]:
 		kills[k] = kills.get(k, 0) + 1
+		round_kills[k] = round_kills.get(k, 0) + 1
 		kill_scored.emit(k, w)
 	if state == State.FREE:
 		_respawn_later(w)
@@ -364,6 +413,11 @@ func _build_hud_extras() -> void:
 	minimap.offset_right = -12.0
 	minimap.offset_top = 12.0
 	minimap.offset_bottom = 12.0 + Minimap.DIAMETER
+	shop_panel = ShopPanel.new()
+	shop_panel.name = "ShopPanel"
+	hud.add_child(shop_panel)
+	shop_panel.setup(self)
+	shop_opened.connect(func(): round_hud._show_banner(""))
 	pause_menu = PauseMenu.new()
 	pause_menu.name = "PauseMenu"
 	pause_menu.game = self

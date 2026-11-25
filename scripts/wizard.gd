@@ -46,8 +46,14 @@ var last_hit_at := -100.0
 var alive := true
 var on_lava := false
 var arena: Arena
-## Items (Focus Gem) lower this; spells multiply their cooldown by it.
+## Item effects (set by Shop.apply_items; they survive round resets and are
+## cleared at a new match). Focus Gem: spells multiply their cooldown by this.
 var cooldown_multiplier := 1.0
+var speed_multiplier := 1.0 ## Boots
+var knockback_taken_multiplier := 1.0 ## Stone Cloak
+var lava_multiplier := 1.0 ## Fire Ring
+## Item ids bought in the shop (max Shop.MAX_ITEMS).
+var items: Array[String] = []
 
 ## Set by a controller. move_target wins if both are set.
 var move_target = null # Vector2 or null
@@ -116,14 +122,15 @@ func _wants_to_walk() -> bool:
 
 
 func _walk_velocity() -> Vector2:
+	var speed := move_speed * speed_multiplier
 	if move_target != null:
 		var to: Vector2 = move_target - global_position
-		if to.length() <= move_speed * get_physics_process_delta_time():
+		if to.length() <= speed * get_physics_process_delta_time():
 			move_target = null
 			return Vector2.ZERO
-		return to.normalized() * move_speed
+		return to.normalized() * speed
 	if move_dir != Vector2.ZERO:
-		return move_dir.limit_length(1.0) * move_speed
+		return move_dir.limit_length(1.0) * speed
 	return Vector2.ZERO
 
 
@@ -261,7 +268,7 @@ func flash_hit(from_dir := Vector2.ZERO) -> void:
 ## Push the wizard. Scaled up by how much damage it has taken.
 func apply_knockback(impulse: Vector2) -> void:
 	if alive:
-		knockback += impulse * (1.0 + damage_taken * knockback_per_damage)
+		knockback += impulse * (1.0 + damage_taken * knockback_per_damage) * knockback_taken_multiplier
 
 
 func reset(at: Vector2) -> void:
@@ -324,7 +331,7 @@ func _update_lava(delta: float) -> void:
 		# Pulse the sprite hot orange while burning.
 		var p := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 90.0)
 		sprite.modulate = Color(1.0, 1.0, 1.0).lerp(Color(1.6, 0.75, 0.35), 0.4 + 0.4 * p)
-		take_damage(lava_dps * delta)
+		take_damage(lava_dps * lava_multiplier * delta)
 
 
 func _clamp_to_arena() -> void:

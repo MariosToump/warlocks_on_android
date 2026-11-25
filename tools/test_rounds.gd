@@ -18,6 +18,7 @@ func _init() -> void:
 	game.shrink_arena = false
 	game.countdown_time = 0.5
 	game.round_over_time = 0.4
+	game.shop_time = 0.02 # shop tested in test_shop.gd
 	game.spectate_delay = 0.2
 	game.wins_to_take_match = 2
 	root.add_child(game)
