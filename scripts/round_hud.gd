@@ -188,6 +188,7 @@ func _on_match_ended(winner: Wizard) -> void:
 
 
 func _on_play_again() -> void:
+	Sfx.play("click")
 	_match_panel.visible = false
 	play_again_pressed.emit()
 

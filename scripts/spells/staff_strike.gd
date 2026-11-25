@@ -29,6 +29,7 @@ func _init() -> void:
 
 
 func release(target: Vector2) -> void:
+	Sfx.play_at("staff", caster.global_position)
 	var from := caster.global_position
 	var dir := (target - from).normalized()
 	if dir == Vector2.ZERO:

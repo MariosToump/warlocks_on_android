@@ -114,6 +114,7 @@ func _on_body_entered(body: Node) -> void:
 
 func _explode(fx_scale: float) -> void:
 	_done = true
+	Sfx.play_at("hit", global_position, 0.0 if fx_scale == impact_scale else -8.0)
 	if impact_frames:
 		var fx: AnimatedSprite2D = IMPACT.instantiate()
 		fx.sprite_frames = impact_frames

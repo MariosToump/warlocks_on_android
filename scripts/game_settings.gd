@@ -11,6 +11,8 @@ static var zoom := "close"
 static var difficulty := 1 ## game.Difficulty: 0 easy, 1 normal, 2 hard
 static var wins_to_take_match := 5
 static var haptics := true
+static var sound := true
+static var music := true
 static var _loaded := false
 
 
@@ -32,6 +34,8 @@ static func load_settings() -> void:
 	if not wins_to_take_match in WINS:
 		wins_to_take_match = 5
 	haptics = cf.get_value("game", "haptics", haptics)
+	sound = cf.get_value("game", "sound", sound)
+	music = cf.get_value("game", "music", music)
 
 
 static func save_settings() -> void:
@@ -40,6 +44,8 @@ static func save_settings() -> void:
 	cf.set_value("game", "difficulty", difficulty)
 	cf.set_value("game", "wins_to_take_match", wins_to_take_match)
 	cf.set_value("game", "haptics", haptics)
+	cf.set_value("game", "sound", sound)
+	cf.set_value("game", "music", music)
 	cf.save(path)
 
 
@@ -53,4 +59,6 @@ static func reset() -> void:
 	difficulty = 1
 	wins_to_take_match = 5
 	haptics = true
+	sound = true
+	music = true
 	_loaded = true

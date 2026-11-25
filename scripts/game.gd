@@ -90,6 +90,7 @@ var match_winner: Wizard = null
 var _lava_label: Label
 var _player_dead_for := 0.0
 var _last_lava_buzz := -10.0
+var _last_beep := -1
 ## Vibrations sent (tests read this; desktop has no motor).
 var haptic_count := 0
 
@@ -122,6 +123,9 @@ func _ready() -> void:
 	round_hud.play_again_pressed.connect(start_match)
 	_build_hud_extras()
 	player.damaged.connect(_on_player_damaged)
+	if apply_settings:
+		Sfx.apply_settings()
+	Sfx.music("music_fight")
 
 	arena.camera.target = player
 	arena.camera.set_design_zoom(follow_zoom)
@@ -144,9 +148,12 @@ func _add_wizard(w: Wizard, at: Vector2) -> void:
 	w.global_position = at
 	w.health_changed.emit(w.health, w.max_health)
 	w.died.connect(_on_wizard_died)
+	w.died.connect(func(_w): Sfx.play_at("death", w.global_position))
 	w.damaged.connect(func(amount: float, source: Wizard):
-		if source != null and damage_numbers:
-			damage_numbers.add(w, amount))
+		if source != null:
+			Sfx.play_at("hurt", w.global_position, -3.0)
+			if damage_numbers:
+				damage_numbers.add(w, amount))
 	all_wizards.append(w)
 
 
@@ -229,11 +236,13 @@ func start_round() -> void:
 	arena.camera.reset_smoothing()
 	state = State.COUNTDOWN
 	state_left = countdown_time
+	_last_beep = -1
 	round_started.emit(round_number)
 
 
 func _begin_fight() -> void:
 	state = State.FIGHT
+	Sfx.play("fight")
 	arena.camera.target = player
 	_set_controls(true)
 	arena.shrinks = shrink_arena
@@ -251,6 +260,7 @@ func _end_round(winner: Wizard) -> void:
 			match_winner = winner
 	_set_controls(false)
 	arena.shrinks = false
+	Sfx.play("win" if winner == player else "lose")
 	round_ended.emit(winner)
 
 
@@ -301,10 +311,15 @@ func _clear_effects() -> void:
 
 
 func _process(delta: float) -> void:
+	Sfx.loop("lava", player.alive and player.on_lava and state in [State.FIGHT, State.FREE])
 	_lava_label.text = arena.status_text() if state in [State.FIGHT, State.FREE] else ""
 	_lava_label.modulate = Color(1, 0.55, 0.2) if arena.warning_active() else Color(1, 1, 1, 0.85)
 	match state:
 		State.COUNTDOWN:
+			var beep := ceili(state_left)
+			if beep != _last_beep:
+				_last_beep = beep
+				Sfx.play("beep")
 			state_left -= delta
 			if state_left <= 0.0:
 				_begin_fight()

@@ -17,4 +17,5 @@ func _init() -> void:
 
 
 func release(_target: Vector2) -> void:
+	Sfx.play_at("shield", caster.global_position)
 	caster.raise_shield(duration_by_level[level])

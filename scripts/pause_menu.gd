@@ -15,6 +15,8 @@ var _zoom: Button
 var _bots: Button
 var _wins: Button
 var _haptics: Button
+var _sound: Button
+var _music: Button
 
 
 func _ready() -> void:
@@ -72,6 +74,8 @@ func _build_panel() -> void:
 	_bots = _button(box, "", _cycle_bots)
 	_wins = _button(box, "", _cycle_wins)
 	_haptics = _button(box, "", _toggle_haptics)
+	_sound = _button(box, "", _toggle_sound)
+	_music = _button(box, "", _toggle_music)
 	_refresh()
 	dim.visible = false
 
@@ -94,6 +98,8 @@ func open() -> void:
 	if is_open():
 		return
 	game.touch.release_all()
+	Sfx.loop("lava", false)
+	Sfx.play("click")
 	get_tree().paused = true
 	get_node("Dim").visible = true
 	_pause_button.visible = false
@@ -126,6 +132,8 @@ func _refresh() -> void:
 		wins_text += " (next match)"
 	_wins.text = wins_text
 	_haptics.text = "Vibration: %s" % ("On" if GameSettings.haptics else "Off")
+	_sound.text = "Sound: %s" % ("On" if GameSettings.sound else "Off")
+	_music.text = "Music: %s" % ("On" if GameSettings.music else "Off")
 
 
 func _cycle_zoom() -> void:
@@ -149,7 +157,18 @@ func _toggle_haptics() -> void:
 	_changed()
 
 
+func _toggle_sound() -> void:
+	GameSettings.sound = not GameSettings.sound
+	_changed()
+
+
+func _toggle_music() -> void:
+	GameSettings.music = not GameSettings.music
+	_changed()
+
+
 func _changed() -> void:
+	Sfx.play("click")
 	GameSettings.save_settings()
 	game.apply_live_settings()
 	_refresh()

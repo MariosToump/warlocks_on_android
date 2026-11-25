@@ -92,6 +92,7 @@ func _process(_delta: float) -> void:
 
 
 func _on_ready() -> void:
+	Sfx.play("click")
 	game.close_shop()
 
 
@@ -110,9 +111,9 @@ func refresh() -> void:
 			continue
 		var row := _row()
 		row.add_child(_spell_icon(s))
-		var name := _label("%s  Lv %d/3" % [s.spell_name, s.level], 20)
-		name.custom_minimum_size.x = 230
-		row.add_child(name)
+		var lbl := _label("%s  Lv %d/3" % [s.spell_name, s.level], 20)
+		lbl.custom_minimum_size.x = 230
+		row.add_child(lbl)
 		var cost := Shop.upgrade_cost(w, slot)
 		var b := _button("Max" if cost < 0 else "Upgrade %dg" % cost, func(): _buy(func(): return Shop.upgrade(game, w, slot)))
 		b.disabled = not Shop.can_upgrade(game, w, slot)
@@ -130,10 +131,10 @@ func refresh() -> void:
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		row.add_child(icon)
-		var name := _label("New: %s\n%s" % [info.name, info.desc], 16)
-		name.custom_minimum_size.x = 230
-		name.autowrap_mode = TextServer.AUTOWRAP_WORD
-		row.add_child(name)
+		var lbl := _label("New: %s\n%s" % [info.name, info.desc], 16)
+		lbl.custom_minimum_size.x = 230
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+		row.add_child(lbl)
 		var b := _button("Buy %dg" % info.price, func(): _buy(func(): return Shop.buy_spell(game, w, id)))
 		b.disabled = not Shop.can_buy_spell(game, w, id)
 		row.add_child(b)
@@ -146,9 +147,9 @@ func refresh() -> void:
 		var icon := ItemIcon.new()
 		icon.item = id
 		row.add_child(icon)
-		var name := _label("%s\n%s" % [info.name, info.desc], 17)
-		name.custom_minimum_size.x = 200
-		row.add_child(name)
+		var lbl := _label("%s\n%s" % [info.name, info.desc], 17)
+		lbl.custom_minimum_size.x = 200
+		row.add_child(lbl)
 		var b: Button
 		if id in w.items:
 			b = _button("Sell +%dg" % Shop.sell_price(id), func(): _buy(func(): return Shop.sell_item(game, w, id)))
@@ -161,6 +162,7 @@ func refresh() -> void:
 
 func _buy(action: Callable) -> void:
 	if action.call():
+		Sfx.play("coin")
 		refresh()
 
 
@@ -180,10 +182,10 @@ func _spell_icon(s: Spell) -> TextureRect:
 	return t
 
 
-func _label(text: String, size: int, col := Color.WHITE) -> Label:
+func _label(text: String, font_size: int, col := Color.WHITE) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_font_size_override("font_size", font_size)
 	l.add_theme_color_override("font_color", col)
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	return l

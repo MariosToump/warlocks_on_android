@@ -33,3 +33,4 @@ func release(target: Vector2) -> void:
 	# Start just outside the caster's body so it can't hit itself.
 	p.position = caster.global_position + dir * 14.0
 	caster.get_parent().add_child(p)
+	Sfx.play_at("fireball", caster.global_position)

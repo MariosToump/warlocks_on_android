@@ -17,6 +17,7 @@ func _init() -> void:
 
 
 func release(target: Vector2) -> void:
+	Sfx.play_at("blink", caster.global_position)
 	var from := caster.global_position
 	var to := from + (target - from).limit_length(max_distance)
 	if caster.arena:

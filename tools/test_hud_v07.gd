@@ -115,6 +115,28 @@ func _run() -> void:
 			"faint right next to the lava (%.2f)" % game.vignette.level)
 	player.reset(c)
 
+	print("sound")
+	_check(Sfx.music_name == "music_fight", "fight music playing")
+	Sfx.played.clear()
+	player.get_spell("Q").cooldown_left = 0.0
+	player.cast("Q", player.global_position + Vector2(100, 0))
+	await _seconds(0.3)
+	_check("fireball" in Sfx.played, "fireball makes a sound")
+	player.global_position = _first_lava_east() + Vector2(40, 0)
+	await _frames(3)
+	_check(Sfx.is_looping("lava"), "lava sizzles while you burn")
+	player.reset(c)
+	await _frames(3)
+	_check(not Sfx.is_looping("lava"), "and stops when you're out")
+	GameSettings.sound = false
+	GameSettings.music = false
+	Sfx.apply_settings()
+	_check(AudioServer.is_bus_mute(AudioServer.get_bus_index(&"SFX")) and AudioServer.is_bus_mute(AudioServer.get_bus_index(&"Music")),
+			"sound and music settings mute their buses")
+	GameSettings.sound = true
+	GameSettings.music = true
+	Sfx.apply_settings()
+
 	print("pause menu")
 	var pm: PauseMenu = game.pause_menu
 	game.touch._stick_index = 3
