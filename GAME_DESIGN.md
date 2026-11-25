@@ -5,17 +5,19 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-24 (milestone 6 done, docs + READMEs added)_
+_Last updated: 2026-11-25 (Android v0.7: awareness HUD, fireball fixes, pause menu)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
 - **PC**: `D:\Godot\Projects\claude_mcp\lava-warlocks` (keyboard + mouse, Forward+ renderer). Local git only.
 - **Android**: `D:\Godot\Projects\claude_mcp\lava-warlocks-mobile` (touch controls, Compatibility renderer).
-  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.6 (milestone 6, pushed 2026-11-24).
+  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.7 (2026-11-25).
   Build + install on the phone: `bash tools/deploy_android.sh`. APK: `build/warlocks_on_android.apk`.
-  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 published 2026-11-24
+  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7 (2026-11-25)
   (`gh release create vX.Y build/warlocks_on_android.apk`; bump `version/code` + `version/name` in export_presets.cfg first).
   Gameplay changes are made in PC first, then ported (`git cherry-pick` from the `pc` remote).
+  **Exception — Android-only (v0.7, by choice):** fireball range 850 (PC: 700), the v0.7 HUD, pause menu and
+  settings. Expect a conflict in `fireball.gd` / `game.gd` / `round_hud.gd` / `touch_controls.gd` when cherry-picking.
 
 ### Milestones
 - [x] 1. Project setup, arena with stone and lava tiles, camera.
@@ -63,6 +65,28 @@ No shop yet (milestone 7), so every round is the same 4 spells + staff.
   - `game.rounds = false` = the old endless free-for-all with respawns (all tests except test_rounds, and the AI sim).
   - Android: `TouchControls.locked` between rounds (no moving/casting; new touches pass through to the Play again button).
 
+- **Android v0.7** (2026-11-25, Android only). Prompted by friends' feedback ("enemies come out of nowhere",
+  "fireballs fly too short"). Findings: the phone view is only 800 x 360 world px (180 px above/below you) while bots
+  fire from up to 630 px; the fireball aim guide drew 320 px though it flew 700; tap-aim fired at enemies out of range
+  and didn't lead walkers. Built:
+  - Off-screen enemy arrows on the screen edge (`scripts/enemy_arrows.gd`): team colour, smaller when far, pulse while casting.
+  - Minimap top-right (`scripts/minimap.gd`): platform, coming edge, wizard dots, fireballs. Kill feed moved below it.
+  - Fireball range 700 -> 850; aim guide shows the true range; tap-aim = nearest enemy *in range*, on-screen ones first
+    (off-screen counts +400 px), leads walking targets; nobody in range -> nearest anyway (`touch_controls.gd`).
+  - Floating damage numbers in screen space (`scripts/damage_numbers.gd`; yours red; lava ticks none).
+    `Wizard.damaged(amount, source)` signal (source null = lava).
+  - Scoreboard: health bar per wizard; "Knockback +N%" line for you.
+  - Red edge glow (`scripts/danger_vignette.gd`): strong while burning, faint next to lava / where the edge is coming.
+  - Vibration (`game.gd` `_on_player_damaged`): 40 ms per hit, 25 ms at most every 0.5 s in lava. `permissions/vibrate`.
+  - Pause button + Android back button (`config/quit_on_go_back=false`) -> pause menu (`scripts/pause_menu.gd`):
+    Resume, Restart match, Zoom Close/Far (3 or 2 screen px per art px), Bots Easy/Normal/Hard (applies at once),
+    First to 3/5/7 wins (next match), Vibration on/off. Saved in `user://settings.cfg` (`scripts/game_settings.gd`,
+    static). `game.apply_settings = false` in every test so saved settings can't change results.
+- **Balance findings (not acted on yet)**: AI sims (180 s x 3 difficulties) — only 16% of deaths are lava deaths; the
+  Caster almost never dies (1 death in 9 bot-minutes vs Brawler 12). Pushes are small for the arena (fireball ~127 px,
+  lightning ~187 px vs 1216 px platform radius) and lava is mild (8 HP/s). Candidates: smaller starting platform or
+  faster first shrink, stronger lava, bigger knockback.
+
 ### Changed from the plan above
 - Move speed is **165** (not 140). Fireball flies 560 px/s.
 - Stretch mode is **canvas_items** (not "viewport"), to keep pixels sharp on phone screens.
@@ -79,7 +103,7 @@ No shop yet (milestone 7), so every round is the same 4 spells + staff.
 - `Wizard.take_damage(amount, source)` remembers `last_attacker` (for kill credit in rounds); bots turn on whoever just hit them.
 
 ### Tests
-`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai, test_arena, test_rounds (+ test_touch on Android, which needs a window: no `--headless`). All passing.
+`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai, test_arena, test_rounds (+ on Android: test_hud_v07, and test_touch, which needs a window: no `--headless`). All passing.
 Tests set `game.bot_ai = false` so bots are passive dummies (`BotBlue`, `BotGreen`, `BotPurple`).
 
 ### PixelLab

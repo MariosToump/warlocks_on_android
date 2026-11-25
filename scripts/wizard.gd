@@ -5,6 +5,8 @@ extends CharacterBody2D
 ## `move_target` (walk to a point) or `move_dir` (walk in a direction).
 
 signal health_changed(current: float, maximum: float)
+## Every bit of damage. `source` = the wizard who dealt it; null = lava.
+signal damaged(amount: float, source: Wizard)
 signal died(wizard: Wizard)
 signal cast_started(slot: String)
 
@@ -235,6 +237,7 @@ func take_damage(amount: float, source: Wizard = null) -> void:
 		last_hit_at = Time.get_ticks_msec() / 1000.0
 	health = maxf(health - amount, 0.0)
 	damage_taken += amount
+	damaged.emit(amount, source)
 	health_changed.emit(health, max_health)
 	if health <= 0.0:
 		_die()

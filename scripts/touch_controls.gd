@@ -6,7 +6,9 @@ extends Control
 ##   anywhere), turned toward the nearest enemy if one is close, else the way
 ##   you face. Hold to keep swinging. A small timer shows the cooldown.
 ## - Around it: spell buttons. Drag a button to aim (a guide shows in the
-##   arena), release to cast. A quick tap auto-aims at the nearest enemy.
+##   arena), release to cast. A quick tap auto-aims: at the nearest enemy in
+##   the spell's range (on-screen ones first), leading a walker for
+##   fireballs; if nobody is in range, toward the nearest enemy anyway.
 ##   Drag back onto the button before releasing to cancel. Shield casts on touch.
 ## Works with a mouse too (project setting emulate_touch_from_mouse).
 
@@ -64,6 +66,16 @@ func _process(delta: float) -> void:
 		_hold_attack()
 	_update_guide()
 	queue_redraw()
+
+
+## Forget every finger (pausing: touch-ups won't arrive while paused).
+func release_all() -> void:
+	_stick_index = -1
+	_aim_index = -1
+	_aim_slot = ""
+	_attack_index = -1
+	if wizard:
+		wizard.move_dir = Vector2.ZERO
 
 
 # --- input ------------------------------------------------------------------
@@ -155,8 +167,12 @@ func _target_for(slot: String, aim_vec: Vector2, tapped: bool) -> Vector2:
 		if slot == "W": # blink: where you're heading, else where you face
 			var dir := wizard.move_dir if wizard.move_dir != Vector2.ZERO else _facing_vec()
 			return p + dir.normalized() * _reach(spell)
-		var enemy := _nearest_enemy()
-		return enemy.global_position if enemy else p + _facing_vec() * _reach(spell)
+		var enemy := _auto_target(_reach(spell))
+		if enemy == null:
+			return p + _facing_vec() * _reach(spell)
+		if spell is FireballSpell:
+			return _lead(enemy, (spell as FireballSpell).speed)
+		return enemy.global_position
 	var reach := _reach(spell)
 	if slot == "W":
 		reach *= clampf(aim_vec.length() / AIM_FULL, 0.25, 1.0)
@@ -169,8 +185,37 @@ func _reach(spell: Spell) -> float:
 	if spell is LightningSpell:
 		return spell.max_range
 	if spell is FireballSpell:
-		return 320.0 # guide length; it flies further
+		return spell.max_range
 	return 100.0
+
+
+## Tap target for a spell that reaches `reach` px: the closest enemy in
+## range, where enemies off-screen count as further away than they are (you
+## mean the one you can see). Nobody in range: the nearest enemy anyway.
+func _auto_target(reach: float) -> Wizard:
+	var best: Wizard = null
+	var best_score := INF
+	var screen := get_viewport().get_visible_rect()
+	var to_screen := get_viewport().get_canvas_transform()
+	for n in get_tree().get_nodes_in_group("wizards"):
+		var w := n as Wizard
+		if w == wizard or not w.alive:
+			continue
+		var d := w.global_position.distance_to(wizard.global_position)
+		if d > reach:
+			continue
+		var score := d if screen.has_point(to_screen * w.global_position) else d + 400.0
+		if score < best_score:
+			best = w
+			best_score = score
+	return best if best else _nearest_enemy()
+
+
+## Where to throw a projectile of `speed` so it meets `w` if they keep walking.
+func _lead(w: Wizard, speed: float) -> Vector2:
+	var at := w.global_position
+	var t := wizard.global_position.distance_to(at) / speed
+	return at + w.velocity * t
 
 
 func _nearest_enemy() -> Wizard:

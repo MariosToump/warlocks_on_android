@@ -56,6 +56,9 @@ enum State { FREE, COUNTDOWN, FIGHT, ROUND_OVER, MATCH_OVER }
 @export var bot_debug := false
 ## The platform shrinks over time (tests turn this off).
 @export var shrink_arena := true
+## Read zoom / bot difficulty / wins per match / vibration from GameSettings
+## (tests turn this off so their own values stick).
+@export var apply_settings := true
 
 @onready var arena: Arena = $Arena
 @onready var wizards: Node2D = $Wizards
@@ -75,9 +78,23 @@ var match_winner: Wizard = null
 
 var _lava_label: Label
 var _player_dead_for := 0.0
+var _last_lava_buzz := -10.0
+## Vibrations sent (tests read this; desktop has no motor).
+var haptic_count := 0
+
+var arrows: EnemyArrows
+var minimap: Minimap
+var damage_numbers: DamageNumbers
+var vignette: DangerVignette
+var pause_menu: PauseMenu
 
 
 func _ready() -> void:
+	if apply_settings:
+		GameSettings.ensure_loaded()
+		follow_zoom = GameSettings.zoom_value()
+		bot_difficulty = GameSettings.difficulty as Difficulty
+		wins_to_take_match = GameSettings.wins_to_take_match
 	arena.shrinks = shrink_arena
 	arena.regrows = not rounds # rounds end in sudden death instead
 	_lava_label = _make_lava_label()
@@ -91,6 +108,8 @@ func _ready() -> void:
 	touch.wizard = player
 	round_hud.game = self
 	round_hud.play_again_pressed.connect(start_match)
+	_build_hud_extras()
+	player.damaged.connect(_on_player_damaged)
 
 	arena.camera.target = player
 	arena.camera.set_design_zoom(follow_zoom)
@@ -111,6 +130,9 @@ func _add_wizard(w: Wizard, at: Vector2) -> void:
 	w.global_position = at
 	w.health_changed.emit(w.health, w.max_health)
 	w.died.connect(_on_wizard_died)
+	w.damaged.connect(func(amount: float, source: Wizard):
+		if source != null and damage_numbers:
+			damage_numbers.add(w, amount))
 	all_wizards.append(w)
 
 
@@ -149,6 +171,8 @@ func alive_wizards() -> Array[Wizard]:
 
 ## Scores to zero, then round 1.
 func start_match() -> void:
+	if apply_settings:
+		wins_to_take_match = GameSettings.wins_to_take_match
 	for w in all_wizards:
 		wins[w] = 0
 		kills[w] = 0
@@ -309,6 +333,75 @@ func _respawn_later(w: Wizard) -> void:
 			best_gap = gap
 			best = p
 	w.reset(best)
+
+
+# --- HUD extras, settings, haptics ---------------------------------------------
+
+## Danger vignette (under everything), then arrows, damage numbers, minimap,
+## and the pause menu on top.
+func _build_hud_extras() -> void:
+	var hud := $HUD
+	vignette = DangerVignette.new()
+	vignette.name = "DangerVignette"
+	vignette.game = self
+	hud.add_child(vignette)
+	hud.move_child(vignette, 0)
+	damage_numbers = DamageNumbers.new()
+	damage_numbers.name = "DamageNumbers"
+	damage_numbers.game = self
+	hud.add_child(damage_numbers)
+	hud.move_child(damage_numbers, 1)
+	arrows = EnemyArrows.new()
+	arrows.name = "EnemyArrows"
+	arrows.game = self
+	hud.add_child(arrows)
+	minimap = Minimap.new()
+	minimap.name = "Minimap"
+	minimap.game = self
+	hud.add_child(minimap)
+	minimap.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	minimap.offset_left = -Minimap.DIAMETER - 12.0
+	minimap.offset_right = -12.0
+	minimap.offset_top = 12.0
+	minimap.offset_bottom = 12.0 + Minimap.DIAMETER
+	pause_menu = PauseMenu.new()
+	pause_menu.name = "PauseMenu"
+	pause_menu.game = self
+	hud.add_child(pause_menu)
+
+
+## Settings that can change mid-match (from the pause menu).
+func apply_live_settings() -> void:
+	follow_zoom = GameSettings.zoom_value()
+	arena.camera.set_design_zoom(follow_zoom)
+	bot_difficulty = GameSettings.difficulty as Difficulty
+	for w in all_wizards:
+		var ai := w.get_node_or_null("AIController") as AIController
+		if ai:
+			ai.profile = PROFILES[bot_difficulty]
+
+
+func _on_player_damaged(_amount: float, source: Wizard) -> void:
+	if apply_settings and not GameSettings.haptics:
+		return
+	if source != null:
+		_buzz(40)
+	else:
+		var now := Time.get_ticks_msec() / 1000.0
+		if now - _last_lava_buzz >= 0.5:
+			_last_lava_buzz = now
+			_buzz(25)
+
+
+func _buzz(ms: int) -> void:
+	haptic_count += 1
+	Input.vibrate_handheld(ms)
+
+
+func _notification(what: int) -> void:
+	# Android back button: pause / resume instead of quitting.
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and pause_menu:
+		pause_menu.toggle()
 
 
 ## Top-centre line: "Lava rises in 12" etc.

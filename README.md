@@ -5,7 +5,7 @@ platform in a sea of lava. Spells mostly **knock back** rather than kill, so
 the real danger is being blasted into the lava. The platform shrinks during
 each round, so every fight ends.
 
-**Version 0.6** — you against three AI bots, rounds and matches.
+**Version 0.7** — you against three AI bots, rounds and matches, with a minimap, off-screen enemy arrows and a pause menu.
 
 Made with Godot 4.7.2 (GDScript); pixel art made with PixelLab.
 
@@ -24,10 +24,22 @@ Made with Godot 4.7.2 (GDScript); pixel art made with PixelLab.
 |---|---|
 | Left half of the screen | Floating joystick — walk |
 | Big button (bottom right) | Staff swing on the spot; hold to keep swinging |
-| Fireball | Tap = auto-aim at the nearest enemy; drag to aim; drag back onto the button to cancel |
+| Fireball | Tap = auto-aim (nearest enemy in range, ones you can see first, aimed ahead of a walker); drag to aim (the guide shows the full range); drag back onto the button to cancel |
 | Blink | Short teleport (tap = forward, or drag to aim) |
 | Lightning | Short-range bolt with big knockback |
 | Shield | 1.5 s bubble that reflects projectiles |
+| II button (top right) or Back | Pause: resume, restart the match, settings |
+
+### On screen
+- **Scoreboard** (top left): health, round wins and kills for everyone; below it, how much further you fly when hit.
+- **Minimap** (top right): the platform, where the lava is about to rise, and everyone's position.
+- **Arrows** on the screen edge point at enemies you can't see. Bigger = closer; they flash while that enemy casts.
+- Damage numbers over whoever gets hit (red ones are yours); the screen edges glow red when you're in or next to lava;
+  the phone vibrates when you're hit.
+
+### Settings (pause menu)
+Zoom (Close / Far), bot difficulty (Easy / Normal / Hard), first to 3 / 5 / 7 round wins, vibration on/off.
+They are saved on the phone.
 
 ### The bots
 | Colour | Personality | Plays like |
@@ -53,7 +65,7 @@ The APK ends up in `build/warlocks_on_android.apk` (not committed).
   *Progress* section with what is built, what changed from the plan, and
   what is next.
 - Design records: [`docs/superpowers/specs/`](docs/superpowers/specs/)
-  (AI bots, rounds).
+  (AI bots, rounds). v0.7 changes are described in GAME_DESIGN.md → Progress.
 
 ### Project layout
 | Path | What |
@@ -63,14 +75,17 @@ The APK ends up in `build/warlocks_on_android.apk` (not committed).
 | `scripts/arena.gd` | Lava map built in code from Wang tiles; shrinking + sudden death |
 | `scripts/wizard.gd` | A wizard: movement, health, knockback, lava, animations |
 | `scripts/spells/` | Fireball, Blink, Lightning, Shield, Staff strike |
-| `scripts/touch_controls.gd` | Joystick and spell buttons |
+| `scripts/touch_controls.gd` | Joystick, spell buttons, tap auto-aim |
+| `scripts/minimap.gd`, `scripts/enemy_arrows.gd` | Minimap, off-screen enemy arrows |
+| `scripts/damage_numbers.gd`, `scripts/danger_vignette.gd` | Damage numbers, lava glow |
+| `scripts/pause_menu.gd`, `scripts/game_settings.gd` | Pause menu, saved settings |
 | `scripts/ai/`, `ai/` | Bot brain, personalities and difficulty profiles |
 | `tools/` | Tests, AI simulation, demo recorder, deploy script |
 
 ### Tests
 ```bash
 GODOT=/d/Godot/Godot_v4.7.2-stable_win64.exe/Godot_v4.7.2-stable_win64.exe
-for t in wizard fireball spells staff ai arena rounds; do
+for t in wizard fireball spells staff ai arena rounds hud_v07; do
   "$GODOT" --headless --path . -s tools/test_$t.gd
 done
 "$GODOT" --path . -s tools/test_touch.gd   # needs a window (no --headless)

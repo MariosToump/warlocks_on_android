@@ -16,6 +16,7 @@ func _init() -> void:
 	game.bot_ai = false
 	game.shrink_arena = false
 	game.rounds = false
+	game.apply_settings = false
 	root.add_child(game)
 	_run.call_deferred()
 
@@ -125,6 +126,47 @@ func _run() -> void:
 	await _seconds(0.5)
 	_check(player.is_casting(), "holding swings again")
 	_touch(7, a_pos, false)
+
+	# Fireball aiming (v0.7): true-range guide, in-range / on-screen first, lead.
+	_touch(7, a_pos, false)
+	await _seconds(0.6)
+	var q_spell := player.get_spell("Q") as FireballSpell
+	_check(touch._reach(q_spell) == q_spell.max_range and q_spell.max_range == 850.0,
+			"aim guide shows the real fireball range (%.0f)" % touch._reach(q_spell))
+	var blue: Wizard = game.get_node("Wizards/BotBlue")
+	var green: Wizard = game.get_node("Wizards/BotGreen")
+	var purple: Wizard = game.get_node("Wizards/BotPurple")
+	var cam0: ArenaCamera = game.get_node("Arena").camera
+	player.global_position = c
+	player.knockback = Vector2.ZERO
+	player.reset_physics_interpolation()
+	cam0.global_position = c
+	cam0.reset_smoothing()
+	cam0.reset_physics_interpolation()
+	blue.global_position = c + Vector2(1200, 0)
+	green.global_position = c + Vector2(-1500, 0)
+	purple.global_position = c + Vector2(0, 1500)
+	await _frames(3)
+	_check(touch._auto_target(850.0) == blue, "nobody in range: still aims at the nearest")
+	green.global_position = c + Vector2(-600, 0)
+	await _frames(2)
+	_check(touch._auto_target(850.0) == green, "an enemy in range beats a nearer-to-nothing one")
+	var view := root.get_visible_rect().size / cam0.zoom
+	blue.global_position = c + Vector2(view.x * 0.4, 0) # on screen
+	purple.global_position = c + Vector2(0, view.y * 0.5 + 80.0) # off screen
+	if purple.global_position.distance_to(c) > blue.global_position.distance_to(c):
+		blue.global_position = c + Vector2(purple.global_position.distance_to(c) - 20.0, 0)
+		blue.global_position.x = minf(blue.global_position.x, c.x + view.x * 0.48)
+	await _frames(10)
+	var xf := root.get_canvas_transform()
+	var picked: Wizard = touch._auto_target(850.0)
+	_check(picked == blue, "prefers the enemy you can see (picked %s; purple on screen at %s)" % [
+			picked.name if picked else "none", xf * purple.global_position])
+	blue.velocity = Vector2(0, 165)
+	var lead := touch._lead(blue, q_spell.speed)
+	var expect := blue.global_position + blue.velocity * (blue.global_position.distance_to(c) / q_spell.speed)
+	_check(lead.distance_to(expect) < 1.0 and lead.y > blue.global_position.y + 50.0,
+			"fireball tap leads a walking target (%.0f px ahead)" % (lead.y - blue.global_position.y))
 
 	# Zoomed in: 3 screen px per art pixel at 1080p-height screens, 2 here.
 	var cam: ArenaCamera = game.get_node("Arena").camera

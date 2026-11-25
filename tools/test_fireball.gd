@@ -18,6 +18,7 @@ func _init() -> void:
 	game.bot_ai = false
 	game.shrink_arena = false
 	game.rounds = false
+	game.apply_settings = false
 	root.add_child(game)
 	_run.call_deferred()
 

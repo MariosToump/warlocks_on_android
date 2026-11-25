@@ -59,7 +59,7 @@ func _ready() -> void:
 	_feed.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	_feed.offset_left = -330
 	_feed.offset_right = -12
-	_feed.offset_top = 12
+	_feed.offset_top = 12 + Minimap.DIAMETER + 8 # below the minimap
 	_feed.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 
 	_build_match_panel()
@@ -213,12 +213,13 @@ func _on_kill(killer: Wizard, victim: Wizard) -> void:
 	t.tween_callback(l.queue_free)
 
 
-## Top-left: one row per wizard — colour swatch, name, round-win pips, kills.
+## Top-left: one row per wizard — colour swatch, name, health bar,
+## round-win pips, kills; then a line with your knockback bonus.
 class Scoreboard:
 	extends Control
 
 	const ROW_H := 22
-	const W := 230
+	const PIPS_X := 150
 
 	var hud: RoundHud
 
@@ -231,9 +232,11 @@ class Scoreboard:
 			return
 		var font := ThemeDB.fallback_font
 		var n: int = game.all_wizards.size()
-		size = Vector2(W, n * ROW_H + 10)
-		draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, 0.45))
 		var need: int = game.wins_to_take_match
+		var kills_x := PIPS_X + need * 14 + 6
+		var w_total := kills_x + 52
+		size = Vector2(w_total, n * ROW_H + 10 + ROW_H)
+		draw_rect(Rect2(0, 0, w_total, n * ROW_H + 10), Color(0, 0, 0, 0.45))
 		for i in n:
 			var w: Wizard = game.all_wizards[i]
 			var y := 5 + i * ROW_H
@@ -243,10 +246,24 @@ class Scoreboard:
 			draw_rect(Rect2(8, y + 5, 10, 10), col)
 			var text_col := Color(1, 1, 1, dim)
 			draw_string(font, Vector2(24, y + 16), game.display_name(w), HORIZONTAL_ALIGNMENT_LEFT, -1, 16, text_col)
+			# Health bar (0 when dead).
+			var hp := clampf(w.health / w.max_health, 0.0, 1.0) if w.alive else 0.0
+			var bar := Rect2(88, y + 7, 52, 7)
+			draw_rect(bar, Color(0, 0, 0, 0.6 * dim))
+			var hp_col := Color(0.35, 0.85, 0.35) if hp > 0.5 else (Color(0.95, 0.75, 0.2) if hp > 0.25 else Color(0.95, 0.3, 0.2))
+			hp_col.a = dim
+			draw_rect(Rect2(bar.position, Vector2(bar.size.x * hp, bar.size.y)), hp_col)
 			for p in need:
-				var r := Rect2(92 + p * 14, y + 6, 9, 9)
+				var r := Rect2(PIPS_X + p * 14, y + 6, 9, 9)
 				if p < game.wins[w]:
 					draw_rect(r, Color(1.0, 0.75, 0.2, dim))
 				else:
 					draw_rect(r, Color(1, 1, 1, 0.35 * dim), false, 1.0)
-			draw_string(font, Vector2(170, y + 16), "%d K" % game.kills[w], HORIZONTAL_ALIGNMENT_RIGHT, 52, 16, text_col)
+			draw_string(font, Vector2(kills_x, y + 16), "%d K" % game.kills[w], HORIZONTAL_ALIGNMENT_RIGHT, 46, 16, text_col)
+		# Your knockback bonus: damage taken makes you fly further.
+		var me: Wizard = game.player
+		var kb := roundi(me.damage_taken * me.knockback_per_damage * 100.0)
+		if me.alive and kb > 0:
+			var kb_col := Color(1, 0.8, 0.4) if kb < 50 else Color(1, 0.45, 0.3)
+			draw_string(font, Vector2(8, n * ROW_H + 10 + 17), "Knockback +%d%%" % kb,
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 16, kb_col)
