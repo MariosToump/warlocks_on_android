@@ -16,6 +16,7 @@ func _init() -> void:
 	game.bot_ai = false
 	game.shrink_arena = false
 	game.apply_settings = false
+	game.title_screen = false
 	game.countdown_time = 0.3
 	game.round_over_time = 0.3
 	game.shop_time = 60.0

@@ -17,6 +17,12 @@ var _wins: Button
 var _haptics: Button
 var _sound: Button
 var _music: Button
+var _title: Label
+var _resume: Button
+var _restart_button: Button
+var _quit: Button
+## Opened from the title menu: settings only, no pausing the bots' fight.
+var _settings_only := false
 
 
 func _ready() -> void:
@@ -61,30 +67,40 @@ func _build_panel() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 12)
 	_panel.add_child(box)
-	var title := Label.new()
-	title.text = "Paused"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 36)
-	box.add_child(title)
-	_button(box, "Resume", close)
-	_button(box, "Restart match", _restart)
+	_title = Label.new()
+	_title.text = "Paused"
+	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title.add_theme_font_size_override("font_size", 36)
+	box.add_child(_title)
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 12)
+	actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_child(actions)
+	_resume = _button(actions, "Resume", close, 250)
+	_restart_button = _button(actions, "Restart match", _restart, 250)
+	_quit = _button(actions, "Quit to menu", _quit_to_menu, 250)
 	var sep := HSeparator.new()
 	box.add_child(sep)
-	_zoom = _button(box, "", _cycle_zoom)
-	_bots = _button(box, "", _cycle_bots)
-	_wins = _button(box, "", _cycle_wins)
-	_haptics = _button(box, "", _toggle_haptics)
-	_sound = _button(box, "", _toggle_sound)
-	_music = _button(box, "", _toggle_music)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 12)
+	box.add_child(grid)
+	_zoom = _button(grid, "", _cycle_zoom)
+	_bots = _button(grid, "", _cycle_bots)
+	_wins = _button(grid, "", _cycle_wins)
+	_haptics = _button(grid, "", _toggle_haptics)
+	_sound = _button(grid, "", _toggle_sound)
+	_music = _button(grid, "", _toggle_music)
 	_refresh()
 	dim.visible = false
 
 
-func _button(parent: Node, text: String, cb: Callable) -> Button:
+func _button(parent: Node, text: String, cb: Callable, width := 380) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.add_theme_font_size_override("font_size", 24)
-	b.custom_minimum_size = Vector2(380, 58)
+	b.custom_minimum_size = Vector2(width, 58)
 	b.pressed.connect(cb)
 	parent.add_child(b)
 	return b
@@ -97,6 +113,11 @@ func is_open() -> bool:
 func open() -> void:
 	if is_open():
 		return
+	_settings_only = false
+	_title.text = "Paused"
+	_resume.text = "Resume"
+	_restart_button.visible = true
+	_quit.visible = true
 	game.touch.release_all()
 	Sfx.loop("lava", false)
 	Sfx.play("click")
@@ -106,10 +127,34 @@ func open() -> void:
 	_refresh()
 
 
+## From the title menu: just the settings and a Back button; the bots keep
+## fighting behind it.
+func open_settings() -> void:
+	_settings_only = true
+	_title.text = "Settings"
+	_resume.text = "Back"
+	_restart_button.visible = false
+	_quit.visible = false
+	Sfx.play("click")
+	get_node("Dim").visible = true
+	_refresh()
+
+
 func close() -> void:
-	get_tree().paused = false
+	if not _settings_only:
+		get_tree().paused = false
+	_settings_only = false
 	get_node("Dim").visible = false
-	_pause_button.visible = true
+	set_pause_button(game.state != game.State.TITLE)
+
+
+func set_pause_button(on: bool) -> void:
+	_pause_button.visible = on and not is_open()
+
+
+func _quit_to_menu() -> void:
+	close()
+	game.enter_title()
 
 
 func toggle() -> void:

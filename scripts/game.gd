@@ -32,7 +32,7 @@ const BOTS := [
 	[Wizard.TeamColor.PURPLE, preload("res://ai/personalities/trickster.tres")],
 ]
 
-enum State { FREE, COUNTDOWN, FIGHT, ROUND_OVER, SHOP, MATCH_OVER }
+enum State { FREE, COUNTDOWN, FIGHT, ROUND_OVER, SHOP, MATCH_OVER, TITLE }
 
 ## False = endless free-for-all with respawns (tests and the AI sim).
 @export var rounds := true
@@ -68,6 +68,10 @@ enum State { FREE, COUNTDOWN, FIGHT, ROUND_OVER, SHOP, MATCH_OVER }
 ## Read zoom / bot difficulty / wins per match / vibration from GameSettings
 ## (tests turn this off so their own values stick).
 @export var apply_settings := true
+## Start on the title menu over a bots-only fight (tests turn this off).
+@export var title_screen := true
+## Title screen: the camera follows one bot, switching every this many seconds.
+@export var title_camera_time := 8.0
 
 @onready var arena: Arena = $Arena
 @onready var wizards: Node2D = $Wizards
@@ -100,6 +104,10 @@ var damage_numbers: DamageNumbers
 var vignette: DangerVignette
 var pause_menu: PauseMenu
 var shop_panel: ShopPanel
+var title_menu: TitleMenu
+var _title_watch_left := 0.0
+var _player_layer := 0
+var _player_mask := 0
 
 
 func _ready() -> void:
@@ -121,11 +129,11 @@ func _ready() -> void:
 	touch.wizard = player
 	round_hud.game = self
 	round_hud.play_again_pressed.connect(start_match)
+	round_hud.menu_pressed.connect(enter_title)
 	_build_hud_extras()
 	player.damaged.connect(_on_player_damaged)
 	if apply_settings:
 		Sfx.apply_settings()
-	Sfx.music("music_fight")
 
 	arena.camera.target = player
 	arena.camera.set_design_zoom(follow_zoom)
@@ -137,9 +145,13 @@ func _ready() -> void:
 		kills[w] = 0
 		gold[w] = 0
 		round_kills[w] = 0
-	if rounds:
+	if rounds and title_screen:
+		enter_title()
+	elif rounds:
+		Sfx.music("music_fight")
 		start_match()
 	else:
+		Sfx.music("music_fight")
 		round_hud.visible = false
 
 
@@ -189,6 +201,83 @@ func alive_wizards() -> Array[Wizard]:
 
 
 # --- match flow -------------------------------------------------------------
+
+# --- title screen -------------------------------------------------------------
+
+## Title menu over a bots-only brawl: the player is parked out of the game,
+## bots fight and respawn, the camera wanders from bot to bot.
+func enter_title() -> void:
+	get_tree().paused = false
+	state = State.TITLE
+	_clear_effects()
+	arena.shrinks = false
+	arena.regrow()
+	_park_player(true)
+	for w in all_wizards:
+		if w == player:
+			continue
+		w.reset(arena.random_stone_point())
+		var ai := w.get_node_or_null("AIController") as AIController
+		if ai:
+			ai.reset()
+	_set_controls(true)
+	touch.locked = true
+	touch.release_all()
+	touch.visible = false
+	round_hud.visible = false
+	shop_panel.visible = false
+	minimap.visible = false
+	pause_menu.set_pause_button(false)
+	title_menu.visible = true
+	_title_watch_left = 0.0
+	Sfx.music("music_title")
+
+
+## Play: the player joins, a new match starts.
+func start_from_title() -> void:
+	title_menu.visible = false
+	touch.visible = true
+	_park_player(false)
+	round_hud.visible = true
+	minimap.visible = true
+	pause_menu.set_pause_button(true)
+	Sfx.music("music_fight")
+	start_match()
+
+
+func _park_player(parked: bool) -> void:
+	if parked:
+		if player.collision_layer != 0:
+			_player_layer = player.collision_layer
+			_player_mask = player.collision_mask
+		player.collision_layer = 0
+		player.collision_mask = 0
+		player.remove_from_group("wizards")
+		player.visible = false
+		player.process_mode = Node.PROCESS_MODE_DISABLED
+		player.global_position = arena.get_bounds().position + Vector2(40, 40)
+	else:
+		if _player_layer != 0:
+			player.collision_layer = _player_layer
+			player.collision_mask = _player_mask
+		if not player.is_in_group("wizards"):
+			player.add_to_group("wizards")
+		player.visible = true
+		player.process_mode = Node.PROCESS_MODE_INHERIT
+
+
+func _update_title_camera(delta: float) -> void:
+	_title_watch_left -= delta
+	var cam := arena.camera
+	var watching := cam.target as Wizard
+	if _title_watch_left > 0.0 and watching != null and watching != player and watching.alive:
+		return
+	var bots := alive_wizards().filter(func(w): return w != player and w != watching)
+	if bots.is_empty():
+		return
+	cam.target = bots.pick_random()
+	_title_watch_left = title_camera_time
+
 
 ## Scores to zero, then round 1.
 func start_match() -> void:
@@ -315,6 +404,8 @@ func _process(delta: float) -> void:
 	_lava_label.text = arena.status_text() if state in [State.FIGHT, State.FREE] else ""
 	_lava_label.modulate = Color(1, 0.55, 0.2) if arena.warning_active() else Color(1, 1, 1, 0.85)
 	match state:
+		State.TITLE:
+			_update_title_camera(delta)
 		State.COUNTDOWN:
 			var beep := ceili(state_left)
 			if beep != _last_beep:
@@ -375,7 +466,7 @@ func _on_wizard_died(w: Wizard) -> void:
 		kills[k] = kills.get(k, 0) + 1
 		round_kills[k] = round_kills.get(k, 0) + 1
 		kill_scored.emit(k, w)
-	if state == State.FREE:
+	if state == State.FREE or state == State.TITLE:
 		_respawn_later(w)
 
 
@@ -383,7 +474,7 @@ func _on_wizard_died(w: Wizard) -> void:
 ## random tries allow.
 func _respawn_later(w: Wizard) -> void:
 	await get_tree().create_timer(respawn_delay).timeout
-	if state != State.FREE:
+	if state != State.FREE and state != State.TITLE:
 		return
 	var best := arena.random_stone_point()
 	var best_gap := -1.0
@@ -433,6 +524,11 @@ func _build_hud_extras() -> void:
 	hud.add_child(shop_panel)
 	shop_panel.setup(self)
 	shop_opened.connect(func(): round_hud._show_banner(""))
+	title_menu = TitleMenu.new()
+	title_menu.name = "TitleMenu"
+	title_menu.game = self
+	title_menu.visible = false
+	hud.add_child(title_menu)
 	pause_menu = PauseMenu.new()
 	pause_menu.name = "PauseMenu"
 	pause_menu.game = self
@@ -470,7 +566,10 @@ func _buzz(ms: int) -> void:
 func _notification(what: int) -> void:
 	# Android back button: pause / resume instead of quitting.
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST and pause_menu:
-		pause_menu.toggle()
+		if state == State.TITLE and not pause_menu.is_open():
+			get_tree().quit() # Back on the title screen leaves the app
+		else:
+			pause_menu.toggle()
 
 
 ## Top-centre line: "Lava rises in 12" etc.

@@ -5,19 +5,19 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-25 (Android v0.7: awareness HUD, fireball fixes, pause menu)_
+_Last updated: 2026-11-25 (Android v0.8: shop = milestone 7, Homing Orb, sound + music, title menu)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
 - **PC**: `D:\Godot\Projects\claude_mcp\lava-warlocks` (keyboard + mouse, Forward+ renderer). Local git only.
 - **Android**: `D:\Godot\Projects\claude_mcp\lava-warlocks-mobile` (touch controls, Compatibility renderer).
-  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.7 (2026-11-25).
+  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.8 (2026-11-25).
   Build + install on the phone: `bash tools/deploy_android.sh`. APK: `build/warlocks_on_android.apk`.
-  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7 (2026-11-25)
+  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7 and v0.8 (2026-11-25)
   (`gh release create vX.Y build/warlocks_on_android.apk`; bump `version/code` + `version/name` in export_presets.cfg first).
   Gameplay changes are made in PC first, then ported (`git cherry-pick` from the `pc` remote).
-  **Exception — Android-only (v0.7, by choice):** fireball range 850 (PC: 700), the v0.7 HUD, pause menu and
-  settings. Expect a conflict in `fireball.gd` / `game.gd` / `round_hud.gd` / `touch_controls.gd` when cherry-picking.
+  **Exception — Android-only (v0.7 + v0.8, by choice):** fireball range 850 (PC: 700), the v0.7 HUD, pause menu and
+  settings; v0.8 shop, Homing Orb, sound/music, title menu. PC is still at milestone 6. Expect a conflict in `fireball.gd` / `game.gd` / `round_hud.gd` / `touch_controls.gd` when cherry-picking.
 
 ### Milestones
 - [x] 1. Project setup, arena with stone and lava tiles, camera.
@@ -26,13 +26,13 @@ Two projects share this design:
 - [x] 4. Blink, Lightning, Shield (+ hurt and death animations).
 - [x] 5. AI bots (move, dodge, aim, avoid lava). _Done 2026-11-24 (PC and Android)._
 - [x] 6. Rounds, score, shrinking arena, win screen. _Done 2026-11-24 (PC and Android)._
-- [ ] 7. Shop between rounds, gold, upgrades, items. **← next**
-- [ ] 8. Polish: screen shake, hit flash, particles, sounds, menu.
-- [ ] 9. Remaining spells.
+- [x] 7. Shop between rounds, gold, upgrades, items. _Done 2026-11-25 (Android only)._
+- [ ] 8. Polish: screen shake, hit flash, particles, sounds, menu. **← next** (sounds + title menu done on Android in v0.8)
+- [ ] 9. Remaining spells. (Homing Orb done on Android in v0.8)
 
 Right now it's a match of rounds against three AI bots (they fight you and each other). Last wizard standing
 wins the round; first to 5 round wins takes the match, then a results screen with "Play again".
-No shop yet (milestone 7), so every round is the same 4 spells + staff.
+Android v0.8: between rounds a 15 s shop (gold, upgrades, items, the Homing Orb); the game opens on a title menu.
 
 ### Added beyond the original plan
 - **Staff attack (slot A)**: auto-attack melee swing, 4 damage, shove 300, 0.5 s cooldown = swing animation.
@@ -82,6 +82,27 @@ No shop yet (milestone 7), so every round is the same 4 spells + staff.
     Resume, Restart match, Zoom Close/Far (3 or 2 screen px per art px), Bots Easy/Normal/Hard (applies at once),
     First to 3/5/7 wins (next match), Vibration on/off. Saved in `user://settings.cfg` (`scripts/game_settings.gd`,
     static). `game.apply_settings = false` in every test so saved settings can't change results.
+- **Android v0.8** (2026-11-25, Android only):
+  - **Shop** (milestone 7; `scripts/shop.gd` rules, `scripts/shop_panel.gd` UI, `game.gd` `State.SHOP`). After every
+    round except the match-winning one: gold to everyone = 10 + 5 per kill that round + 5 for the round win; bots buy
+    instantly from a per-personality wish list (`Shop.BOT_PRIORITY`); the player gets 15 s (`shop_time`) or Ready.
+    Upgrades lv 1/2/3 cost 10/15/20 (the spells' `*_by_level` arrays). Items (max 2, sell for half): Boots 15 (+15%
+    speed), Stone Cloak 20 (-20% knockback), Fire Ring 10 (-50% lava), Focus Gem 20 (-10% cooldowns) — Wizard
+    `speed_multiplier` / `knockback_taken_multiplier` / `lava_multiplier` / `cooldown_multiplier`. Icons drawn in code.
+    A new match clears gold, levels, items and bought spells (`Shop.clear`).
+  - **Homing Orb** (slot D, 15 gold): `scripts/spells/homing_orb.gd`; `Projectile.homing_turn` (2.5 rad/s, 520 px
+    radius) steers toward the nearest enemy of its *current* owner, so a shield reflection sends it back. 300 px/s,
+    1100 range, dmg 8-14, knockback 420-510, cd 6-4.5 s. Fireball art tinted purple (`Spell.icon_tint`). Touch button D
+    left of Q, only when owned. Bots: `homing` action (140-700 px).
+  - **Sound + music, synthesized** (PixelLab audio needs a paid tier): `tools/build_audio.gd` renders 16 effects and two
+    chiptune loops into `assets/audio/` (re-run it after changing a recipe); `scripts/sfx.gd` plays them (world sounds
+    fade with distance from the camera; lava sizzle loop while you burn); buses SFX/Music (`default_bus_layout.tres`);
+    silent in headless runs (records `Sfx.played` for tests). Settings: Sound, Music.
+  - **Title menu** (`scripts/title_menu.gd`, `game.gd` `State.TITLE`): over a bots-only brawl (player parked: hidden,
+    no collision, out of the `wizards` group; camera hops between bots every 8 s). Play, Settings (pause panel in
+    settings-only mode), version. Back on the title quits the app. Pause menu: Quit to menu; results screen: Menu.
+    `game.title_screen = false` in tests.
+  - Pause menu re-laid out: actions in one row, settings in a 2-column grid.
 - **Balance findings (not acted on yet)**: AI sims (180 s x 3 difficulties) — only 16% of deaths are lava deaths; the
   Caster almost never dies (1 death in 9 bot-minutes vs Brawler 12). Pushes are small for the arena (fireball ~127 px,
   lightning ~187 px vs 1216 px platform radius) and lava is mild (8 HP/s). Candidates: smaller starting platform or
@@ -103,7 +124,7 @@ No shop yet (milestone 7), so every round is the same 4 spells + staff.
 - `Wizard.take_damage(amount, source)` remembers `last_attacker` (for kill credit in rounds); bots turn on whoever just hit them.
 
 ### Tests
-`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai, test_arena, test_rounds (+ on Android: test_hud_v07, and test_touch, which needs a window: no `--headless`). All passing.
+`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai, test_arena, test_rounds (+ on Android: test_hud_v07, test_shop, test_homing, test_title, and test_touch, which needs a window: no `--headless`). All passing.
 Tests set `game.bot_ai = false` so bots are passive dummies (`BotBlue`, `BotGreen`, `BotPurple`).
 
 ### PixelLab

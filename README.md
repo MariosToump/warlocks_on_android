@@ -5,7 +5,7 @@ platform in a sea of lava. Spells mostly **knock back** rather than kill, so
 the real danger is being blasted into the lava. The platform shrinks during
 each round, so every fight ends.
 
-**Version 0.7** — you against three AI bots, rounds and matches, with a minimap, off-screen enemy arrows and a pause menu.
+**Version 0.8** — you against three AI bots in matches of rounds, with a shop between rounds, sound and music, and a title menu.
 
 Made with Godot 4.7.2 (GDScript); pixel art made with PixelLab.
 
@@ -19,6 +19,16 @@ Made with Godot 4.7.2 (GDScript); pixel art made with PixelLab.
   standing.
 - Knocking someone into the lava counts as your kill.
 
+### The shop
+After every round you get gold — 10, plus 5 per kill, plus 5 if you won the round — and 15 seconds to spend it
+(tap **Ready** to start sooner). The bots shop too.
+- **Upgrade a spell** (10 / 15 / 20 gold for levels 1-3): more damage and knockback, or shorter cooldowns.
+- **Homing Orb** (15 gold): a new spell in a new button left of the fireball. A slow purple orb that curves
+  toward the nearest enemy. A shield sends it back at you!
+- **Items** (2 at most, sell for half price): Boots +15% speed, Stone Cloak -20% knockback taken,
+  Fire Ring -50% lava damage, Focus Gem -10% cooldowns.
+- A new match starts everyone from scratch.
+
 ### Controls (touch)
 | Control | Action |
 |---|---|
@@ -28,7 +38,8 @@ Made with Godot 4.7.2 (GDScript); pixel art made with PixelLab.
 | Blink | Short teleport (tap = forward, or drag to aim) |
 | Lightning | Short-range bolt with big knockback |
 | Shield | 1.5 s bubble that reflects projectiles |
-| II button (top right) or Back | Pause: resume, restart the match, settings |
+| Homing Orb (once bought) | Tap = toward the nearest enemy in range; drag to aim |
+| II button (top right) or Back | Pause: resume, restart, quit to the menu, settings |
 
 ### On screen
 - **Scoreboard** (top left): health, round wins and kills for everyone; below it, how much further you fly when hit.
@@ -37,9 +48,11 @@ Made with Godot 4.7.2 (GDScript); pixel art made with PixelLab.
 - Damage numbers over whoever gets hit (red ones are yours); the screen edges glow red when you're in or next to lava;
   the phone vibrates when you're hit.
 
-### Settings (pause menu)
-Zoom (Close / Far), bot difficulty (Easy / Normal / Hard), first to 3 / 5 / 7 round wins, vibration on/off.
+### Settings (pause menu or title menu)
+Zoom (Close / Far), bot difficulty (Easy / Normal / Hard), first to 3 / 5 / 7 round wins, vibration, sound, music.
 They are saved on the phone.
+
+The game opens on a title menu with the bots already fighting behind it. Back on the title menu leaves the game.
 
 ### The bots
 | Colour | Personality | Plays like |
@@ -79,13 +92,16 @@ The APK ends up in `build/warlocks_on_android.apk` (not committed).
 | `scripts/minimap.gd`, `scripts/enemy_arrows.gd` | Minimap, off-screen enemy arrows |
 | `scripts/damage_numbers.gd`, `scripts/danger_vignette.gd` | Damage numbers, lava glow |
 | `scripts/pause_menu.gd`, `scripts/game_settings.gd` | Pause menu, saved settings |
+| `scripts/shop.gd`, `scripts/shop_panel.gd` | Shop rules (gold, prices, bots' shopping), shop screen |
+| `scripts/title_menu.gd` | Title menu |
+| `scripts/sfx.gd`, `tools/build_audio.gd`, `assets/audio/` | Sound player; the synth that makes every sound and both music loops |
 | `scripts/ai/`, `ai/` | Bot brain, personalities and difficulty profiles |
 | `tools/` | Tests, AI simulation, demo recorder, deploy script |
 
 ### Tests
 ```bash
 GODOT=/d/Godot/Godot_v4.7.2-stable_win64.exe/Godot_v4.7.2-stable_win64.exe
-for t in wizard fireball spells staff ai arena rounds hud_v07; do
+for t in wizard fireball spells staff ai arena rounds hud_v07 shop homing title; do
   "$GODOT" --headless --path . -s tools/test_$t.gd
 done
 "$GODOT" --path . -s tools/test_touch.gd   # needs a window (no --headless)
@@ -93,10 +109,11 @@ done
 Each prints `ok` / `FAIL` lines and exits non-zero on failure.
 `tools/sim_ai.gd -- <easy|normal|hard> [seconds]` runs a bots-only fight and
 prints stats.
+`tools/build_audio.gd` rebuilds all sounds and music (they are made in code, no recordings).
 
 ## Roadmap
 1. ~~Arena~~ 2. ~~Wizard~~ 3. ~~Fireball + knockback~~ 4. ~~Blink, Lightning, Shield~~
 5. ~~AI bots~~ 6. ~~Rounds, score, shrinking arena, win screen~~
-7. **Shop between rounds** — gold, spell upgrades, items
-8. Polish — screen shake, hit flash, particles, sounds, menu
-9. More spells — homing orb, boomerang, meteor, gravity well, swap, time stop
+7. ~~Shop between rounds~~
+8. **Polish** — screen shake, hit flash, particles (sounds and menu done)
+9. More spells — boomerang, meteor, gravity well, swap, time stop (homing orb done)

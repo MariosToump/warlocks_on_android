@@ -5,6 +5,7 @@ extends Control
 ## `game` is set by game.gd, which emits the signals this listens to.
 
 signal play_again_pressed
+signal menu_pressed
 
 const TEAM_COLORS := {
 	Wizard.TeamColor.RED: Color(1.0, 0.42, 0.32),
@@ -107,7 +108,20 @@ func _build_match_panel() -> void:
 	_play_again.custom_minimum_size = Vector2(240, 56)
 	_play_again.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_play_again.pressed.connect(_on_play_again)
-	box.add_child(_play_again)
+	var buttons := HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	buttons.add_theme_constant_override("separation", 16)
+	box.add_child(buttons)
+	buttons.add_child(_play_again)
+	var menu := Button.new()
+	menu.text = "Menu"
+	menu.add_theme_font_size_override("font_size", 26)
+	menu.custom_minimum_size = Vector2(180, 56)
+	menu.pressed.connect(func():
+		Sfx.play("click")
+		_match_panel.visible = false
+		menu_pressed.emit())
+	buttons.add_child(menu)
 	_match_panel.visible = false
 
 

@@ -18,6 +18,7 @@ func _init() -> void:
 	game.shrink_arena = false
 	game.rounds = false
 	game.apply_settings = false
+	game.title_screen = false
 	root.add_child(game)
 	_run.call_deferred()
 
@@ -100,6 +101,7 @@ func _run() -> void:
 	_check(game.haptic_count == h + 2, "vibration off in settings = no buzz")
 	GameSettings.haptics = true
 	game.apply_settings = false
+	game.title_screen = false
 
 	print("danger vignette")
 	player.reset(c)

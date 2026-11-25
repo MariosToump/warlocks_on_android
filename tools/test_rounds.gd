@@ -15,6 +15,7 @@ func _init() -> void:
 	game = load("res://scenes/game.tscn").instantiate()
 	game.bot_ai = false
 	game.apply_settings = false
+	game.title_screen = false
 	game.shrink_arena = false
 	game.countdown_time = 0.5
 	game.round_over_time = 0.4
