@@ -71,7 +71,11 @@ func _init() -> void:
 
 ## One voice. Keys: wave (square/saw/tri/sine/noise), f0, f1 (pitch slide,
 ## exponential), dur, attack, vol, duty, vib, vib_depth, lowpass (0-1, lower
-## = darker), lowpass_end, crackle (0-1: random dropouts), delay.
+## = darker), lowpass_end, crackle (0-1: random dropouts), delay;
+## detune (a second oscillator this fraction sharper: thick, beating),
+## drive (distortion: 0 = clean, 4-10 = crunchy guitar), poles (1 or 2:
+## steeper low-pass), release (> 0: pad envelope = attack, hold, then fade
+## over the last `release` seconds instead of a plucked decay).
 func voice(p: Dictionary) -> PackedFloat32Array:
 	var dur: float = p.get("dur", 0.3)
 	var delay: float = p.get("delay", 0.0)
@@ -89,8 +93,14 @@ func voice(p: Dictionary) -> PackedFloat32Array:
 	var lp0: float = p.get("lowpass", 1.0)
 	var lp1: float = p.get("lowpass_end", lp0)
 	var crackle: float = p.get("crackle", 0.0)
+	var detune: float = p.get("detune", 0.0)
+	var drive: float = p.get("drive", 0.0)
+	var poles: int = p.get("poles", 1)
+	var release: float = p.get("release", 0.0)
 	var phase := 0.0
+	var phase2 := randf()
 	var lp := 0.0
+	var lp2 := 0.0
 	var hold := 1.0
 	var start := int(delay * RATE)
 	for i in range(start, n):
@@ -100,18 +110,12 @@ func voice(p: Dictionary) -> PackedFloat32Array:
 		if vib > 0.0:
 			f *= 1.0 + vib_depth * sin(TAU * vib * t)
 		phase = fmod(phase + f / RATE, 1.0)
-		var s := 0.0
-		match wave:
-			"square":
-				s = 1.0 if phase < duty else -1.0
-			"saw":
-				s = phase * 2.0 - 1.0
-			"tri":
-				s = 1.0 - 4.0 * absf(phase - 0.5)
-			"sine":
-				s = sin(TAU * phase)
-			"noise":
-				s = randf_range(-1.0, 1.0)
+		var s := _osc(wave, phase, duty)
+		if detune > 0.0:
+			phase2 = fmod(phase2 + f * (1.0 + detune) / RATE, 1.0)
+			s = (s + _osc(wave, phase2, duty)) * 0.6
+		if drive > 0.0:
+			s = tanh(s * drive) / tanh(drive)
 		if crackle > 0.0:
 			if randf() < 0.004:
 				hold = 0.0 if randf() < crackle else 1.0
@@ -119,9 +123,31 @@ func voice(p: Dictionary) -> PackedFloat32Array:
 		var a := lerpf(lp0, lp1, k)
 		lp += (s - lp) * a
 		s = lp
-		var env := minf(t / attack, 1.0) * pow(1.0 - k, 1.6)
+		if poles > 1:
+			lp2 += (s - lp2) * a
+			s = lp2
+		var env: float
+		if release > 0.0:
+			env = minf(t / attack, 1.0) * clampf((dur - t) / release, 0.0, 1.0)
+		else:
+			env = minf(t / attack, 1.0) * pow(1.0 - k, 1.6)
 		out[i] = s * env * vol
 	return out
+
+
+func _osc(wave: String, ph: float, duty: float) -> float:
+	match wave:
+		"square":
+			return 1.0 if ph < duty else -1.0
+		"saw":
+			return ph * 2.0 - 1.0
+		"tri":
+			return 1.0 - 4.0 * absf(ph - 0.5)
+		"sine":
+			return sin(TAU * ph)
+		"noise":
+			return randf_range(-1.0, 1.0)
+	return 0.0
 
 
 func _mix(parts: Array) -> PackedFloat32Array:
@@ -179,66 +205,166 @@ func _note(name: String) -> float:
 	return 440.0 * pow(2.0, semis / 12.0)
 
 
-## ~17 s fight loop, 112 BPM, A minor: Am F C G (2 bars each).
-## Triangle bass in eighths, square lead, kick / snare / hats from noise+sine.
+## Fight loop: dark, heavy and mid-tempo (92 BPM, E minor), 16 bars ~42 s.
+## An original riff on a distorted "guitar" (detuned saws through drive and a
+## steep low-pass): palm-muted chugs on low E answered by power chords, half-
+## time drums, a dark pad underneath. Bars 9-12 drop into a slow breakdown
+## with a mournful lead; 13-16 bring the riff back under a high lead.
+const FIGHT_BPM := 92.0
+## One riff bar = 16 sixteenths: [step, note or "x" (muted chug on low E),
+## length in sixteenths]. Power chords = note + fifth.
+const RIFF_A := [[0, "x", 1], [1, "x", 1], [2, "x", 1], [4, "G2", 2], [6, "x", 1], [7, "x", 1],
+		[8, "F#2", 2], [10, "x", 1], [12, "A#2", 1], [13, "A2", 1], [14, "x", 1], [15, "x", 1]]
+const RIFF_B := [[0, "x", 1], [1, "x", 1], [2, "x", 1], [3, "x", 1], [4, "C3", 3], [7, "x", 1],
+		[8, "B2", 2], [10, "x", 1], [11, "x", 1], [12, "G2", 4]]
+
+
 func _music_fight() -> PackedFloat32Array:
-	var bpm := 112.0
-	var beat := 60.0 / bpm
-	var bars := 8
-	var n := int(bars * 4 * beat * RATE)
+	var beat := 60.0 / FIGHT_BPM
+	var sx := beat / 4.0 # a sixteenth
+	var bars := 16
+	var n := int(bars * 16 * sx * RATE)
 	var out := PackedFloat32Array()
 	out.resize(n)
-	var roots := ["A2", "A2", "F2", "F2", "C3", "C3", "G2", "G2"]
-	var lead := [
-		["A4", "C5", "E5", "D5", "C5", "B4", "C5", "E5"], ["A4", "-", "E4", "A4", "B4", "C5", "B4", "-"],
-		["F4", "A4", "C5", "A4", "D5", "C5", "A4", "-"], ["F4", "-", "C5", "-", "A4", "G4", "A4", "C5"],
-		["E4", "G4", "C5", "E5", "D5", "C5", "G4", "-"], ["C5", "-", "E5", "-", "G5", "E5", "C5", "-"],
-		["D5", "B4", "G4", "B4", "D5", "-", "B4", "D5"], ["E5", "D5", "B4", "G4", "B4", "-", "E5", "-"],
-	]
-	var eighth := beat / 2.0
+	var riffs := [RIFF_A, RIFF_B, RIFF_A, RIFF_B, RIFF_A, RIFF_B, RIFF_A, "turn",
+			"break", "break", "break", "break_fill", RIFF_A, RIFF_B, RIFF_A, "turn"]
+	var pads := ["E3", "E3", "E3", "E3", "E3", "E3", "C3", "B2",
+			"E3", "C3", "A2", "B2", "E3", "E3", "C3", "B2"]
+	var break_chords := ["E2", "C3", "A2", "B2"]
+	var break_lead := [["B4", 0, 6], ["A#4", 6, 2], ["A4", 8, 8], ["G4", 16, 4], ["F#4", 20, 4], ["E4", 24, 8],
+			["C5", 32, 6], ["B4", 38, 2], ["A4", 40, 8], ["F#4", 48, 4], ["G4", 52, 4], ["D#4", 56, 8]]
+	var high_lead := [["E5", 0, 8], ["D#5", 8, 8], ["E5", 16, 6], ["G5", 22, 2], ["F#5", 24, 8],
+			["E5", 32, 8], ["C5", 40, 8], ["B4", 48, 16]]
 	for bar in bars:
-		var bar_t := bar * 4 * beat
-		var root := _note(roots[bar])
-		for e in 8:
-			var t := bar_t + e * eighth
-			var at := int(t * RATE)
-			# Bass: root, octave on the off-beats.
-			var f := root * (2.0 if e % 2 == 1 else 1.0)
-			_add(out, voice({"wave": "tri", "f0": f, "dur": eighth * 0.95, "vol": 0.32}), at)
-			# Lead.
-			var name: String = lead[bar][e]
-			if name != "-":
-				_add(out, voice({"wave": "square", "f0": _note(name), "dur": eighth * 0.9, "vol": 0.09,
-						"duty": 0.25, "vib": 6.0, "vib_depth": 0.004}), at)
-			# Drums: kick on 1 and 3, snare on 2 and 4, hats on every eighth.
-			if e == 0 or e == 4:
-				_add(out, voice({"wave": "sine", "f0": 130.0, "f1": 40.0, "dur": 0.16, "vol": 0.55}), at)
-			if e == 2 or e == 6:
-				_add(out, voice({"wave": "noise", "dur": 0.14, "lowpass": 0.5, "vol": 0.22}), at)
-			_add(out, voice({"wave": "noise", "dur": 0.03, "lowpass": 0.95, "vol": 0.06}), at)
+		var t0 := bar * 16 * sx
+		var at0 := int(t0 * RATE)
+		var kind = riffs[bar]
+		# Dark pad: root + third + fifth, very muffled, whole bar.
+		var root := _note(pads[bar])
+		var third := 1.2 if pads[bar] in ["E3", "A2"] else 1.26
+		for mult in [1.0, third, 1.5]:
+			_add(out, voice({"wave": "saw", "f0": root * mult, "dur": 16 * sx, "attack": 0.4, "release": 0.6,
+					"detune": 0.004, "lowpass": 0.025, "poles": 2, "vol": 0.11}), at0)
+		if kind is Array:
+			for ev in kind:
+				_guitar(out, int((t0 + ev[0] * sx) * RATE), ev[1], ev[2] * sx)
+			_drums_heavy(out, t0, sx, bar % 4 == 0)
+		elif kind == "turn":
+			# Bars 8 / 16: a slow chromatic climb back to E.
+			var steps := [["C3", 0, 4], ["C#3", 4, 4], ["D3", 8, 4], ["D#3", 12, 4]]
+			for ev in steps:
+				_guitar(out, int((t0 + ev[1] * sx) * RATE), ev[0], ev[2] * sx * 0.95)
+			_drums_heavy(out, t0, sx, false)
+			for k in 4: # toms down into the next bar
+				_add(out, voice({"wave": "sine", "f0": 220.0 - k * 40.0, "f1": 70.0, "dur": 0.25, "vol": 0.4}),
+						int((t0 + (12 + k) * sx) * RATE))
+		else:
+			# Breakdown: one ringing power chord per bar, sparse drums, slow lead.
+			var b := bar - 8
+			_guitar(out, at0, break_chords[b], 16 * sx * 0.98, true)
+			_add(out, voice({"wave": "sine", "f0": 120.0, "f1": 38.0, "dur": 0.45, "vol": 0.6}), at0)
+			_add(out, voice({"wave": "noise", "dur": 0.3, "lowpass": 0.4, "vol": 0.2}), int((t0 + 8 * sx) * RATE))
+			if kind == "break_fill":
+				for k in 6:
+					_add(out, voice({"wave": "sine", "f0": 200.0 - k * 22.0, "f1": 60.0, "dur": 0.22, "vol": 0.35}),
+							int((t0 + (10 + k) * sx) * RATE))
+		# Leads.
+		if bar >= 8 and bar < 12:
+			_lead(out, t0 - (bar - 8) * 16 * sx, sx, break_lead, (bar - 8) * 16, 0.07)
+		if bar >= 12:
+			_lead(out, t0 - (bar - 12) * 16 * sx, sx, high_lead, (bar - 12) * 16, 0.05)
 	return _soft_clip(out)
 
 
-## ~21 s calm title loop, 90 BPM: slow arpeggios over Am F C E.
+## Distorted guitar: "x" = palm-muted low E chug, else a power chord.
+func _guitar(out: PackedFloat32Array, at: int, note: String, dur: float, ring := false) -> void:
+	if note == "x":
+		for f in [_note("E2"), _note("B2")]:
+			_add(out, voice({"wave": "saw", "f0": f, "dur": 0.11, "detune": 0.006, "drive": 7.0,
+					"lowpass": 0.09, "poles": 2, "vol": 0.17}), at)
+		_add(out, voice({"wave": "sine", "f0": _note("E1"), "dur": 0.12, "vol": 0.22}), at)
+		return
+	var f := _note(note)
+	for mult in [1.0, 1.5, 2.0]:
+		_add(out, voice({"wave": "saw", "f0": f * mult, "dur": dur, "detune": 0.006, "drive": 6.0,
+				"lowpass": 0.16 if not ring else 0.12, "lowpass_end": 0.07, "poles": 2,
+				"release": 0.08 if not ring else dur * 0.5, "vol": 0.12}), at)
+	_add(out, voice({"wave": "sine", "f0": f / 2.0, "dur": dur, "release": 0.05, "vol": 0.2}), at)
+
+
+## Half-time heavy beat: kick on 1, the "a" of 2 and the "and" of 3; snare
+## on 3; quiet ride on eighths; a crash on section starts.
+func _drums_heavy(out: PackedFloat32Array, t0: float, sx: float, crash: bool) -> void:
+	for step in [0, 7, 10]:
+		_add(out, voice({"wave": "sine", "f0": 115.0, "f1": 38.0, "dur": 0.22, "vol": 0.6}), int((t0 + step * sx) * RATE))
+	_add(out, voice({"wave": "noise", "dur": 0.22, "lowpass": 0.45, "lowpass_end": 0.15, "vol": 0.32}), int((t0 + 8 * sx) * RATE))
+	_add(out, voice({"wave": "sine", "f0": 190.0, "f1": 140.0, "dur": 0.12, "vol": 0.18}), int((t0 + 8 * sx) * RATE))
+	for step in range(0, 16, 2):
+		_add(out, voice({"wave": "noise", "dur": 0.05, "lowpass": 0.9, "vol": 0.04}), int((t0 + step * sx) * RATE))
+	if crash:
+		_add(out, voice({"wave": "noise", "dur": 1.4, "lowpass": 0.7, "lowpass_end": 0.2, "vol": 0.12}), int(t0 * RATE))
+
+
+## Mournful lead: square through a soft low-pass with slow vibrato.
+## `notes` = [[note, start sixteenth, length]]; draws those inside this bar.
+func _lead(out: PackedFloat32Array, phrase_t0: float, sx: float, notes: Array, from: int, vol: float) -> void:
+	for ev in notes:
+		if ev[1] < from or ev[1] >= from + 16:
+			continue
+		var dur: float = ev[2] * sx
+		_add(out, voice({"wave": "square", "f0": _note(ev[0]), "dur": dur, "attack": 0.03, "release": dur * 0.4,
+				"duty": 0.3, "vib": 5.0, "vib_depth": 0.008, "lowpass": 0.12, "poles": 2, "detune": 0.003, "vol": vol}),
+				int((phrase_t0 + ev[1] * sx) * RATE))
+
+
+## Title loop: dark ambient, 32 s. A deep drone whose filter slowly breathes,
+## minor pads, distant bells with an echo, a low boom every 8 s, wind.
+## Drone pitches fit a whole number of cycles in the loop, so it repeats
+## without a click.
 func _music_title() -> PackedFloat32Array:
-	var bpm := 90.0
-	var beat := 60.0 / bpm
-	var bars := 8
-	var n := int(bars * 4 * beat * RATE)
+	var seconds := 32.0
+	var n := int(seconds * RATE)
 	var out := PackedFloat32Array()
 	out.resize(n)
-	var chords := [["A3", "C4", "E4"], ["A3", "C4", "E4"], ["F3", "A3", "C4"], ["F3", "A3", "C4"],
-			["C4", "E4", "G4"], ["C4", "E4", "G4"], ["E3", "G#3", "B3"], ["E3", "G#3", "B3"]]
-	var eighth := beat / 2.0
-	for bar in bars:
-		var notes: Array = chords[bar]
-		var bar_t := bar * 4 * beat
-		_add(out, voice({"wave": "tri", "f0": _note(notes[0]) / 2.0, "dur": 4 * beat * 0.98, "attack": 0.2, "vol": 0.25}), int(bar_t * RATE))
-		var pattern := [0, 1, 2, 1, 0, 2, 1, 2]
-		for e in 8:
-			var f := _note(notes[pattern[e]]) * (2.0 if e >= 4 else 1.0)
-			_add(out, voice({"wave": "square", "f0": f, "dur": eighth * 1.8, "attack": 0.01, "vol": 0.06, "duty": 0.125}),
-					int((bar_t + e * eighth) * RATE))
+	# Drone (E1, two detuned saws + E2) and wind.
+	var fa := roundf(41.2 * seconds) / seconds
+	var fb := roundf(41.45 * seconds) / seconds
+	var fc := roundf(82.4 * seconds) / seconds
+	var lp := 0.0
+	var lp2 := 0.0
+	var wind := 0.0
+	# Two passes: the first only settles the filters, so the loop's start
+	# matches its end (no click at the seam).
+	for j in 2 * n:
+		var i := j % n
+		var t := float(i) / RATE
+		var s := (fmod(t * fa, 1.0) * 2.0 - 1.0) + (fmod(t * fb, 1.0) * 2.0 - 1.0) + 0.5 * (fmod(t * fc, 1.0) * 2.0 - 1.0)
+		var a := 0.006 + 0.012 * (0.5 + 0.5 * sin(TAU * t / 16.0))
+		lp += (s - lp) * a
+		lp2 += (lp - lp2) * a
+		wind += (randf_range(-1.0, 1.0) - wind) * 0.01
+		if j >= n:
+			out[i] = lp2 * 0.32 + wind * (0.25 + 0.15 * sin(TAU * t / 8.0))
+	# Pads, two bars each: Em, C, Am, B.
+	var chords := [["E3", "G3", "B3"], ["C3", "E3", "G3"], ["A2", "C3", "E3"], ["B2", "D#3", "F#3"]]
+	for c in 4:
+		for note_name in chords[c]:
+			_add(out, voice({"wave": "saw", "f0": _note(note_name), "dur": 9.0, "attack": 2.5, "release": 3.0,
+					"detune": 0.005, "lowpass": 0.02, "poles": 2, "vol": 0.12}), int(c * 8.0 * RATE))
+	# Distant bells with an echo.
+	var bells := [[1.5, "B4"], [5.0, "G4"], [10.5, "E5"], [14.0, "F#4"], [18.5, "D5"], [22.0, "B4"], [26.5, "C5"], [29.5, "B4"]]
+	for b in bells:
+		var bell := _mix([voice({"wave": "tri", "f0": _note(b[1]), "dur": 3.0, "vol": 0.09}),
+				voice({"wave": "sine", "f0": _note(b[1]) * 2.76, "dur": 1.2, "vol": 0.03})])
+		_add(out, bell, int(b[0] * RATE))
+		var echo := bell.duplicate()
+		for i in echo.size():
+			echo[i] *= 0.35
+		_add(out, echo, int((b[0] + 0.48) * RATE))
+	# A low boom every 8 s.
+	for k in 4:
+		_add(out, voice({"wave": "sine", "f0": 58.0, "f1": 28.0, "dur": 2.6, "vol": 0.4}), int(k * 8.0 * RATE))
+		_add(out, voice({"wave": "noise", "dur": 2.5, "lowpass": 0.02, "vol": 0.6}), int(k * 8.0 * RATE))
 	return _soft_clip(out)
 
 

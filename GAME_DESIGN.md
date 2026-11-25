@@ -11,9 +11,9 @@ Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
 - **PC**: `D:\Godot\Projects\claude_mcp\lava-warlocks` (keyboard + mouse, Forward+ renderer). Local git only.
 - **Android**: `D:\Godot\Projects\claude_mcp\lava-warlocks-mobile` (touch controls, Compatibility renderer).
-  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.8 (2026-11-25).
+  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.8.1 (2026-11-25).
   Build + install on the phone: `bash tools/deploy_android.sh`. APK: `build/warlocks_on_android.apk`.
-  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7 and v0.8 (2026-11-25)
+  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7, v0.8, v0.8.1 (2026-11-25)
   (`gh release create vX.Y build/warlocks_on_android.apk`; bump `version/code` + `version/name` in export_presets.cfg first).
   Gameplay changes are made in PC first, then ported (`git cherry-pick` from the `pc` remote).
   **Exception — Android-only (v0.7 + v0.8, by choice):** fireball range 850 (PC: 700), the v0.7 HUD, pause menu and
@@ -98,6 +98,9 @@ Android v0.8: between rounds a 15 s shop (gold, upgrades, items, the Homing Orb)
     chiptune loops into `assets/audio/` (re-run it after changing a recipe); `scripts/sfx.gd` plays them (world sounds
     fade with distance from the camera; lava sizzle loop while you burn); buses SFX/Music (`default_bus_layout.tres`);
     silent in headless runs (records `Sfx.played` for tests). Settings: Sound, Music.
+    Music (v0.8.1, redone on request): dark and heavy in the spirit of 90s shooter metal, but an original riff —
+    fight loop 92 BPM E minor, 42 s: distorted palm-muted chugs + power chords, half-time drums, dark pad, a slow
+    breakdown with a mournful lead; title loop 32 s dark ambient: breathing E drone, minor pads, distant bells, low booms.
   - **Title menu** (`scripts/title_menu.gd`, `game.gd` `State.TITLE`): over a bots-only brawl (player parked: hidden,
     no collision, out of the `wizards` group; camera hops between bots every 8 s). Play, Settings (pause panel in
     settings-only mode), version. Back on the title quits the app. Pause menu: Quit to menu; results screen: Menu.

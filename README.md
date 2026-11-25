@@ -5,7 +5,7 @@ platform in a sea of lava. Spells mostly **knock back** rather than kill, so
 the real danger is being blasted into the lava. The platform shrinks during
 each round, so every fight ends.
 
-**Version 0.8** — you against three AI bots in matches of rounds, with a shop between rounds, sound and music, and a title menu.
+**Version 0.8.1** — you against three AI bots in matches of rounds, with a shop between rounds, sound and music, and a title menu.
 
 Made with Godot 4.7.2 (GDScript); pixel art made with PixelLab.
 
