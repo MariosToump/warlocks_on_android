@@ -17,3 +17,9 @@ extends Resource
 
 func weight(action: String) -> float:
 	return float(weights.get(action, 1.0))
+
+
+## v0.10: mood odds per round (mood -> weight; see AIMood) and how readily it
+## goes for an opening (scales the opportunity bonus).
+@export var mood_odds := {"aggressive": 1.0, "cautious": 1.0, "opportunist": 1.0}
+@export var risk_appetite := 0.8

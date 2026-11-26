@@ -51,6 +51,11 @@ func _run() -> void:
 	_test_weighted_choice()
 	_test_reaction_jitter()
 	_test_aim_noise()
+	# Task 2: mood + opening watch
+	_test_mood_roll()
+	await _test_watch_blocks_attacks()
+	await _test_watch_ends()
+	await _test_recover_never_random()
 
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -119,6 +124,99 @@ func _test_aim_noise() -> void:
 	_check(inside > 150, "most shots near the middle (%d/300 within 0.6x)" % inside)
 	# Bell curve, not a flat spread: now and then a shot goes properly wide.
 	_check(wide >= 8 and wide <= 60, "a few shots wider than aim_error_deg (%d/300)" % wide)
+	_remove_bot(ai)
+
+
+# --- Task 2 ------------------------------------------------------------------
+
+func _test_mood_roll() -> void:
+	print("mood roll")
+	var odds := {"aggressive": 0.2, "cautious": 0.2, "opportunist": 0.6}
+	var n := {"aggressive": 0, "cautious": 0, "opportunist": 0}
+	for i in 600:
+		n[AIMood.roll(odds).name] += 1
+	var share: float = n["opportunist"] / 600.0
+	_check(absf(share - 0.6) <= 0.08, "opportunist share follows the odds (%.2f)" % share)
+	_check(n["aggressive"] > 0 and n["cautious"] > 0, "every mood shows up %s" % n)
+	_check(AIMood.roll({}).name in n, "empty odds fall back to an even roll")
+	var cautious := AIMood.make("cautious")
+	_check(cautious.watch_min >= 2.0 and cautious.watch_max <= 4.0 and cautious.attack_mult < 1.0,
+		"cautious: watches 2-4 s, attacks less")
+	var neutral := _make_bot(blue, "caster", "normal")
+	_check(neutral.mood.name == "neutral" and not neutral.watching(), "a never-reset bot is neutral, no watch")
+	_remove_bot(neutral)
+
+
+## Caster in a cautious watch against an enemy in fireball range.
+func _watching_caster() -> AIController:
+	_park_all()
+	var ai := _make_bot(blue, "caster", "normal")
+	_place(blue, c)
+	_place(green, c + Vector2(300, 0))
+	ai._start_mood(AIMood.make("cautious"))
+	ai._watch_until = ai._now + 2.0
+	return ai
+
+
+func _blue_cast_something() -> bool:
+	for p in get_nodes_in_group("projectiles"):
+		if (p as Projectile).caster == blue:
+			return true
+	return blue.is_casting()
+
+
+func _test_watch_blocks_attacks() -> void:
+	print("watch blocks attacks")
+	var ai := _watching_caster()
+	var cast := false
+	for i in 90:
+		await _frames(1)
+		cast = cast or _blue_cast_something()
+	_check(not cast, "no attack while watching (1.5 s, enemy at 300 px)")
+	_check(ai.preferred_distance() >= 260.0, "keeps >= 260 px while watching (%.0f)" % ai.preferred_distance())
+	_remove_bot(ai)
+
+
+func _test_watch_ends() -> void:
+	print("watch ends")
+	var ai := _watching_caster()
+	await _frames(10)
+	_check(ai.watching(), "watching at first")
+	blue.take_damage(3.0, green)
+	await _frames(30)
+	_check(not ai.watching(), "being hit ends the watch")
+	_remove_bot(ai)
+	ai = _watching_caster()
+	ai._start_mood(AIMood.make("opportunist")) # rolls a 3-5 s watch
+	await _frames(int(5.1 * 60))
+	_check(not ai.watching(), "the watch never lasts past 5 s")
+	_remove_bot(ai)
+
+
+func _test_recover_never_random() -> void:
+	print("recover never random")
+	_park_all()
+	var prof := (PROF["normal"] as AIProfile).duplicate() as AIProfile
+	prof.hesitate_chance = 1.0
+	prof.choice_spread = 1.0
+	var ai := AIController.new()
+	ai.personality = PERS["caster"]
+	ai.profile = prof
+	blue.add_child(ai)
+	ai._start_mood(AIMood.make("cautious"))
+	var p := c
+	while not arena.is_lava_at(p):
+		p.x += 4.0
+	_place(blue, p + Vector2(40, 0))
+	await _frames(1)
+	var ok := true
+	var thinks := 0
+	for i in 60:
+		await _frames(1)
+		if blue.on_lava and ai.current_action != "":
+			thinks += 1
+			ok = ok and ai.current_action == "recover"
+	_check(ok and thinks > 0, "on lava, always recover (even hesitant + watching) (%d frames)" % thinks)
 	_remove_bot(ai)
 
 

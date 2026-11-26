@@ -35,6 +35,12 @@ const STAFF_ENGAGE := 90.0
 const LIGHTNING_REACH := 215.0
 ## "Lava behind the target": this far past it, seen from the attacker.
 const BEHIND := 80.0
+## Opening watch: attacks count this much, and it keeps at least this far off.
+const WATCH_ATTACK := 0.15
+const WATCH_DISTANCE := 260.0
+## An enemy this exposed ends the watch at once.
+const WATCH_BREAK_OPPORTUNITY := 0.6
+const DEFENCES := ["dodge", "shield", "rockwall"]
 
 @export var profile: AIProfile
 @export var personality: AIPersonality
@@ -44,6 +50,8 @@ const BEHIND := 80.0
 
 var target: Wizard = null
 var current_action := ""
+## This round's mood (neutral until the game calls reset()).
+var mood := AIMood.neutral()
 
 var _think_left := 0.0
 var _now := 0.0
@@ -61,6 +69,10 @@ var _cast_rolls := {}
 var _knocked_for := 0.0
 ## The projectile the current think is reacting to (or null).
 var _danger: Projectile = null
+## Opening watch ends at this _now (only advances while the brain is on).
+var _watch_until := 0.0
+## wizard.last_hit_at when the watch started: a new hit ends it.
+var _watch_hit_mark := 0.0
 var _debug: DebugView
 
 
@@ -89,6 +101,31 @@ func reset() -> void:
 	_cast_rolls.clear()
 	_knocked_for = 0.0
 	_think_left = randf() * profile.think_interval
+	_start_mood(AIMood.roll(personality.mood_odds))
+
+
+## Take `m` as this round's mood and start its opening watch.
+func _start_mood(m: AIMood) -> void:
+	mood = m
+	_watch_until = _now + randf_range(m.watch_min, m.watch_max)
+	_watch_hit_mark = wizard.last_hit_at if wizard else 0.0
+
+
+## Still in the opening "wait and see"?
+func watching() -> bool:
+	return _now < _watch_until
+
+
+## Distance it wants from its target: personality x mood, and well out of
+## reach while watching.
+func preferred_distance() -> float:
+	var d := personality.preferred_distance * mood.distance_mult
+	return maxf(d, WATCH_DISTANCE) if watching() else d
+
+
+## 0..1: how exposed `w` is right now (filled in by the risk task).
+func opportunity(_w: Wizard) -> float:
+	return 0.0
 
 
 func _physics_process(delta: float) -> void:
@@ -122,6 +159,8 @@ func _physics_process(delta: float) -> void:
 
 func _think() -> void:
 	target = _pick_target()
+	if watching() and (wizard.last_hit_at != _watch_hit_mark 			or (target and opportunity(target) >= WATCH_BREAK_OPPORTUNITY)):
+		_watch_until = _now # hit, or someone left wide open: join in
 	_danger = _danger_projectile()
 	for id in _cast_rolls.keys():
 		var w := instance_from_id(id) as Wizard
@@ -132,6 +171,10 @@ func _think() -> void:
 		var s: float = call("_score_" + action) * personality.weight(action)
 		if s <= 0.0:
 			continue
+		if action in ATTACKS:
+			s *= mood.attack_mult * (WATCH_ATTACK if watching() else 1.0)
+		elif action in DEFENCES:
+			s *= mood.defend_mult
 		if action == current_action:
 			s += KEEP_ACTION_BONUS
 		scores[action] = s
@@ -223,7 +266,7 @@ func _target_distance() -> float:
 func _score_reposition() -> float:
 	if target == null:
 		return 0.3
-	var off := absf(_target_distance() - personality.preferred_distance)
+	var off := absf(_target_distance() - preferred_distance())
 	return 0.3 + 0.3 * clampf(off / 300.0, 0.0, 1.0)
 
 
@@ -237,7 +280,7 @@ func _do_reposition() -> void:
 	var d := from_target.length()
 	if d < 1.0:
 		from_target = Vector2.RIGHT
-	var want := personality.preferred_distance
+	var want := preferred_distance()
 	if d < want:
 		# Closer than it likes: back off only as much as its retreat bias says.
 		want = lerpf(d, want, personality.retreat_bias)
@@ -304,7 +347,7 @@ func _score_lightning() -> float:
 		return 1.2 + 0.5 * (1.0 - d / LIGHTNING_REACH)
 	var s := 0.7 + 0.5 * (1.0 - d / LIGHTNING_REACH)
 	# Blasting them away is pointless for a bot that's trying to close in.
-	if d > personality.preferred_distance + 60.0:
+	if d > preferred_distance() + 60.0:
 		s *= 0.4
 	return s
 
