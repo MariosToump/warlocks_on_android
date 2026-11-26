@@ -151,6 +151,10 @@ It's used in three places:
 | 1 | 137 | 12% | 38% | 23% | 28% | 62% | 6:39 | first build |
 | 2 | 269 | 7% | 39% | 27% | 27% | 64% | 6:25 | 40 matches; aggressive mood loses for every bot |
 | 3 | 279 | 10% | 39% | 25% | 26% | 64% | 6:40 | hold outside lightning range; softer aggressive |
+| 4 | 278 | 10% | 35% | 23% | 32% | 63% | 6:37 | Brawler fireball 0.8, mood odds 0.45 / 0.15 / 0.4 |
+| 5 | 264 | 7% | 40% | 25% | 28% | 65% | 6:16 | + impatience, charge commit, urgent recover wins (review fix) |
+
+Brawler plateaued at ~9% ± 2 with AI-only changes; a balance change is the user's call (GAME_DESIGN todo 7).
 
 ## Left to the builder
 - Exact constant values beyond the ones above (tune by sims).

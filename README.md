@@ -70,9 +70,14 @@ The game opens on a title menu with the bots already fighting behind it. Back on
 ### The bots
 | Colour | Personality | Plays like |
 |---|---|---|
-| Blue | Brawler | Gets close: staff and lightning, reflects your fireballs with the shield |
-| Green | Caster | Keeps its distance, fireballs, zaps anyone who gets close |
-| Purple | Trickster | Mid range, blinks in to shove you into the lava |
+| Blue | Brawler | The charger: dodges your spells, weaves in, waits just out of zap range and rushes you when you've used your lightning or left yourself open |
+| Green | Caster | The sniper: keeps its distance, fireballs, zaps anyone who gets close; often plays it safe |
+| Purple | Trickster | The opportunist: hangs back while others fight, then blinks in to push hurt wizards into the lava |
+
+Each round every bot rolls a mood (aggressive, cautious or opportunist), so the same bot plays differently from
+round to round. Cautious and opportunist bots open by watching for a few seconds before they join in. Bots make
+human mistakes (slow reactions, shots that miss), remember the spells they *see* you use, and go for the kill when
+you're hurt, near the lava or out of shield. They never read your cooldowns.
 
 The bots gang up on whoever has won the most rounds this match, don't waste spells on rocks, and raise a
 Rock Wall against a spell they see coming once they own one.

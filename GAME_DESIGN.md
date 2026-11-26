@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-26 (v0.10+ todo plan: smarter bots first; Android v0.9 released)_
+_Last updated: 2026-11-26 (Android v0.10 item 1 done: smarter, less predictable bots; not released yet)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -37,8 +37,9 @@ Two projects share this design:
 
 **v0.10+** (before the v1.0 camera; planned 2026-11-26). Testing / sim cost, most first: bots > 8 warlocks >
 secondary effects > extra rounds > lightning. Build order (user's choice): bots now, with the current spells.
-- [ ] 1. **Smarter, less predictable bots** — **← next**. A general "brain" that works for any spell; no cheating
-  (same info and reaction limits as now).
+- [x] 1. **Smarter, less predictable bots** — _done 2026-11-26 on Android (branch merged, no APK yet). Design:
+  `docs/superpowers/specs/2026-11-26-smarter-bots-design.md`; details under "Android v0.10 bots" below._
+  A general "brain" that works for any spell; no cheating (same info and reaction limits as now).
   - Reaction time that varies; aim that is sometimes a little off or leads too much; hesitations and fake-outs.
   - A mood rolled each round (aggressive / cautious / opportunist) on top of the personality.
   - Takes risks when the moment is right: an enemy with low HP, near the lava edge, or with shield / blink on cooldown.
@@ -47,13 +48,18 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
     Then a feel check on the phone.
   - **Rule from now on:** every new spell gets its own bot `_score_X` / `_do_X` (`scripts/ai/ai_controller.gd`)
     plus a short harness check, as part of that spell's task.
-- [ ] 2. **Lightning rework** (`scripts/spells/lightning.gd`): `max_range` 230 -> about the fireball's reach; a capsule
+- [ ] 2. **Lightning rework** **← next** (`scripts/spells/lightning.gd`): `max_range` 230 -> about the fireball's reach; a capsule
   hitbox matching the bolt sprite (instead of the `hit_width` 14 line); a bigger tip zone with a small knockback
   bonus. Update the AI range check + `test_spells`; re-run one harness batch.
 - [ ] 3. **Secondary spell effects** — details to discuss. Bots learn each effect as it's added.
 - [ ] 4. **Extra / bonus rounds with trigger conditions** — details to discuss. Sim how often triggers fire.
 - [ ] 5. **8-warlock mode** — details to discuss (bigger island, 7 bots, spawns, HUD / score for 8, harness for
   N wizards, phone performance).
+- [ ] 6. **Terrain stone walls brainstorm** — the user meant stones / stone walls as part of the island terrain, not a
+  spell. Separate brainstorm session. The Rock Wall shop spell stays for now.
+- [ ] 7. **Brawler balance (discuss):** after the bot rework he still wins only ~9% of rounds (target 15%). Bot-only
+  tuning plateaued; melee is weak in the lava-first balance. Options: more staff knockback, a gap-closer, or accept
+  him as the underdog.
 
 **v1.0:** camera that tilts from top-down into a 3D perspective (2.5D hybrid, inspired by storm.game; our own code):
 gameplay stays 2D, a 3D render layer mirrors it (heightmap island, billboard sprites, lava plane), Camera3D blends
@@ -193,6 +199,29 @@ Android v0.9: first to 3 (~6 min matches), a 10 s shop, rocks on the island, a g
     against a spell they've seen coming while their shield is down.
   - **Craters** (`scripts/crater.gd`): fireballs leave a scorched patch (6 s, radius 22) that slows walkers to 60%.
   - Real hills / heights wait for the v1.0 camera.
+
+- **Android v0.10 bots** (2026-11-26, Android only). The user: bots are too predictable (blue always charges and only
+  shields, green always snipes and is the best, purple has no character, everyone is full-aggressive from second 1).
+  - **Weighted-random choice** (`AIController._choose`): any action within `profile.choice_spread` (Easy 0.30,
+    Normal 0.20, Hard 0.12) of the best can be picked; an urgent `recover` (>= 2.5) always wins outright.
+  - **Human noise** (`AIProfile`): reaction time rolled per projectile (`reaction_jitter`), bell-curve aim error,
+    lead rolled per cast (`lead_jitter`, sometimes too much), `hesitate_chance` to hold an attack for one think.
+  - **Mood per round** (`scripts/ai/ai_mood.gd`; odds per personality): aggressive / cautious / opportunist scale
+    attack, defence, distance and risk. Cautious and opportunist open with a 2-5 s **watch** (attacks x0.15, keeps
+    260 px), broken early by being hit or a wide-open target.
+  - **Fair memory** (`scripts/ai/ai_memory.gd`): remembers casts it *saw* (`cast_started`) and who got hit by someone
+    else; "shield / blink / lightning probably down" is judged by the bot's own base cooldown x0.9. Never reads
+    another wizard's cooldown.
+  - **Opportunity** 0-1 (low HP, near lava, shield / blink seen used, knocked back, mid-cast, busy fighting someone
+    else) boosts attacks and targeting by `risk` = personality `risk_appetite` x mood.
+  - **Brawler:** dodges instead of shielding everything, weaves in, waits just outside lightning range until the
+    target is open, threw a spell, or used its lightning (then charges and commits), gets impatient after 3-5 s.
+    **Caster:** cautious-leaning, low risk. **Trickster:** opportunist, goes after wizards busy fighting others.
+  - Harness (`tools/playtest.gd`) now prints win rate per mood and per bot per mood. Normal, 40 matches:
+    match 6:16, fights 44 s, lava deaths 65%, round wins Caster 40%, stand-in 28%, Trickster 25%, Brawler 7-10%
+    (v0.9: Caster 44%, Brawler 6%). Easy / Hard sane (Caster 41% / 31%). Aggressive mood still wins least.
+  - Tests: `tools/test_ai_human.gd` (new) + `test_ai` updated (its Brawler tests give the target an opening; the
+    distance tests use a knockback-proof dummy).
 
 ### Changed from the plan above
 - Move speed is **165** (not 140). Fireball flies 560 px/s.
