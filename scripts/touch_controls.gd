@@ -2,6 +2,10 @@ class_name TouchControls
 extends Control
 ## On-screen controls for phones.
 ## - Left half: a floating joystick appears where the thumb lands; drag to walk.
+##   The ring follows the thumb if it goes past the edge (so a reversal is
+##   instant). Touchpad mode (setting): no ring, the whole left half is a pad
+##   and any small slide walks at full speed that way (it trails the thumb
+##   closely). A thumb put down between rounds is kept and walks at the start.
 ## - Bottom right, big: staff attack. Swings on the spot (it never walks you
 ##   anywhere), turned toward the nearest enemy if one is close, else the way
 ##   you face. Hold to keep swinging. A small timer shows the cooldown.
@@ -13,7 +17,9 @@ extends Control
 ## Works with a mouse too (project setting emulate_touch_from_mouse).
 
 const STICK_R := 80.0 ## how far the knob can travel
-const STICK_DEAD := 0.15
+const STICK_DEAD := 0.15 ## fraction of STICK_R; speed ramps up from here
+const PAD_R := 24.0 ## touchpad: how far the origin trails behind the thumb
+const PAD_DEAD := 8.0 ## touchpad: slide this far (px) to start walking
 const AIM_DEAD := 22.0 ## drag shorter than this = tap (auto-aim)
 const AIM_FULL := 110.0 ## drag length for full blink distance
 const MARGIN := 34.0
@@ -37,6 +43,8 @@ var wizard: Wizard
 ## True between rounds (countdown, results): no moving or casting, and
 ## new touches pass through to the HUD (e.g. the Play again button).
 var locked := false
+## Touchpad movement instead of the joystick (GameSettings.move_mode).
+var touchpad := false
 
 var _stick_index := -1
 var _stick_origin := Vector2.ZERO
@@ -61,13 +69,30 @@ func _process(delta: float) -> void:
 	for k in _flash.keys():
 		_flash[k] = maxf(_flash[k] - delta, 0.0)
 	if wizard and _stick_index >= 0:
-		var v := (_stick_pos - _stick_origin) / STICK_R
 		wizard.move_target = null
-		wizard.move_dir = v.limit_length(1.0) if v.length() > STICK_DEAD and not locked else Vector2.ZERO
+		wizard.move_dir = Vector2.ZERO if locked else stick_vector()
 	if wizard and _attack_index >= 0:
 		_hold_attack()
 	_update_guide()
 	queue_redraw()
+
+
+## Walk direction from the thumb: length 0-1 for the joystick (ramps up from
+## the deadzone edge), full speed for the touchpad.
+func stick_vector() -> Vector2:
+	var off := _stick_pos - _stick_origin
+	if touchpad:
+		return off.normalized() if off.length() > PAD_DEAD else Vector2.ZERO
+	var k := off.length() / STICK_R
+	if k <= STICK_DEAD:
+		return Vector2.ZERO
+	return off.normalized() * minf((k - STICK_DEAD) / (1.0 - STICK_DEAD), 1.0)
+
+
+func _notification(what: int) -> void:
+	# Leaving the app (home, notification shade, a call) can swallow touch-ups.
+	if what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_WINDOW_FOCUS_OUT]:
+		release_all()
 
 
 ## Forget every finger (pausing: touch-ups won't arrive while paused).
@@ -87,15 +112,19 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventScreenTouch:
 		var t := event as InputEventScreenTouch
-		if t.pressed:
+		if t.pressed and not t.canceled:
 			if not locked:
 				_touch_down(t.index, t.position)
+			elif _is_stick_spot(t.position):
+				# Between rounds: remember the thumb (it walks once the fight
+				# starts) but let the touch reach the HUD too.
+				_grab_stick(t.index, t.position)
 		else:
 			_touch_up(t.index)
 	elif event is InputEventScreenDrag:
 		var d := event as InputEventScreenDrag
 		if d.index == _stick_index:
-			_stick_pos = _stick_origin + (d.position - _stick_origin).limit_length(STICK_R)
+			_move_stick(d.position)
 		elif d.index == _aim_index:
 			_aim_vec = d.position - _button_center(_aim_slot)
 
@@ -115,11 +144,31 @@ func _touch_down(index: int, pos: Vector2) -> void:
 			_aim_slot = slot
 			_aim_vec = Vector2.ZERO
 		return
-	if pos.x < size.x * 0.5 and _stick_index < 0:
+	if _is_stick_spot(pos):
+		# A new thumb always takes the stick, even if an old touch never
+		# reported its release (else the stick would stay dead).
 		get_viewport().set_input_as_handled()
-		_stick_index = index
-		_stick_origin = pos
-		_stick_pos = pos
+		_grab_stick(index, pos)
+
+
+func _is_stick_spot(pos: Vector2) -> bool:
+	return pos.x < size.x * 0.5 and _button_at(pos) == ""
+
+
+func _grab_stick(index: int, pos: Vector2) -> void:
+	_stick_index = index
+	_stick_origin = pos
+	_stick_pos = pos
+
+
+## Thumb moved: past the ring (or the touchpad's short leash) the origin is
+## dragged along, so turning around answers at once.
+func _move_stick(pos: Vector2) -> void:
+	var leash := PAD_R if touchpad else STICK_R
+	var off := pos - _stick_origin
+	if off.length() > leash:
+		_stick_origin = pos - off.normalized() * leash
+	_stick_pos = pos
 
 
 func _touch_up(index: int) -> void:
@@ -274,7 +323,10 @@ func _draw() -> void:
 	if wizard == null:
 		return
 	# Joystick (a faint hint where it usually sits when not touched).
-	if _stick_index >= 0:
+	if touchpad:
+		if _stick_index >= 0:
+			draw_circle(_stick_pos, 18.0, Color(1, 0.75, 0.5, 0.25))
+	elif _stick_index >= 0:
 		draw_circle(_stick_origin, STICK_R, Color(0, 0, 0, 0.25))
 		draw_arc(_stick_origin, STICK_R, 0, TAU, 48, Color(1, 0.8, 0.6, 0.45), 3.0, true)
 		draw_circle(_stick_pos, 34.0, Color(1, 0.75, 0.5, 0.55))

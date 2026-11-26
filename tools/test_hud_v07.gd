@@ -128,7 +128,7 @@ func _run() -> void:
 	await _frames(3)
 	_check(Sfx.is_looping("lava"), "lava sizzles while you burn")
 	player.reset(c)
-	await _frames(3)
+	await _seconds(0.2) # on_lava updates on a physics tick
 	_check(not Sfx.is_looping("lava"), "and stops when you're out")
 	GameSettings.sound = false
 	GameSettings.music = false

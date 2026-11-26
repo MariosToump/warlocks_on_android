@@ -5,6 +5,7 @@ extends RefCounted
 
 const ZOOMS := {"close": 2.0, "far": 1.35} ## follow_zoom per choice (3 / 2 screen px per art px on a phone)
 const WINS := [3, 5, 7]
+const MOVES := ["joystick", "touchpad"] ## left-thumb movement styles
 
 static var path := "user://settings.cfg"
 static var zoom := "close"
@@ -13,6 +14,7 @@ static var wins_to_take_match := 5
 static var haptics := true
 static var sound := true
 static var music := true
+static var move_mode := "joystick"
 static var _loaded := false
 
 
@@ -36,6 +38,9 @@ static func load_settings() -> void:
 	haptics = cf.get_value("game", "haptics", haptics)
 	sound = cf.get_value("game", "sound", sound)
 	music = cf.get_value("game", "music", music)
+	move_mode = cf.get_value("game", "move_mode", move_mode)
+	if not move_mode in MOVES:
+		move_mode = "joystick"
 
 
 static func save_settings() -> void:
@@ -46,6 +51,7 @@ static func save_settings() -> void:
 	cf.set_value("game", "haptics", haptics)
 	cf.set_value("game", "sound", sound)
 	cf.set_value("game", "music", music)
+	cf.set_value("game", "move_mode", move_mode)
 	cf.save(path)
 
 
@@ -61,4 +67,5 @@ static func reset() -> void:
 	haptics = true
 	sound = true
 	music = true
+	move_mode = "joystick"
 	_loaded = true

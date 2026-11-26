@@ -41,6 +41,59 @@ func _run() -> void:
 	await _frames(2)
 	_check(player.move_dir == Vector2.ZERO, "release stops")
 
+	# v0.9 stick fixes.
+	# A thumb put down while locked (countdown) walks once the fight starts.
+	touch.locked = true
+	_touch(10, Vector2(250, 500), true)
+	_drag(10, Vector2(330, 500))
+	await _frames(3)
+	_check(player.move_dir == Vector2.ZERO, "no walking while locked")
+	touch.locked = false
+	await _frames(2)
+	_check(player.move_dir.x > 0.9, "thumb held through the countdown walks at the start (%s)" % player.move_dir)
+	# Its touch-up gets lost; a new thumb still takes the stick.
+	_touch(11, Vector2(200, 450), true)
+	_drag(11, Vector2(200, 370))
+	await _frames(2)
+	_check(player.move_dir.y < -0.9, "a new thumb takes over a stuck stick (%s)" % player.move_dir)
+	# Past the ring, then reverse: the ring followed, so it flips at once.
+	_drag(11, Vector2(200, 150))
+	_drag(11, Vector2(200, 270)) # only 120 px back (the old fixed ring needed ~300)
+	await _frames(2)
+	_check(player.move_dir.y > 0.2, "reversal answers at once after dragging past the ring (%s)" % player.move_dir)
+	# A canceled touch (system gesture) releases.
+	var cancel := InputEventScreenTouch.new()
+	cancel.index = 11
+	cancel.position = Vector2(200, 200)
+	cancel.pressed = false
+	cancel.canceled = true
+	root.push_input(cancel)
+	await _frames(2)
+	_check(player.move_dir == Vector2.ZERO, "canceled touch releases the stick")
+	# Small drags ramp up smoothly from the deadzone.
+	_touch(12, Vector2(250, 500), true)
+	_drag(12, Vector2(250 + TouchControls.STICK_R * 0.3, 500))
+	await _frames(2)
+	_check(player.move_dir.length() > 0.05 and player.move_dir.length() < 0.4, "speed ramps from the deadzone (%.2f)" % player.move_dir.length())
+	_touch(12, Vector2(270, 500), false)
+	# Touchpad: no ring, a short slide walks at full speed, reverses instantly.
+	touch.touchpad = true
+	_touch(13, Vector2(300, 400), true)
+	_drag(13, Vector2(312, 400))
+	await _frames(2)
+	_check(is_equal_approx(player.move_dir.length(), 1.0) and player.move_dir.x > 0.99, "touchpad: small slide = full speed (%s)" % player.move_dir)
+	_drag(13, Vector2(500, 400))
+	_drag(13, Vector2(460, 400))
+	await _frames(2)
+	_check(player.move_dir.x < -0.99, "touchpad: reverses at once (%s)" % player.move_dir)
+	await _shot("0_touchpad")
+	_touch(13, Vector2(460, 400), false)
+	await _frames(2)
+	_check(player.move_dir == Vector2.ZERO, "touchpad release stops")
+	touch.touchpad = false
+	GameSettings.reset()
+	_check(GameSettings.move_mode == "joystick", "joystick is the default movement")
+
 	# Tap Q: auto-aims at the nearest enemy.
 	await _seconds(0.3)
 	var q_pos := touch._button_center("Q")

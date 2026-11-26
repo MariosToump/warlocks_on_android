@@ -15,6 +15,7 @@ var _zoom: Button
 var _bots: Button
 var _wins: Button
 var _haptics: Button
+var _move: Button
 var _sound: Button
 var _music: Button
 var _title: Label
@@ -92,6 +93,7 @@ func _build_panel() -> void:
 	_haptics = _button(grid, "", _toggle_haptics)
 	_sound = _button(grid, "", _toggle_sound)
 	_music = _button(grid, "", _toggle_music)
+	_move = _button(grid, "", _cycle_move)
 	_refresh()
 	dim.visible = false
 
@@ -179,6 +181,7 @@ func _refresh() -> void:
 	_haptics.text = "Vibration: %s" % ("On" if GameSettings.haptics else "Off")
 	_sound.text = "Sound: %s" % ("On" if GameSettings.sound else "Off")
 	_music.text = "Music: %s" % ("On" if GameSettings.music else "Off")
+	_move.text = "Move: %s" % GameSettings.move_mode.capitalize()
 
 
 func _cycle_zoom() -> void:
@@ -194,6 +197,11 @@ func _cycle_bots() -> void:
 func _cycle_wins() -> void:
 	var i := GameSettings.WINS.find(GameSettings.wins_to_take_match)
 	GameSettings.wins_to_take_match = GameSettings.WINS[(i + 1) % GameSettings.WINS.size()]
+	_changed()
+
+
+func _cycle_move() -> void:
+	GameSettings.move_mode = "touchpad" if GameSettings.move_mode == "joystick" else "joystick"
 	_changed()
 
 
