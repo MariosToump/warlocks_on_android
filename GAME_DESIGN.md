@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-26 (Android v0.9: short matches, lava-first balance, ghost, game feel, rocks, Rock Wall, touch fixes)_
+_Last updated: 2026-11-26 (v0.10+ todo plan: smarter bots first; Android v0.9 released)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -34,6 +34,26 @@ Two projects share this design:
 - [x] 7. Stones + pillars: block spells, boulders get shoved by knockback into wizards, sink in lava.
 - [x] 8. Earth spell "Rock Wall" (shop) + fireball craters that slow walkers.
 - [x] 9. Release v0.9: docs, APK on the phone, push, GitHub release.
+
+**v0.10+** (before the v1.0 camera; planned 2026-11-26). Testing / sim cost, most first: bots > 8 warlocks >
+secondary effects > extra rounds > lightning. Build order (user's choice): bots now, with the current spells.
+- [ ] 1. **Smarter, less predictable bots** — **← next**. A general "brain" that works for any spell; no cheating
+  (same info and reaction limits as now).
+  - Reaction time that varies; aim that is sometimes a little off or leads too much; hesitations and fake-outs.
+  - A mood rolled each round (aggressive / cautious / opportunist) on top of the personality.
+  - Takes risks when the moment is right: an enemy with low HP, near the lava edge, or with shield / blink on cooldown.
+  - Weighted-random action choice instead of always the top score.
+  - Measure with `tools/playtest.gd`: nobody > 40% of round wins, Brawler >= 15%, >= 50% lava deaths, fights 35-60 s.
+    Then a feel check on the phone.
+  - **Rule from now on:** every new spell gets its own bot `_score_X` / `_do_X` (`scripts/ai/ai_controller.gd`)
+    plus a short harness check, as part of that spell's task.
+- [ ] 2. **Lightning rework** (`scripts/spells/lightning.gd`): `max_range` 230 -> about the fireball's reach; a capsule
+  hitbox matching the bolt sprite (instead of the `hit_width` 14 line); a bigger tip zone with a small knockback
+  bonus. Update the AI range check + `test_spells`; re-run one harness batch.
+- [ ] 3. **Secondary spell effects** — details to discuss. Bots learn each effect as it's added.
+- [ ] 4. **Extra / bonus rounds with trigger conditions** — details to discuss. Sim how often triggers fire.
+- [ ] 5. **8-warlock mode** — details to discuss (bigger island, 7 bots, spawns, HUD / score for 8, harness for
+  N wizards, phone performance).
 
 **v1.0:** camera that tilts from top-down into a 3D perspective (2.5D hybrid, inspired by storm.game; our own code):
 gameplay stays 2D, a 3D render layer mirrors it (heightmap island, billboard sprites, lava plane), Camera3D blends
