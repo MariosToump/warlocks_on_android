@@ -154,7 +154,7 @@ func _wants_to_walk() -> bool:
 
 
 func _walk_velocity() -> Vector2:
-	var speed := move_speed * speed_multiplier
+	var speed := move_speed * speed_multiplier * Crater.speed_at(get_tree(), global_position)
 	if move_target != null:
 		var to: Vector2 = move_target - global_position
 		if to.length() <= speed * get_physics_process_delta_time():

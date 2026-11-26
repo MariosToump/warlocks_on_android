@@ -37,6 +37,8 @@ const LAYOUT := {
 	"R": {"offset": Vector2(18, -169), "r": 44.0},
 	# Bought in the shop (Homing Orb): left of Q; only drawn once owned.
 	"D": {"offset": Vector2(-266, 0), "r": 44.0},
+	# Rock Wall (shop): up-left of W.
+	"F": {"offset": Vector2(-246, -106), "r": 44.0},
 }
 
 var wizard: Wizard

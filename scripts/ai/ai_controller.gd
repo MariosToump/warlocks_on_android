@@ -9,7 +9,7 @@ extends Node
 ## movement actions set a goal that is followed every physics frame.
 
 ## Every action has _score_<name>() -> float and _do_<name>() -> void.
-const ACTIONS := ["dodge", "recover", "shield", "reposition", "fireball", "lightning", "staff", "blink_in", "homing"]
+const ACTIONS := ["dodge", "recover", "shield", "reposition", "fireball", "lightning", "staff", "blink_in", "homing", "rockwall"]
 ## Bonus for sticking with the current action / target (stops jitter).
 const KEEP_ACTION_BONUS := 0.1
 const KEEP_TARGET_BONUS := 80.0
@@ -17,7 +17,7 @@ const KEEP_TARGET_BONUS := 80.0
 const RETALIATE_BONUS := 300.0
 const RETALIATE_TIME := 4.0
 ## Each round the target has won this match makes it this much "closer".
-const LEADER_BONUS := 120.0
+const LEADER_BONUS := 180.0
 ## "Near lava" for targeting: lava within this distance.
 const NEAR_LAVA := 110.0
 ## A projectile is dangerous if it will pass this close within DANGER_TIME s.
@@ -167,6 +167,11 @@ func _pick_target() -> Wizard:
 	return best
 
 
+## A rock between us and the target would eat the spell.
+func _rock_in_the_way() -> bool:
+	return Prop.blocks(get_tree(), wizard.global_position, target.global_position)
+
+
 func _can_cast(slot: String) -> bool:
 	var spell := wizard.get_spell(slot)
 	return spell != null and spell.is_ready() and not wizard.is_casting() \
@@ -224,6 +229,23 @@ func _score_homing() -> float:
 	return 0.85
 
 
+## Rock Wall (if bought): cover from a spell we've seen coming when the
+## shield is down; a little less than a clean dodge.
+func _score_rockwall() -> float:
+	if wizard.get_spell("F") == null or not _can_cast("F") or _danger == null:
+		return 0.0
+	if not _roll(_danger)[0] or (wizard.get_spell("R") and wizard.get_spell("R").is_ready()):
+		return 0.0
+	if _danger.global_position.distance_to(wizard.global_position) < 70.0:
+		return 0.0 # too late, the wall would come up behind it
+	return 1.9
+
+
+func _do_rockwall() -> void:
+	if _danger and is_instance_valid(_danger):
+		_cast("F", _danger.global_position)
+
+
 func _do_homing() -> void:
 	_cast("D", target.global_position)
 
@@ -233,7 +255,7 @@ func _score_fireball() -> float:
 	if target == null or spell == null or not _can_cast("Q") or target.is_shielded():
 		return 0.0
 	var d := _target_distance()
-	if d > spell.max_range * 0.9:
+	if d > spell.max_range * 0.9 or _rock_in_the_way():
 		return 0.0
 	return 0.6 + 0.2 * d / spell.max_range # better at range; lightning covers close
 
@@ -247,7 +269,7 @@ func _do_fireball() -> void:
 func _score_lightning() -> float:
 	if target == null or not _can_cast("E") or target.is_shielded():
 		return 0.0
-	if _target_distance() > LIGHTNING_REACH:
+	if _target_distance() > LIGHTNING_REACH or _rock_in_the_way():
 		return 0.0
 	var d := _target_distance()
 	if _lava_behind(target, wizard.global_position):

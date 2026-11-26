@@ -45,6 +45,13 @@ func release(target: Vector2) -> void:
 			best = w
 			best_t = t
 
+	# A rock in the way stops the bolt first (and shoves a boulder).
+	var rock := Prop.first_on_ray(caster.get_tree(), from, dir, max_range, hit_width * 0.5)
+	if not rock.is_empty() and (best == null or rock[1] < best_t):
+		best = null
+		end = from + dir * rock[1]
+		(rock[0] as Prop).push(dir * knockback_by_level[level], caster)
+
 	var parent := caster.get_parent()
 	if best:
 		if best.is_shielded():

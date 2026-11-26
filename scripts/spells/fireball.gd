@@ -30,6 +30,7 @@ func release(target: Vector2) -> void:
 	p.max_range = max_range
 	p.damage = damage_by_level[level]
 	p.knockback = knockback_by_level[level]
+	p.leaves_crater = true
 	# Start just outside the caster's body so it can't hit itself.
 	p.position = caster.global_position + dir * 14.0
 	caster.get_parent().add_child(p)

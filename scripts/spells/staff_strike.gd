@@ -35,6 +35,10 @@ func release(target: Vector2) -> void:
 	if dir == Vector2.ZERO:
 		dir = Vector2.from_angle(Wizard.DIRS.find(caster.facing) * PI / 4.0)
 	var center := from + dir * hit_offset
+	for node in caster.get_tree().get_nodes_in_group("props"):
+		var rock := node as Prop
+		if rock.global_position.distance_to(center) <= hit_radius + rock.radius:
+			rock.push((rock.global_position - from).normalized() * knockback_by_level[level], caster)
 	for node in caster.get_tree().get_nodes_in_group("wizards"):
 		var w := node as Wizard
 		if w == caster or not w.alive:

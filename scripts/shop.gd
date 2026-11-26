@@ -8,13 +8,16 @@ extends RefCounted
 ## - Items, at most MAX_ITEMS, sold back for half: see ITEMS.
 
 const UPGRADE_COSTS := [10, 15, 20] ## cost to reach level 1, 2, 3
-const SLOTS := ["Q", "W", "E", "R", "D", "A"] ## upgrade order on the panel
+const SLOTS := ["Q", "W", "E", "R", "D", "F", "A"] ## upgrade order on the panel
 const MAX_ITEMS := 2
 
 const SPELLS := {
 	"homing": {"name": "Homing Orb", "slot": "D", "price": 15,
 			"script": preload("res://scripts/spells/homing_orb.gd"),
 			"desc": "Slow orb that curves toward the nearest enemy."},
+	"rockwall": {"name": "Rock Wall", "slot": "F", "price": 15,
+			"script": preload("res://scripts/spells/rock_wall.gd"),
+			"desc": "Raise 3 rocks in front of you: cover for a few seconds."},
 }
 
 const ITEMS := {
@@ -27,10 +30,10 @@ const ITEMS := {
 ## What each bot personality buys first (it walks the list again and again
 ## while it can afford something). "up:Q" = upgrade, "item:x", "spell:x".
 const BOT_PRIORITY := {
-	"Caster": ["up:Q", "item:gem", "spell:homing", "up:Q", "up:E", "item:ring", "up:R", "up:D", "up:W"],
-	"Brawler": ["up:E", "item:cloak", "up:A", "item:boots", "up:R", "up:W", "up:Q", "spell:homing"],
-	"Trickster": ["up:W", "item:boots", "spell:homing", "up:Q", "up:E", "item:gem", "up:D", "up:R"],
-	"Bot": ["up:Q", "item:boots", "up:E", "spell:homing", "item:cloak", "up:W", "up:R"],
+	"Caster": ["up:Q", "item:gem", "spell:homing", "up:Q", "spell:rockwall", "up:E", "item:ring", "up:R", "up:D", "up:W", "up:F"],
+	"Brawler": ["up:E", "spell:rockwall", "item:cloak", "up:A", "item:boots", "up:R", "up:W", "up:F", "up:Q", "spell:homing"],
+	"Trickster": ["up:W", "item:boots", "spell:homing", "up:Q", "spell:rockwall", "up:E", "item:gem", "up:D", "up:R", "up:F"],
+	"Bot": ["up:Q", "item:boots", "up:E", "spell:homing", "spell:rockwall", "item:cloak", "up:W", "up:R", "up:F"],
 }
 
 

@@ -125,8 +125,10 @@ func refresh() -> void:
 		var info: Dictionary = Shop.SPELLS[id]
 		var row := _row()
 		var icon := TextureRect.new()
-		icon.texture = HomingOrbSpell.FRAMES.get_frame_texture("default", 0)
-		icon.modulate = HomingOrbSpell.TINT
+		var sample: Spell = info.script.new()
+		icon.texture = sample.icon
+		icon.modulate = sample.icon_tint
+		sample.free()
 		icon.custom_minimum_size = Vector2(44, 44)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED

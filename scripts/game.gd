@@ -70,6 +70,8 @@ enum State { FREE, COUNTDOWN, FIGHT, ROUND_OVER, SHOP, MATCH_OVER, TITLE }
 @export var apply_settings := true
 ## Screen shake and hit-stop (the playtest harness turns them off).
 @export var feel_effects := true
+## Rocks scattered on the island each round: [boulders, pillars].
+@export var props_per_round := Vector2i(3, 2)
 ## Start on the title menu over a bots-only fight (tests turn this off).
 @export var title_screen := true
 ## Title screen: the camera follows one bot, switching every this many seconds.
@@ -331,6 +333,7 @@ func start_round() -> void:
 		var ai := w.get_node_or_null("AIController") as AIController
 		if ai:
 			ai.reset()
+	_spawn_props()
 	_set_controls(false)
 	# Countdown: look at the whole field, then glide to the player at "Burn!".
 	arena.camera.target = null
@@ -340,6 +343,31 @@ func start_round() -> void:
 	state_left = countdown_time
 	_last_beep = -1
 	round_started.emit(round_number)
+
+
+## Boulders and pillars on random stone, clear of the wizards and each
+## other (the old ones went with _clear_effects).
+func _spawn_props() -> void:
+	var placed: Array[Vector2] = []
+	var kinds: Array = []
+	for i in props_per_round.x:
+		kinds.append(Prop.Kind.BOULDER)
+	for i in props_per_round.y:
+		kinds.append(Prop.Kind.PILLAR)
+	for k in kinds:
+		for attempt in 30:
+			var p := arena.random_stone_point()
+			var ok := true
+			for w in all_wizards:
+				if w.global_position.distance_to(p) < 110.0:
+					ok = false
+			for q in placed:
+				if q.distance_to(p) < 120.0:
+					ok = false
+			if ok:
+				placed.append(p)
+				wizards.add_child(Prop.make(k, p, arena))
+				break
 
 
 func _begin_fight() -> void:
@@ -415,6 +443,8 @@ func _set_controls(on: bool) -> void:
 ## Projectiles, bolts and effects left over from the last round.
 func _clear_effects() -> void:
 	_remove_ghost()
+	for n in get_tree().get_nodes_in_group("craters"):
+		n.queue_free()
 	for n in wizards.get_children():
 		if not n is Wizard:
 			n.queue_free()

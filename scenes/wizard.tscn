@@ -40,7 +40,7 @@ fill_to = Vector2(1, 0.5)
 
 [node name="Wizard" type="CharacterBody2D"]
 collision_layer = 2
-collision_mask = 2
+collision_mask = 10
 motion_mode = 1
 script = ExtResource("1_wiz")
 sprite_frames = ExtResource("2_frames")

@@ -20,6 +20,8 @@ var knockback := 380.0
 ## 0 = flies straight. After a shield reflection it hunts the new owner's enemies.
 var homing_turn := 0.0
 var homing_radius := 520.0
+## Fireballs scorch a crater (slows walkers) where they burst.
+var leaves_crater := false
 
 ## Seconds since spawned (bots only notice projectiles after their reaction delay).
 var age := 0.0
@@ -109,7 +111,14 @@ func _check_shields() -> void:
 
 
 func _on_body_entered(body: Node) -> void:
-	if _done or body == caster or not (body is Wizard) or not body.alive:
+	if _done:
+		return
+	if body is Prop:
+		# Rocks stop spells; boulders get shoved.
+		(body as Prop).push(direction * knockback, caster)
+		_explode(impact_scale)
+		return
+	if body == caster or not (body is Wizard) or not body.alive:
 		return
 	var w := body as Wizard
 	if w.is_shielded():
@@ -122,6 +131,8 @@ func _on_body_entered(body: Node) -> void:
 
 func _explode(fx_scale: float) -> void:
 	_done = true
+	if leaves_crater and caster and caster.arena and not caster.arena.is_lava_at(global_position):
+		Crater.spawn(caster.arena, global_position)
 	Sfx.play_at("hit", global_position, 0.0 if fx_scale == impact_scale else -8.0)
 	if impact_frames:
 		var fx: AnimatedSprite2D = IMPACT.instantiate()
