@@ -45,8 +45,9 @@ const DEFENCES := ["dodge", "shield", "rockwall"]
 const COOLDOWN_GUESS := 0.9
 ## Opportunity: target cost bonus per point (x risk).
 const OPPORTUNITY_TARGETING := 220.0
-## Blink in from this far when the target is wide open (normally 220).
-const RISKY_BLINK := 300.0
+## Recover at least this urgent (on lava, lava arriving, flying toward it)
+## wins outright: no mood, opportunity or random pick can outrank it.
+const URGENT_RECOVER := 2.5
 ## Patient charge (Brawler): wait just outside lightning range (ours, +this
 ## margin) until the target is this open, threw a spell this recently, or used
 ## its lightning recently enough that it's probably still recharging.
@@ -294,6 +295,12 @@ func _think() -> void:
 		var w := instance_from_id(id) as Wizard
 		if w == null or not w.is_casting():
 			_cast_rolls.erase(id)
+	if _score_recover() >= URGENT_RECOVER:
+		current_action = "recover"
+		if wizard.attack_target != null:
+			wizard.attack(null)
+		_do_recover()
+		return
 	var scores := {}
 	var go_for_it := 1.0 + risk() * opportunity(target)
 	for action in ACTIONS:
@@ -516,8 +523,7 @@ func _score_blink_in() -> float:
 	if target == null or not _can_cast("W") or target.is_shielded() or target.on_lava:
 		return 0.0
 	var d := _target_distance()
-	var reach := RISKY_BLINK if opportunity(target) >= 0.5 else 220.0
-	if d < 80.0 or d > reach or _blink_in_point() == null:
+	if d < 80.0 or d > 220.0 or _blink_in_point() == null:
 		return 0.0
 	return 1.0
 

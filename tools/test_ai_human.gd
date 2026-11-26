@@ -56,6 +56,7 @@ func _run() -> void:
 	await _test_watch_blocks_attacks()
 	await _test_watch_ends()
 	await _test_recover_never_random()
+	await _test_recover_beats_boosted_attacks()
 	# Task 3: memory + opportunity + risk
 	await _test_memory_shield_window()
 	_test_memory_no_cheat()
@@ -229,6 +230,39 @@ func _test_recover_never_random() -> void:
 			thinks += 1
 			ok = ok and ai.current_action == "recover"
 	_check(ok and thinks > 0, "on lava, always recover (even hesitant + watching) (%d frames)" % thinks)
+	_remove_bot(ai)
+
+
+## Review finding: moods and opportunity multiply attacks / defences but not
+## recover, so a boosted staff swing (here exaggerated with weight 5) could
+## outscore getting off the lava. Recover must win whenever it's urgent.
+func _test_recover_beats_boosted_attacks() -> void:
+	print("recover beats boosted attacks")
+	_park_all()
+	var pers := AIPersonality.new()
+	pers.weights = {"staff": 5.0, "lightning": 5.0, "shield": 5.0, "dodge": 5.0}
+	var ai := AIController.new()
+	ai.personality = pers
+	ai.profile = PROF["normal"]
+	blue.add_child(ai)
+	ai._start_mood(AIMood.make("aggressive"))
+	var p := c
+	while not arena.is_lava_at(p):
+		p.x += 4.0
+	_place(green, p - Vector2(30, 0)) # right next to him, on the shore
+	green.health = 20.0
+	_place(blue, p + Vector2(25, 0)) # on the lava
+	green.lava_dps = 0.0
+	var ok := true
+	var thinks := 0
+	for i in 40:
+		await _frames(1)
+		green.global_position = p - Vector2(30, 0)
+		if blue.on_lava and ai.current_action != "":
+			thinks += 1
+			ok = ok and ai.current_action == "recover"
+	_check(ok and thinks > 0, "on lava next to an open enemy: still recover first (%d frames, last %s)" % [thinks, ai.current_action])
+	green.lava_dps = 20.0
 	_remove_bot(ai)
 
 

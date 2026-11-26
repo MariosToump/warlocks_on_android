@@ -115,7 +115,10 @@ It's used in three places:
 - Attack scores are × (1 + `risk` × opportunity), where `risk` = personality `risk_appetite` × the mood's
   multiplier.
 - `_pick_target` cost is − opportunity × 220 × `risk`.
-- The `blink_in` maximum distance grows from 220 to 300 px when opportunity ≥ 0.5 (a risky blink).
+- ~~The `blink_in` maximum distance grows to 300 px when opportunity ≥ 0.5~~ — dropped after review: Blink's own
+  range (200 px) already caps it, so it could never fire.
+- An urgent `recover` (score ≥ 2.5: on lava, lava arriving, or flying toward it) is taken before any multiplier or
+  random pick (review finding: boosted attacks could outrank it).
 
 ### 7. Personalities (`.tres`, new fields `risk_appetite`, `mood_odds`, and Brawler-only behavior)
 - **Brawler (blue), the smarter charger.**
