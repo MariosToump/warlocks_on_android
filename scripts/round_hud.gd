@@ -160,7 +160,7 @@ func _on_round_started(n: int) -> void:
 
 
 func _on_fight_started() -> void:
-	_show_banner("Fight!", Color(1.0, 0.6, 0.2))
+	_show_banner("Burn!", Color(1.0, 0.6, 0.2))
 	_banner_tween = create_tween()
 	_banner_tween.tween_interval(0.5)
 	_banner_tween.tween_property(_banner, "modulate:a", 0.0, 0.5)

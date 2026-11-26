@@ -319,7 +319,7 @@ func start_round() -> void:
 		if ai:
 			ai.reset()
 	_set_controls(false)
-	# Countdown: look at the whole field, then glide to the player at "Fight!".
+	# Countdown: look at the whole field, then glide to the player at "Burn!".
 	arena.camera.target = null
 	arena.camera.global_position = c
 	arena.camera.reset_smoothing()

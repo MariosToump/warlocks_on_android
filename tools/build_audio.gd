@@ -49,9 +49,11 @@ func _init() -> void:
 	_save("lava", _lava_loop(2.0), true)
 	# --- round / UI ---------------------------------------------------------
 	_save("beep", voice({"wave": "square", "f0": 660.0, "dur": 0.12, "vol": 0.25}))
+	# "Burn!": a fiery whoosh (rising roar of flame + a low growl that drops).
 	_save("fight", _mix([
-		voice({"wave": "square", "f0": 990.0, "dur": 0.35, "vol": 0.22}),
-		voice({"wave": "square", "f0": 1320.0, "dur": 0.35, "vol": 0.15, "delay": 0.04}),
+		voice({"wave": "noise", "dur": 0.75, "attack": 0.12, "lowpass": 0.05, "lowpass_end": 0.55, "vol": 0.55, "crackle": 0.15}),
+		voice({"wave": "saw", "f0": 140.0, "f1": 55.0, "dur": 0.7, "attack": 0.05, "vol": 0.3, "drive": 4.0, "lowpass": 0.2}),
+		voice({"wave": "square", "f0": 660.0, "f1": 990.0, "dur": 0.25, "vol": 0.12, "delay": 0.05}),
 	]))
 	_save("win", _arpeggio([523.25, 659.25, 783.99, 1046.5], 0.1, 0.5, "square"))
 	_save("lose", _arpeggio([392.0, 329.63, 261.63], 0.16, 0.45, "tri"))
