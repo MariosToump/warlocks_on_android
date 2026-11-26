@@ -5,35 +5,35 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-25 (Android v0.8: shop = milestone 7, Homing Orb, sound + music, title menu)_
+_Last updated: 2026-11-26 (Android v0.9: short matches, lava-first balance, ghost, game feel, rocks, Rock Wall, touch fixes)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
 - **PC**: `D:\Godot\Projects\claude_mcp\lava-warlocks` (keyboard + mouse, Forward+ renderer). Local git only.
 - **Android**: `D:\Godot\Projects\claude_mcp\lava-warlocks-mobile` (touch controls, Compatibility renderer).
-  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.8.1 (2026-11-25).
+  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.9 (2026-11-26).
   Build + install on the phone: `bash tools/deploy_android.sh`. APK: `build/warlocks_on_android.apk`.
-  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7, v0.8, v0.8.1 (2026-11-25)
+  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7, v0.8, v0.8.1 (2026-11-25), v0.9 (2026-11-26)
   (`gh release create vX.Y build/warlocks_on_android.apk`; bump `version/code` + `version/name` in export_presets.cfg first).
   Gameplay changes are made in PC first, then ported (`git cherry-pick` from the `pc` remote).
-  **Exception — Android-only (v0.7 + v0.8, by choice):** fireball range 850 (PC: 700), the v0.7 HUD, pause menu and
-  settings; v0.8 shop, Homing Orb, sound/music, title menu. PC is still at milestone 6. Expect a conflict in `fireball.gd` / `game.gd` / `round_hud.gd` / `touch_controls.gd` when cherry-picking.
+  **Exception — Android-only (v0.7 - v0.9, by choice):** fireball range 850 (PC: 700), the v0.7 HUD, pause menu and
+  settings; v0.8 shop, Homing Orb, sound/music, title menu; everything in v0.9. PC is still at milestone 6. Expect a conflict in `fireball.gd` / `game.gd` / `round_hud.gd` / `touch_controls.gd` when cherry-picking.
 
 ### Next up (todo list, saved 2026-11-26; Android first)
-**v0.9** (everything except the camera), in this order:
-- [ ] 0a. Start banner "Fight!" → "Burn!" with a fiery whoosh.
-- [ ] 0b. Thumbstick fixes: a thumb held through the countdown never registered; a lost touch-up left the stick dead;
+**v0.9** (everything except the camera) — _all done 2026-11-26 and released as v0.9; details under "Android v0.9" below_:
+- [x] 0a. Start banner "Fight!" → "Burn!" with a fiery whoosh.
+- [x] 0b. Thumbstick fixes: a thumb held through the countdown never registered; a lost touch-up left the stick dead;
   the stick origin follows the thumb past the ring (quick reversals); smooth deadzone.
-- [ ] 0c. Movement option: Joystick / Touchpad (whole left half is a pad, Vampire Survivors style).
-- [ ] 1. Playtest harness (`tools/playtest.gd`): full bot matches at 4× speed, match length, deaths by cause, wins per bot.
-- [ ] 2. Shorter matches (5-8 min): first to 3, 2 s countdown / round-over, 10 s shop (skipped when broke), smaller island that shrinks sooner.
-- [ ] 3. Lava-first balance: lava 20 HP/s, more knockback, weaker staff, Caster bot toned down.
-- [ ] 4. Ghost mode: dead player floats as a ghost, can shove (haunt) wizards, no damage.
-- [ ] 5. Game feel: screen shake, hit-stop, knockback trail.
-- [ ] 6. Shield buff: a spell reflected by a shield comes back at 2× speed and 2× range (once per spell).
-- [ ] 7. Stones + pillars: block spells, boulders get shoved by knockback into wizards, sink in lava.
-- [ ] 8. Earth spell "Rock Wall" (shop) + fireball craters that slow walkers.
-- [ ] 9. Release v0.9: docs, APK on the phone, push, GitHub release.
+- [x] 0c. Movement option: Joystick / Touchpad (whole left half is a pad, Vampire Survivors style).
+- [x] 1. Playtest harness (`tools/playtest.gd`): full bot matches at 4× speed, match length, deaths by cause, wins per bot.
+- [x] 2. Shorter matches (5-8 min): first to 3, 2 s countdown / round-over, 10 s shop (skipped when broke), smaller island that shrinks sooner.
+- [x] 3. Lava-first balance: lava 20 HP/s, more knockback, weaker staff, Caster bot toned down.
+- [x] 4. Ghost mode: dead player floats as a ghost, can shove (haunt) wizards, no damage.
+- [x] 5. Game feel: screen shake, hit-stop, knockback trail.
+- [x] 6. Shield buff: a spell reflected by a shield comes back at 2× speed and 2× range (once per spell).
+- [x] 7. Stones + pillars: block spells, boulders get shoved by knockback into wizards, sink in lava.
+- [x] 8. Earth spell "Rock Wall" (shop) + fireball craters that slow walkers.
+- [x] 9. Release v0.9: docs, APK on the phone, push, GitHub release.
 
 **v1.0:** camera that tilts from top-down into a 3D perspective (2.5D hybrid, inspired by storm.game; our own code):
 gameplay stays 2D, a 3D render layer mirrors it (heightmap island, billboard sprites, lava plane), Camera3D blends
@@ -50,12 +50,13 @@ challenges, cosmetic unlocks, a step-by-step tutorial.
 - [x] 5. AI bots (move, dodge, aim, avoid lava). _Done 2026-11-24 (PC and Android)._
 - [x] 6. Rounds, score, shrinking arena, win screen. _Done 2026-11-24 (PC and Android)._
 - [x] 7. Shop between rounds, gold, upgrades, items. _Done 2026-11-25 (Android only)._
-- [ ] 8. Polish: screen shake, hit flash, particles, sounds, menu. **← next** (sounds + title menu done on Android in v0.8)
-- [ ] 9. Remaining spells. (Homing Orb done on Android in v0.8)
+- [x] 8. Polish: screen shake, hit flash, particles, sounds, menu. _Done on Android in v0.8 + v0.9 (2026-11-26)._
+- [ ] 9. Remaining spells. (Homing Orb v0.8, Rock Wall v0.9 done on Android) — after the v1.0 camera.
 
 Right now it's a match of rounds against three AI bots (they fight you and each other). Last wizard standing
 wins the round; first to 5 round wins takes the match, then a results screen with "Play again".
 Android v0.8: between rounds a 15 s shop (gold, upgrades, items, the Homing Orb); the game opens on a title menu.
+Android v0.9: first to 3 (~6 min matches), a 10 s shop, rocks on the island, a ghost when you're out.
 
 ### Added beyond the original plan
 - **Staff attack (slot A)**: auto-attack melee swing, 4 damage, shove 300, 0.5 s cooldown = swing animation.
@@ -134,6 +135,45 @@ Android v0.8: between rounds a 15 s shop (gold, upgrades, items, the Homing Orb)
   lightning ~187 px vs 1216 px platform radius) and lava is mild (8 HP/s). Candidates: smaller starting platform or
   faster first shrink, stronger lava, bigger knockback.
 
+- **Android v0.9** (2026-11-26, Android only). Prompted by a review + sims (matches 12-18 min, ~10% lava deaths,
+  the Caster winning most rounds, long spectating) and friends' reports of the thumbstick "stopping".
+  - **Playtest harness** `tools/playtest.gd` (with `--fixed-fps 60` it runs as fast as the CPU allows; the player is
+    a neutral bot that shops): match / fight length, player dead-time, deaths in lava, kills and round-win share per
+    bot; `noshop` arg. Targets: match 5-8 min, fights 35-60 s, >= 50% lava deaths, no bot > 40% of round wins.
+    Before -> after (Normal): match 7:29 (first to 5) -> ~5:50 (first to 3), fight 62 -> 44 s, lava deaths
+    6% -> ~55%, top round-win share Caster 89% -> ~40%. The Brawler is still the weakest bot (~3% of round wins:
+    melee is risky when everything pushes you into lava) — keep an eye on it.
+  - **Pacing:** first to 3 (default + setting), countdown 3 -> 2 s, round-over 3 -> 2 s, shop 15 -> 10 s and skipped
+    when you can't buy anything ("No gold to spend" on the countdown). Island radius 38 -> 28 tiles; shrink every
+    25 -> 12 s by 9 -> 6 tiles down to 10; hold 25 -> 8 s; sudden death 0.6 -> 1.2 tiles/s.
+  - **Balance:** lava 8 -> 20 HP/s; knockback per damage 0.01 -> 0.015; knockback fireball 520-640, lightning 700-820,
+    homing 480-570; staff damage 4-7 -> 2-4 (cooldown stays 0.5 s = the swing animation). Bots gang up on the
+    round-wins leader (`AIController.LEADER_BONUS`, 180 px per win; `Wizard.match_wins`). Personalities retuned
+    (Caster 220 px, retreat 0.5, near-neutral weights; Brawler 50 px, fireball 0.5, reposition 1.25).
+  - **"Burn!"** replaces "Fight!" at the start of a fight, with a fiery whoosh (`build_audio.gd` "fight" recipe).
+  - **Thumbstick fixes** (`touch_controls.gd`): a thumb put down during the countdown / between rounds used to be
+    dropped (controls locked) — now it's kept and walks the moment the fight starts; a new left-half touch always
+    takes the stick (a lost touch-up left it dead); canceled touches and app focus loss release it; the ring follows
+    the thumb past its edge (instant reversals); speed ramps up from the deadzone. **Touchpad** movement setting:
+    the whole left half is a pad, a short slide (8 px) = full speed, the origin trails 24 px behind the thumb.
+  - **Ghost mode** (`scripts/ghost.gd`): 1.5 s after dying in a fight you float as a glowing ghost until the round
+    ends (200 px/s, over lava, not in `wizards`, camera follows). Attack button = Haunt: shove 220 to wizards within
+    60 px, no damage / kill credit, 4 s cooldown; spell buttons hidden. Replaces "camera follows your killer".
+  - **Game feel:** `ArenaCamera.shake()` (hits on you, deaths on screen, the lava starting to creep); hit-stop
+    (`game.hit_stop`: time x0.1 for 60-100 ms of real time, always restored) on big hits you take or land and on kills
+    involving you; a fading streak behind wizards flying > 250 px/s. `game.feel_effects` (off in the harness).
+  - **Shield buff:** a reflected projectile flies at 2x speed and 2x range, once per projectile (`Projectile.reflected`).
+  - **Rocks** (`scripts/prop.gd`, art drawn in code; physics layer 4 = props; wizards and projectiles collide with it):
+    3 boulders + 2 pillars per round (`game.props_per_round`) on stone, clear of the wizards. They block wizards,
+    projectiles and lightning. Spells / the staff shove boulders (x0.7); a boulder rolling >= 140 px/s into a wizard
+    does 6 damage + a push, credited to whoever shoved it; boulders sink in lava (pillars too, when the lava reaches
+    them). Bots don't fire fireball / lightning when a rock is in the line (`Prop.blocks`).
+  - **Rock Wall** (shop spell, slot F, 15 g; `scripts/spells/rock_wall.gd`): 3 rocks 60 px ahead across the aim for
+    4-5.5 s, cd 10-7 s; bumps aside anyone standing there. Touch button up-left of Blink. Bots buy it and raise it
+    against a spell they've seen coming while their shield is down.
+  - **Craters** (`scripts/crater.gd`): fireballs leave a scorched patch (6 s, radius 22) that slows walkers to 60%.
+  - Real hills / heights wait for the v1.0 camera.
+
 ### Changed from the plan above
 - Move speed is **165** (not 140). Fireball flies 560 px/s.
 - Stretch mode is **canvas_items** (not "viewport"), to keep pixels sharp on phone screens.
@@ -145,12 +185,13 @@ Android v0.8: between rounds a 15 s shop (gold, upgrades, items, the Homing Orb)
 - Map: 108 x 108 tiles. Stone platform radius 38 tiles (~2400 px across), edge wobbled so it isn't a perfect circle, 16-tile lava ring around it.
 - Cracked-stone patches (glowing outlines) are placed with noise, decoration only.
 - Random layout every run (`seed_value = 0`).
-- No pillars/obstacles yet.
+- Android v0.9: boulders + pillars each round (see "Android v0.9"); radius 28 tiles, faster shrinking.
 - **Shrinking** (2026-11-24): every 25 s the edge creeps in 9 tiles (4 s pulsing warning line, HUD "Lava rises in N"), down to 11 tiles, holds 25 s, then regrows. Tiles update incrementally. Dead wizards respawn at a random safe stone point far from others.
 - `Wizard.take_damage(amount, source)` remembers `last_attacker` (for kill credit in rounds); bots turn on whoever just hit them.
 
 ### Tests
-`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai, test_arena, test_rounds (+ on Android: test_hud_v07, test_shop, test_homing, test_title, and test_touch, which needs a window: no `--headless`). All passing.
+`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai, test_arena, test_rounds (+ on Android: test_hud_v07, test_shop, test_homing, test_title, test_ghost, test_feel, test_terrain, and test_touch, which needs a window: no `--headless`). All passing (2026-11-26).
+test_ai and test_homing use the old 38-tile island (they place wizards ~900 px out).
 Tests set `game.bot_ai = false` so bots are passive dummies (`BotBlue`, `BotGreen`, `BotPurple`).
 
 ### PixelLab
