@@ -23,6 +23,9 @@ var homing_radius := 520.0
 
 ## Seconds since spawned (bots only notice projectiles after their reaction delay).
 var age := 0.0
+## Set by the first shield reflection: from then on it flies at twice the
+## speed and range (only once, so two shields can't ping-pong it faster).
+var reflected := false
 var _travelled := 0.0
 var _done := false
 
@@ -78,7 +81,8 @@ func homing_target() -> Wizard:
 
 
 ## Bounce off any enemy shield bubble we're inside and moving into: the
-## projectile turns around and now belongs to the shielded wizard.
+## projectile turns around, now belongs to the shielded wizard, and (the
+## first time) comes back at double speed and double range.
 func _check_shields() -> void:
 	for node in get_tree().get_nodes_in_group("wizards"):
 		var w := node as Wizard
@@ -93,6 +97,10 @@ func _check_shields() -> void:
 			direction = (direction + n).normalized()
 		global_position = w.global_position + n * (Wizard.SHIELD_RADIUS + 1.0)
 		caster = w
+		if not reflected:
+			reflected = true
+			speed *= 2.0
+			max_range *= 2.0
 		_travelled = 0.0
 		age = 0.0 # a new threat: bots need their reaction time again
 		sprite.rotation = direction.angle()

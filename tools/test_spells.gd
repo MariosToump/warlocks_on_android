@@ -103,16 +103,49 @@ func _run() -> void:
 	player.cast("Q", green.global_position)
 	var t0 := Time.get_ticks_msec()
 	var reflected := false
+	var fb := player.get_spell("Q") as FireballSpell
+	var fast := false
 	while Time.get_ticks_msec() - t0 < 1500 and player.health >= php:
 		var p := _find_projectile()
 		if p and p.caster == green:
 			reflected = true
+			fast = p.reflected and is_equal_approx(p.speed, fb.speed * 2.0) and is_equal_approx(p.max_range, fb.max_range * 2.0)
 		await _frames(1)
 	_check(reflected, "fireball reflected (now owned by the shielded wizard)")
+	_check(fast, "reflected fireball: double speed and range")
 	_check(is_equal_approx(green.health, 100.0), "shielded wizard not hurt")
 	_check(player.health < php, "caster hit by own reflected fireball (hp %.1f)" % player.health)
 	await _frames(2)
 	await _shot("4_reflected")
+
+	# Ping-pong between two shields: the boost happens only once.
+	await _seconds(0.6)
+	_place(blue, c + Vector2(-200, 200))
+	var purple: Wizard = game.get_node("Wizards/BotPurple")
+	_place(purple, c + Vector2(200, 200))
+	blue.raise_shield(3.0)
+	purple.raise_shield(3.0)
+	var pp: Projectile = load("res://scenes/projectile_fireball.tscn").instantiate()
+	pp.caster = player
+	pp.direction = Vector2.LEFT
+	pp.speed = 300.0
+	pp.max_range = 2000.0
+	pp.knockback = 0.0
+	pp.damage = 0.0
+	pp.position = c + Vector2(0, 200) # between the two, heading for blue
+	game.get_node("Wizards").add_child(pp)
+	var bounces := 0
+	var owner_now: Wizard = pp.caster
+	var t1 := Time.get_ticks_msec()
+	while is_instance_valid(pp) and bounces < 2 and Time.get_ticks_msec() - t1 < 4000:
+		await _frames(1)
+		if is_instance_valid(pp) and pp.caster != owner_now:
+			owner_now = pp.caster
+			bounces += 1
+	_check(bounces >= 2, "bounced back and forth between two shields (%d)" % bounces)
+	_check(not is_instance_valid(pp) or (pp.speed == 600.0 and pp.max_range == 4000.0), "boost applies once, not per bounce (%s)" % (str(pp.speed) if is_instance_valid(pp) else "gone"))
+	if is_instance_valid(pp):
+		pp.queue_free()
 
 	# --- Death animation ---------------------------------------------------
 	await _seconds(0.6)
