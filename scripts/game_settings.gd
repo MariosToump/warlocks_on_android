@@ -10,7 +10,7 @@ const MOVES := ["joystick", "touchpad"] ## left-thumb movement styles
 static var path := "user://settings.cfg"
 static var zoom := "close"
 static var difficulty := 1 ## game.Difficulty: 0 easy, 1 normal, 2 hard
-static var wins_to_take_match := 5
+static var wins_to_take_match := 3
 static var haptics := true
 static var sound := true
 static var music := true
@@ -34,7 +34,7 @@ static func load_settings() -> void:
 	difficulty = clampi(cf.get_value("game", "difficulty", difficulty), 0, 2)
 	wins_to_take_match = cf.get_value("game", "wins_to_take_match", wins_to_take_match)
 	if not wins_to_take_match in WINS:
-		wins_to_take_match = 5
+		wins_to_take_match = 3
 	haptics = cf.get_value("game", "haptics", haptics)
 	sound = cf.get_value("game", "sound", sound)
 	music = cf.get_value("game", "music", music)
@@ -63,7 +63,7 @@ static func zoom_value() -> float:
 static func reset() -> void:
 	zoom = "close"
 	difficulty = 1
-	wins_to_take_match = 5
+	wins_to_take_match = 3
 	haptics = true
 	sound = true
 	music = true

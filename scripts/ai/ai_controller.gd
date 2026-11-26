@@ -16,6 +16,8 @@ const KEEP_TARGET_BONUS := 80.0
 ## Whoever hit us in the last RETALIATE_TIME s counts this much closer.
 const RETALIATE_BONUS := 300.0
 const RETALIATE_TIME := 4.0
+## Each round the target has won this match makes it this much "closer".
+const LEADER_BONUS := 120.0
 ## "Near lava" for targeting: lava within this distance.
 const NEAR_LAVA := 110.0
 ## A projectile is dangerous if it will pass this close within DANGER_TIME s.
@@ -152,6 +154,7 @@ func _pick_target() -> Wizard:
 			continue
 		var cost := wizard.global_position.distance_to(w.global_position)
 		cost -= (w.max_health - w.health) * 2.0
+		cost -= w.match_wins * LEADER_BONUS
 		if _lava_within(w.global_position, NEAR_LAVA):
 			cost -= 150.0
 		if w == target:

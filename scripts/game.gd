@@ -36,11 +36,11 @@ enum State { FREE, COUNTDOWN, FIGHT, ROUND_OVER, SHOP, MATCH_OVER, TITLE }
 
 ## False = endless free-for-all with respawns (tests and the AI sim).
 @export var rounds := true
-@export var wins_to_take_match := 5
-@export var countdown_time := 3.0
-@export var round_over_time := 3.0
+@export var wins_to_take_match := 3
+@export var countdown_time := 2.0
+@export var round_over_time := 2.0
 ## Seconds the shop stays open between rounds (Ready closes it sooner).
-@export var shop_time := 15.0
+@export var shop_time := 10.0
 ## Gold after every round: everyone gets the base, plus per kill that round,
 ## plus the round winner's bonus.
 @export var gold_per_round := 10
@@ -89,6 +89,8 @@ var kills := {} ## Wizard -> kills this match
 var gold := {} ## Wizard -> gold to spend in the shop
 var round_kills := {} ## Wizard -> kills this round (for gold)
 var round_winner: Wizard = null
+## True for the round that started without a shop (the player had no gold).
+var shop_skipped := false
 var match_winner: Wizard = null
 
 var _lava_label: Label
@@ -286,11 +288,13 @@ func start_match() -> void:
 		wins_to_take_match = GameSettings.wins_to_take_match
 	for w in all_wizards:
 		wins[w] = 0
+		w.match_wins = 0
 		kills[w] = 0
 		gold[w] = 0
 		Shop.clear(w)
 	round_number = 0
 	match_winner = null
+	shop_skipped = false
 	start_round()
 
 
@@ -346,6 +350,7 @@ func _end_round(winner: Wizard) -> void:
 	round_winner = winner
 	if winner:
 		wins[winner] += 1
+		winner.match_wins = wins[winner]
 		if wins[winner] >= wins_to_take_match:
 			match_winner = winner
 	_set_controls(false)
@@ -362,6 +367,10 @@ func open_shop() -> void:
 	for w in all_wizards:
 		if w != player:
 			Shop.bot_shop(self, w)
+	if not Shop.can_shop(self, player):
+		shop_skipped = true # nothing to buy: straight on (the HUD says why)
+		start_round()
+		return
 	state = State.SHOP
 	state_left = shop_time
 	shop_opened.emit()
@@ -372,6 +381,7 @@ func close_shop() -> void:
 	if state != State.SHOP:
 		return
 	shop_closed.emit()
+	shop_skipped = false
 	start_round()
 
 

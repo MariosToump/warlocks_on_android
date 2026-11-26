@@ -25,12 +25,12 @@ const SHIELD_RADIUS := 22.0
 
 @export var max_health := 100.0
 @export var move_speed := 165.0
-@export var lava_dps := 8.0
+@export var lava_dps := 20.0
 ## Exponential damping of knockback velocity (higher = stops sooner).
 @export var knockback_friction := 3.0
 ## Each point of damage taken adds this much to knockback received
 ## (0.01 -> at 50 damage taken you fly 1.5x as far).
-@export var knockback_per_damage := 0.01
+@export var knockback_per_damage := 0.015
 @export var sprite_frames: SpriteFrames
 @export var team_color := TeamColor.RED:
 	set(v):
@@ -54,6 +54,8 @@ var knockback_taken_multiplier := 1.0 ## Stone Cloak
 var lava_multiplier := 1.0 ## Fire Ring
 ## Item ids bought in the shop (max Shop.MAX_ITEMS).
 var items: Array[String] = []
+## Round wins this match (set by the game): bots gang up on the leader.
+var match_wins := 0
 
 ## Set by a controller. move_target wins if both are set.
 var move_target = null # Vector2 or null

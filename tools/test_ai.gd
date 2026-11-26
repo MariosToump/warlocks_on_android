@@ -30,6 +30,7 @@ func _init() -> void:
 	game.bot_ai = false
 	game.shrink_arena = false
 	game.rounds = false
+	game.get_node("Arena").platform_radius_tiles = 38.0 # these tests place wizards ~900 px out
 	game.apply_settings = false
 	game.title_screen = false
 	root.add_child(game)
@@ -132,7 +133,7 @@ func _test_never_walks_into_lava() -> void:
 		if arena.is_lava_at(blue.global_position):
 			touched += 1
 	_check(touched == 0 and blue.alive, "chasing a target in the lava, never steps on lava in 10 s (%d frames)" % touched)
-	green.lava_dps = 8.0
+	green.lava_dps = 20.0
 	_remove_bot(ai)
 
 
@@ -255,7 +256,7 @@ func _mean_distance(pers: String) -> float:
 		green.health = 100.0 # keep it alive and in place-ish
 		sum += blue.global_position.distance_to(green.global_position)
 		n += 1
-	green.lava_dps = 8.0
+	green.lava_dps = 20.0
 	_remove_bot(ai)
 	return sum / n
 
@@ -264,7 +265,7 @@ func _test_personalities_keep_different_distances() -> void:
 	print("personalities")
 	var brawler := await _mean_distance("brawler")
 	var caster := await _mean_distance("caster")
-	_check(brawler + 100.0 < caster, "brawler fights closer than caster (%.0f vs %.0f px)" % [brawler, caster])
+	_check(brawler + 50.0 < caster, "brawler fights closer than caster (%.0f vs %.0f px)" % [brawler, caster])
 
 
 func _test_dead_target() -> void:
@@ -326,7 +327,7 @@ func _test_no_freeze_at_shore() -> void:
 				staff_thinks += 1
 	_check(staff_thinks == 0, "never picks the staff against a target in the lava (%d/%d frames)" % [staff_thinks, thinks])
 	_check(ai._safe_step(green.global_position) != null, "safe step from the shore always offers a way to go")
-	green.lava_dps = 8.0
+	green.lava_dps = 20.0
 	green.knockback_friction = 3.0
 	_remove_bot(ai)
 

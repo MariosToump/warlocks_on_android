@@ -22,21 +22,21 @@ enum Phase { WAIT, SHRINK, HOLD, FINAL }
 const LAVA_SHEET := "res://assets/tiles/lava_stone"
 const CRACK_SHEET := "res://assets/tiles/stone_cracked"
 
-@export var platform_radius_tiles := 38.0 ## ~2 screens across
+@export var platform_radius_tiles := 28.0 ## ~2 screens across
 @export var lava_margin_tiles := 16 ## lava ring beyond the platform
 @export_range(0.0, 1.0) var crack_threshold := 0.45 ## higher = fewer cracked patches
 @export var seed_value := 0 ## 0 = random every run
 
 @export_group("Shrinking")
 @export var shrinks := false ## the game turns this on
-@export var shrink_delay := 25.0 ## seconds between shrinks
-@export var shrink_step_tiles := 9.0 ## how far the edge creeps in each time
+@export var shrink_delay := 12.0 ## seconds between shrinks
+@export var shrink_step_tiles := 6.0 ## how far the edge creeps in each time
 @export var shrink_speed := 3.0 ## tiles per second while creeping
 @export var shrink_warning := 4.0 ## seconds of warning line before a shrink
-@export var min_radius_tiles := 11.0 ## 3 steps of 9 from 38
-@export var min_hold := 25.0 ## seconds at the minimum before it regrows / sudden death
+@export var min_radius_tiles := 10.0 ## 3 steps of 6 from 28
+@export var min_hold := 8.0 ## seconds at the minimum before it regrows / sudden death
 @export var regrows := true ## false = sudden death after the hold (the game turns this off for rounds)
-@export var final_shrink_speed := 0.6 ## tiles per second during sudden death
+@export var final_shrink_speed := 1.2 ## tiles per second during sudden death
 @export_group("")
 
 @onready var tiles: TileMapLayer = $Tiles

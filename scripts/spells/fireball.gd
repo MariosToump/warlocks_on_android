@@ -6,7 +6,7 @@ const PROJECTILE := preload("res://scenes/projectile_fireball.tscn")
 const FRAMES := preload("res://assets/sprites/effects/fireball_frames.tres")
 
 @export var damage_by_level: Array[float] = [6.0, 8.0, 10.0, 12.0]
-@export var knockback_by_level: Array[float] = [380.0, 420.0, 460.0, 500.0]
+@export var knockback_by_level: Array[float] = [520.0, 560.0, 600.0, 640.0]
 @export var speed := 560.0
 @export var max_range := 850.0
 

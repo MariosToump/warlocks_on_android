@@ -58,7 +58,7 @@ func _run() -> void:
 	await _shot("3_impact")
 	await _seconds(1.5)
 	var pushed := blue.global_position.distance_to(start_blue)
-	_check(pushed > 90.0 and pushed < 170.0, "pushed ~127 px (%.0f)" % pushed)
+	_check(pushed > 140.0 and pushed < 230.0, "pushed ~180 px (%.0f)" % pushed)
 	var dir := (blue.global_position - start_blue).normalized()
 	var aim := (start_blue - player.global_position).normalized()
 	_check(dir.dot(aim) > 0.95, "pushed along the fireball's path")

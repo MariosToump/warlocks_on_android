@@ -62,7 +62,7 @@ func _run() -> void:
 	_check(player.sprite.animation == &"attack_east", "attack_east anim (%s)" % player.sprite.animation)
 	await _seconds(0.28)
 	await _shot("1_swing")
-	_check(is_equal_approx(blue.health, 96.0), "staff hits for 4 (hp %.1f)" % blue.health)
+	_check(is_equal_approx(blue.health, 98.0), "staff hits for 2 (hp %.1f)" % blue.health)
 	_check(blue.knockback.x > 200.0, "shoves the target away (%.0f)" % blue.knockback.x)
 	_check(not player.get_spell("A").is_ready(), "on cooldown")
 	await _seconds(0.3)
@@ -85,7 +85,7 @@ func _run() -> void:
 	_check(player.global_position.y > c.y + 30.0, "walks toward the target")
 	await _seconds(1.6)
 	await _shot("2_auto")
-	_check(blue.health <= 92.0, "auto-attack hit more than once (hp %.1f)" % blue.health)
+	_check(blue.health <= 96.0, "auto-attack hit more than once (hp %.1f)" % blue.health)
 	_check(player.attack_target == blue, "still attacking")
 
 	# Moving cancels the auto-attack.
@@ -100,7 +100,7 @@ func _run() -> void:
 	await _frames(2)
 	player.attack(blue, true)
 	await _seconds(1.2)
-	_check(is_equal_approx(blue.health, 96.0), "attack once = one hit (hp %.1f)" % blue.health)
+	_check(is_equal_approx(blue.health, 98.0), "attack once = one hit (hp %.1f)" % blue.health)
 	_check(player.attack_target == null, "then stops")
 
 	# Shield blocks the staff and bounces the attacker back.

@@ -7,7 +7,7 @@ extends Spell
 
 const SWING := preload("res://assets/sprites/effects/staff_swing_frames.tres")
 
-@export var damage_by_level: Array[float] = [4.0, 5.0, 6.0, 7.0]
+@export var damage_by_level: Array[float] = [2.0, 2.5, 3.0, 4.0]
 @export var knockback_by_level: Array[float] = [300.0, 330.0, 360.0, 390.0]
 ## Auto-attack walks this close (centre to centre) before swinging.
 @export var attack_range := 30.0

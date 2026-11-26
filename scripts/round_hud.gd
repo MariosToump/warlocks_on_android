@@ -142,6 +142,8 @@ func _process(_delta: float) -> void:
 		return
 	if game.state == game.State.COUNTDOWN:
 		_sub.text = str(ceili(game.state_left))
+		if game.shop_skipped:
+			_sub.text = "No gold to spend: no shop this time   " + _sub.text
 	_board.queue_redraw()
 
 

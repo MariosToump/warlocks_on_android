@@ -91,6 +91,22 @@ static func buy_spell(game: Node, w: Wizard, id: String) -> bool:
 
 # --- items --------------------------------------------------------------------
 
+## Anything at all `w` could buy right now (or items it could sell to swap)?
+static func can_shop(game: Node, w: Wizard) -> bool:
+	if not w.items.is_empty():
+		return true
+	for slot in SLOTS:
+		if can_upgrade(game, w, slot):
+			return true
+	for id in SPELLS:
+		if can_buy_spell(game, w, id):
+			return true
+	for id in ITEMS:
+		if can_buy_item(game, w, id):
+			return true
+	return false
+
+
 static func can_buy_item(game: Node, w: Wizard, id: String) -> bool:
 	return not id in w.items and w.items.size() < MAX_ITEMS and gold_of(game, w) >= ITEMS[id].price
 

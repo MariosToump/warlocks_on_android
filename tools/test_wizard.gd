@@ -58,14 +58,14 @@ func _run() -> void:
 	var hp := player.health
 	await _seconds(1.0)
 	var burned := hp - player.health
-	_check(burned > 6.5 and burned < 9.5, "burns ~8 HP/s (%.1f)" % burned)
+	_check(burned > 17.0 and burned < 23.0, "burns ~20 HP/s (%.1f)" % burned)
 	await _shot("3_burning")
 
 	# Knockback scales with damage taken.
 	player.damage_taken = 50.0
 	player.knockback = Vector2.ZERO
 	player.apply_knockback(Vector2(100, 0))
-	_check(is_equal_approx(player.knockback.x, 150.0), "knockback x1.5 at 50 dmg (%.0f)" % player.knockback.x)
+	_check(is_equal_approx(player.knockback.x, 175.0), "knockback x1.75 at 50 dmg (%.0f)" % player.knockback.x)
 	player.knockback = Vector2.ZERO
 
 	# Stay until dead, then respawn.

@@ -129,6 +129,17 @@ func _run() -> void:
 	await _seconds(0.4)
 	_check(game.state == game.State.COUNTDOWN, "time's up -> next round without Ready")
 
+	# Broke with nothing to sell: no shop, straight to the next round.
+	for item in player.items.duplicate():
+		Shop.sell_item(game, player, item)
+	game.gold[player] = 0
+	_check(not Shop.can_shop(game, player), "nothing to buy with 0 gold")
+	game.gold[player] = -game.round_income(player) # what the round pays brings it to 0
+	game.open_shop()
+	_check(game.state == game.State.COUNTDOWN and game.shop_skipped, "shop skipped when broke")
+	game.gold[player] = 10
+	_check(Shop.can_shop(game, player), "10 gold buys something")
+
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 

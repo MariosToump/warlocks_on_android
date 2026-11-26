@@ -161,12 +161,12 @@ func _run() -> void:
 	GameSettings.path = "user://test_settings.cfg"
 	GameSettings.zoom = "far"
 	GameSettings.difficulty = 2
-	GameSettings.wins_to_take_match = 3
+	GameSettings.wins_to_take_match = 7
 	GameSettings.haptics = false
 	GameSettings.save_settings()
 	GameSettings.reset()
 	GameSettings.load_settings()
-	_check(GameSettings.zoom == "far" and GameSettings.difficulty == 2 and GameSettings.wins_to_take_match == 3
+	_check(GameSettings.zoom == "far" and GameSettings.difficulty == 2 and GameSettings.wins_to_take_match == 7
 			and not GameSettings.haptics, "settings survive save + load")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(GameSettings.path))
 	GameSettings.path = keep_path
@@ -185,7 +185,7 @@ func _run() -> void:
 	_check(pm._wins.text.ends_with("(next match)"), "wins change waits for the next match ('%s')" % pm._wins.text)
 	game.apply_settings = true
 	game.start_match()
-	_check(game.wins_to_take_match == 3, "new match uses the new wins setting")
+	_check(game.wins_to_take_match == 7, "new match uses the new wins setting")
 	GameSettings.reset()
 
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])

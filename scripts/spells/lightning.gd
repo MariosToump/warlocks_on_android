@@ -7,7 +7,7 @@ const HIT := preload("res://assets/sprites/effects/lightning_hit_frames.tres")
 const BOLT := preload("res://scripts/lightning_bolt.gd")
 
 @export var damage_by_level: Array[float] = [8.0, 10.0, 12.0, 14.0]
-@export var knockback_by_level: Array[float] = [560.0, 600.0, 640.0, 680.0]
+@export var knockback_by_level: Array[float] = [700.0, 740.0, 780.0, 820.0]
 @export var max_range := 230.0
 ## How far from the line a wizard's centre can be and still get hit.
 @export var hit_width := 14.0

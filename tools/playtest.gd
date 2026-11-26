@@ -31,6 +31,10 @@ func _init() -> void:
 	game.apply_settings = false
 	game.title_screen = false
 	game.rounds = true
+	if "noshop" in args: # experiment: no gold, nobody buys anything
+		game.gold_per_round = 0
+		game.gold_per_kill = 0
+		game.gold_for_win = 0
 	nominal_shop = game.shop_time
 	game.shop_time = 0.05
 	player = game.get_node("Wizards/Player")
@@ -80,7 +84,6 @@ func _tick() -> void:
 
 
 func _on_round_started(_n: int) -> void:
-	_m.rounds += 1
 	_round_start = t
 	_player_died_at = -1.0
 
@@ -99,6 +102,7 @@ func _on_died(w: Wizard) -> void:
 
 func _on_round_ended(winner: Wizard) -> void:
 	_m.fights.append(t - _fight_start)
+	_m.rounds += 1
 	if _player_died_at >= 0.0:
 		_m.player_dead += t - _player_died_at
 	if winner:
@@ -147,7 +151,12 @@ func _finish() -> void:
 	var dead := 0.0
 	var rounds := 0
 	var wins := {}
+	var died := {}
+	var killed := {}
 	for m in _all:
+		for k in m.deaths:
+			died[k] = died.get(k, 0) + m.deaths[k]
+			killed[k] = killed.get(k, 0) + m.kills[k]
 		length += m.length
 		fights.append_array(m.fights)
 		lava += m.lava_deaths
@@ -170,6 +179,7 @@ func _finish() -> void:
 	var share := {}
 	for k in wins:
 		share[k] = "%d%%" % _pct(wins[k], wtotal)
+	print("deaths per wizard %s, kills %s" % [died, killed])
 	print("round wins share %s (target: nobody > 40%%)" % share)
 	quit()
 

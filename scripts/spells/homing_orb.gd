@@ -9,7 +9,7 @@ const FRAMES := preload("res://assets/sprites/effects/fireball_frames.tres")
 const TINT := Color(0.75, 0.45, 1.6)
 
 @export var damage_by_level: Array[float] = [8.0, 10.0, 12.0, 14.0]
-@export var knockback_by_level: Array[float] = [420.0, 450.0, 480.0, 510.0]
+@export var knockback_by_level: Array[float] = [480.0, 510.0, 540.0, 570.0]
 @export var speed := 300.0
 @export var max_range := 1100.0
 @export var turn_rate := 2.5 ## radians per second
