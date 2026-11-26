@@ -7,4 +7,4 @@ script = ExtResource("1")
 personality_name = "Brawler"
 preferred_distance = 50.0
 retreat_bias = 0.1
-weights = {"homing": 0.8, "blink_in": 1.4, "dodge": 1.0, "fireball": 0.7, "lightning": 1.4, "recover": 1.0, "reposition": 1.0, "shield": 1.4, "staff": 1.6}
+weights = {"homing": 0.8, "blink_in": 1.4, "dodge": 1.0, "fireball": 0.5, "lightning": 1.4, "recover": 1.0, "reposition": 1.0, "shield": 1.4, "staff": 1.6}

@@ -91,6 +91,8 @@ var round_kills := {} ## Wizard -> kills this round (for gold)
 var round_winner: Wizard = null
 ## True for the round that started without a shop (the player had no gold).
 var shop_skipped := false
+## The dead player's ghost during a fight (null otherwise).
+var ghost: Ghost
 var match_winner: Wizard = null
 
 var _lava_label: Label
@@ -348,6 +350,7 @@ func _end_round(winner: Wizard) -> void:
 	state = State.ROUND_OVER
 	state_left = round_over_time
 	round_winner = winner
+	_remove_ghost()
 	if winner:
 		wins[winner] += 1
 		winner.match_wins = wins[winner]
@@ -405,6 +408,7 @@ func _set_controls(on: bool) -> void:
 
 ## Projectiles, bolts and effects left over from the last round.
 func _clear_effects() -> void:
+	_remove_ghost()
 	for n in wizards.get_children():
 		if not n is Wizard:
 			n.queue_free()
@@ -447,26 +451,30 @@ func _process(delta: float) -> void:
 				close_shop()
 
 
-## Once the player is out, watch whoever killed them (or anyone alive).
+## Once the player is out (after `spectate_delay`), they float on as a ghost
+## until the round ends; the camera follows the ghost.
 func _update_spectate(delta: float) -> void:
-	if player.alive:
+	if player.alive or ghost != null:
 		return
 	_player_dead_for += delta
 	if _player_dead_for < spectate_delay:
 		return
-	var cam := arena.camera
-	var watching := cam.target as Wizard
-	if watching != null and watching != player and watching.alive:
+	ghost = Ghost.new()
+	ghost.name = "Ghost"
+	wizards.add_child(ghost)
+	ghost.setup(player)
+	touch.ghost = ghost
+	arena.camera.target = ghost
+
+
+func _remove_ghost() -> void:
+	if ghost == null:
 		return
-	var pick: Wizard = null
-	if is_instance_valid(player.last_attacker) and player.last_attacker.alive:
-		pick = player.last_attacker
-	else:
-		var living := alive_wizards()
-		if not living.is_empty():
-			pick = living[0]
-	if pick:
-		cam.target = pick
+	if arena.camera.target == ghost:
+		arena.camera.target = round_winner if round_winner else player
+	touch.ghost = null
+	ghost.queue_free()
+	ghost = null
 
 
 func _on_wizard_died(w: Wizard) -> void:

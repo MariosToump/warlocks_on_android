@@ -45,6 +45,8 @@ var wizard: Wizard
 var locked := false
 ## Touchpad movement instead of the joystick (GameSettings.move_mode).
 var touchpad := false
+## While the player is a ghost: the attack button haunts, spells are hidden.
+var ghost: Ghost
 
 var _stick_index := -1
 var _stick_origin := Vector2.ZERO
@@ -133,6 +135,10 @@ func _touch_down(index: int, pos: Vector2) -> void:
 	var slot := _button_at(pos)
 	if slot != "":
 		get_viewport().set_input_as_handled()
+		if ghost != null:
+			if slot == "A" and ghost.haunt():
+				_flash["A"] = 0.15
+			return
 		if slot == "A":
 			if _attack_index < 0:
 				_attack_index = index
@@ -314,7 +320,7 @@ func _button_center(slot: String) -> Vector2:
 
 func _button_at(pos: Vector2) -> String:
 	for slot in LAYOUT:
-		if wizard.get_spell(slot) and pos.distance_to(_button_center(slot)) <= LAYOUT[slot].r + 12.0:
+		if _shown(slot) and pos.distance_to(_button_center(slot)) <= LAYOUT[slot].r + 12.0:
 			return slot
 	return ""
 
@@ -338,7 +344,7 @@ func _draw() -> void:
 	var font := ThemeDB.fallback_font
 	for slot in LAYOUT:
 		var spell := wizard.get_spell(slot)
-		if spell == null:
+		if not _shown(slot):
 			continue
 		var c := _button_center(slot)
 		var r: float = LAYOUT[slot].r
@@ -350,6 +356,13 @@ func _draw() -> void:
 			var k := box / maxf(s.x, s.y)
 			draw_texture_rect(spell.icon, Rect2(c - s * k / 2.0, s * k), false, spell.icon_tint)
 		var cd := spell.cooldown_ratio()
+		if ghost != null:
+			cd = ghost.cooldown_ratio()
+			if cd > 0.0:
+				_draw_pie(c, r, cd, Color(0, 0, 0, 0.6))
+			draw_arc(c, r, 0, TAU, 48, Color(0.7, 0.9, 1.0, 0.9 if cd == 0.0 else 0.4), 4.0, true)
+			draw_string(font, c + Vector2(-r, r * 0.72), "Haunt", HORIZONTAL_ALIGNMENT_CENTER, r * 2.0, 18, Color(0.85, 0.95, 1.0))
+			continue
 		if cd > 0.0 and slot == "A":
 			# Attack: quick, so a thin ring that runs down plus a small timer.
 			draw_arc(c, r - 3.0, -PI / 2.0, -PI / 2.0 + TAU * cd, 48, Color(1, 0.85, 0.6, 0.9), 5.0, true)
@@ -369,6 +382,11 @@ func _draw() -> void:
 
 
 ## Cooldown shade: a pie slice covering `ratio` of the button, clockwise from top.
+## Drawn and touchable: owned spells; only the attack (haunt) for a ghost.
+func _shown(slot: String) -> bool:
+	return wizard.get_spell(slot) != null and (ghost == null or slot == "A")
+
+
 func _draw_pie(c: Vector2, r: float, ratio: float, col: Color) -> void:
 	ratio = minf(ratio, 1.0)
 	if ratio < 0.01:

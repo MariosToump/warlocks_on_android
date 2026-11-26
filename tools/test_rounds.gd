@@ -100,7 +100,7 @@ func _run() -> void:
 	_check(game.state == game.State.FIGHT and game.round_number == 3, "round 3 fight")
 	player.take_damage(500, purple)
 	await _seconds(0.4)
-	_check(arena.camera.target == purple, "camera follows the player's killer")
+	_check(game.ghost != null and arena.camera.target == game.ghost, "camera follows the player's ghost")
 	blue.take_damage(500, purple)
 	green.take_damage(500, purple)
 	await _frames(2)
