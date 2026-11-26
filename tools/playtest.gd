@@ -37,6 +37,7 @@ func _init() -> void:
 		game.gold_for_win = 0
 	nominal_shop = game.shop_time
 	game.shop_time = 0.05
+	game.feel_effects = false
 	player = game.get_node("Wizards/Player")
 	var pc := player.get_node_or_null("PlayerController")
 	if pc:

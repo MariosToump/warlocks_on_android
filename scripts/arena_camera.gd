@@ -22,6 +22,10 @@ var _home := Vector2.ZERO
 var _dragging := false
 ## Wanted zoom (in base-resolution units); the real zoom is snapped from it.
 var _design_zoom := 1.0
+## Screen shake: strength in world px, fades out over its time.
+var _shake := 0.0
+var _shake_time := 0.0
+var _shake_left := 0.0
 
 
 func _ready() -> void:
@@ -65,6 +69,30 @@ func screen_scale() -> float:
 	var base := Vector2(ProjectSettings.get_setting("display/window/size/viewport_width"),
 			ProjectSettings.get_setting("display/window/size/viewport_height"))
 	return minf(win.size.x / base.x, win.size.y / base.y)
+
+
+## Shake the view by up to `strength` world px, fading over `time` s. A
+## weaker shake never cuts a stronger one short.
+func shake(strength: float, time: float) -> void:
+	var now := _shake * (_shake_left / maxf(_shake_time, 0.001))
+	if strength < now:
+		return
+	_shake = strength
+	_shake_time = time
+	_shake_left = time
+
+
+func shaking() -> bool:
+	return _shake_left > 0.0
+
+
+func _process(delta: float) -> void:
+	if _shake_left > 0.0:
+		_shake_left = maxf(_shake_left - delta, 0.0)
+		var k := _shake_left / _shake_time
+		offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake * k
+	elif offset != Vector2.ZERO:
+		offset = Vector2.ZERO
 
 
 func _physics_process(delta: float) -> void:

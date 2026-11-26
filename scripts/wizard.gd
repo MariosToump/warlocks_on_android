@@ -78,6 +78,10 @@ var _casting: Spell = null
 var _cast_elapsed := 0.0
 var _cast_target := Vector2.ZERO
 var _cast_released := false
+## Recent positions while flying from a hit (drawn as a fading streak).
+var _trail: Array[Vector2] = []
+const TRAIL_SPEED := 250.0 ## knockback px/s that leaves a streak
+const TRAIL_LEN := 8
 
 @onready var sprite: AnimatedSprite2D = $Sprite
 @onready var smoke: CPUParticles2D = $Smoke
@@ -117,6 +121,32 @@ func _physics_process(delta: float) -> void:
 	_clamp_to_arena()
 	_update_lava(delta)
 	_update_animation(walk)
+	_update_trail()
+
+
+func _update_trail() -> void:
+	if knockback.length() > TRAIL_SPEED:
+		_trail.push_back(global_position)
+		if _trail.size() > TRAIL_LEN:
+			_trail.pop_front()
+	elif not _trail.is_empty():
+		_trail.pop_front()
+	else:
+		return
+	queue_redraw()
+
+
+func has_trail() -> bool:
+	return _trail.size() >= 2
+
+
+func _draw() -> void:
+	var n := _trail.size()
+	for i in range(1, n):
+		var k := float(i) / n
+		var lift := Vector2(0, -12)
+		draw_line(to_local(_trail[i - 1]) + lift, to_local(_trail[i]) + lift,
+				Color(1.0, 0.9, 0.7, 0.75 * k), 1.5 + 3.5 * k)
 
 
 func _wants_to_walk() -> bool:
@@ -298,6 +328,8 @@ func reset(at: Vector2) -> void:
 
 func _die() -> void:
 	alive = false
+	_trail.clear()
+	queue_redraw()
 	attack_target = null
 	_cancel_cast()
 	on_lava = false

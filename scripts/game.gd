@@ -68,6 +68,8 @@ enum State { FREE, COUNTDOWN, FIGHT, ROUND_OVER, SHOP, MATCH_OVER, TITLE }
 ## Read zoom / bot difficulty / wins per match / vibration from GameSettings
 ## (tests turn this off so their own values stick).
 @export var apply_settings := true
+## Screen shake and hit-stop (the playtest harness turns them off).
+@export var feel_effects := true
 ## Start on the title menu over a bots-only fight (tests turn this off).
 @export var title_screen := true
 ## Title screen: the camera follows one bot, switching every this many seconds.
@@ -93,6 +95,8 @@ var round_winner: Wizard = null
 var shop_skipped := false
 ## The dead player's ghost during a fight (null otherwise).
 var ghost: Ghost
+var _hit_stop_token := 0
+var _last_phase := -1
 var match_winner: Wizard = null
 
 var _lava_label: Label
@@ -170,7 +174,9 @@ func _add_wizard(w: Wizard, at: Vector2) -> void:
 		if source != null:
 			Sfx.play_at("hurt", w.global_position, -3.0)
 			if damage_numbers:
-				damage_numbers.add(w, amount))
+				damage_numbers.add(w, amount)
+			_feel_hit(w, amount, source))
+	w.died.connect(_feel_death)
 	all_wizards.append(w)
 
 
@@ -437,6 +443,7 @@ func _process(delta: float) -> void:
 				_end_round(living[0] if living.size() == 1 else null)
 				return
 			_update_spectate(delta)
+			_feel_lava(delta)
 		State.ROUND_OVER:
 			state_left -= delta
 			if state_left <= 0.0:
@@ -507,6 +514,56 @@ func _respawn_later(w: Wizard) -> void:
 			best_gap = gap
 			best = p
 	w.reset(best)
+
+
+# --- game feel: shake + hit-stop -------------------------------------------------
+
+## A spell or staff hit: shake when the player is hit, a tiny freeze on
+## big hits the player takes or lands.
+func _feel_hit(w: Wizard, amount: float, source: Wizard) -> void:
+	if not feel_effects or not state in [State.FIGHT, State.FREE]:
+		return
+	if w == player:
+		arena.camera.shake(clampf(amount * 0.4, 2.0, 6.0), 0.25)
+	if amount >= 10.0 and (w == player or source == player):
+		hit_stop(0.06)
+
+
+## A wizard died: shake if it's on screen, freeze a moment if the player
+## was in it.
+func _feel_death(w: Wizard) -> void:
+	if not feel_effects or not state in [State.FIGHT, State.FREE]:
+		return
+	var view := get_viewport().get_visible_rect().size / arena.camera.zoom
+	if w.global_position.distance_to(arena.camera.global_position) < view.length() * 0.5:
+		arena.camera.shake(5.0, 0.35)
+	if w == player or w.last_attacker == player:
+		hit_stop(0.1)
+
+
+## Slow time to a crawl for `real_seconds`, then back to normal. A newer
+## call extends it; time always comes back to 1.
+func hit_stop(real_seconds: float) -> void:
+	if not feel_effects:
+		return
+	_hit_stop_token += 1
+	var token := _hit_stop_token
+	Engine.time_scale = 0.1
+	await get_tree().create_timer(real_seconds, true, false, true).timeout
+	if token == _hit_stop_token:
+		Engine.time_scale = 1.0
+
+
+## Shake gently each time the lava starts creeping in.
+func _feel_lava(_delta: float) -> void:
+	if arena.phase != _last_phase:
+		if feel_effects and state == State.FIGHT and arena.phase in [Arena.Phase.SHRINK, Arena.Phase.FINAL]:
+			arena.camera.shake(2.5, 0.6)
+		_last_phase = arena.phase
+
+
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0
 
 
 # --- HUD extras, settings, haptics ---------------------------------------------
