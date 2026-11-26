@@ -17,3 +17,13 @@ extends Resource
 @export_range(0.0, 1.0) var shield_reflect_chance := 0.4
 ## Extra wait after any cast before the next one.
 @export var cast_pause := 0.4
+## v0.10 human noise.
+## 0..1: actions scoring within this fraction of the best are all candidates
+## (weighted-random pick); 0 = always the top score.
+@export_range(0.0, 1.0) var choice_spread := 0.2
+## Reaction to each projectile is reaction_delay x [1 - j, 1 + 2j], rolled once.
+@export_range(0.0, 1.0) var reaction_jitter := 0.35
+## Lead is rolled per cast as lead_amount +/- this (0..1.2: sometimes too much).
+@export var lead_jitter := 0.35
+## Chance per think to hold back an attack for one think (a human hesitating).
+@export_range(0.0, 1.0) var hesitate_chance := 0.07

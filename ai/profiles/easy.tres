@@ -11,3 +11,7 @@ lead_amount = 0.0
 dodge_chance = 0.3
 shield_reflect_chance = 0.1
 cast_pause = 1.0
+choice_spread = 0.3
+reaction_jitter = 0.4
+lead_jitter = 0.35
+hesitate_chance = 0.12

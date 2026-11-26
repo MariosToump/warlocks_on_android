@@ -5,11 +5,13 @@ extends Node
 ##
 ## Every think tick (profile.think_interval) it picks a target, scores every
 ## action for the current situation, multiplies each score by the
-## personality's weight and runs the best one. Cast actions fire once;
+## personality's weight and runs one of the near-best (weighted-random, v0.10). Cast actions fire once;
 ## movement actions set a goal that is followed every physics frame.
 
 ## Every action has _score_<name>() -> float and _do_<name>() -> void.
 const ACTIONS := ["dodge", "recover", "shield", "reposition", "fireball", "lightning", "staff", "blink_in", "homing", "rockwall"]
+## Actions that attack (held back by hesitation, the opening watch, moods).
+const ATTACKS := ["fireball", "lightning", "staff", "blink_in", "homing"]
 ## Bonus for sticking with the current action / target (stops jitter).
 const KEEP_ACTION_BONUS := 0.1
 const KEEP_TARGET_BONUS := 80.0
@@ -125,23 +127,49 @@ func _think() -> void:
 		var w := instance_from_id(id) as Wizard
 		if w == null or not w.is_casting():
 			_cast_rolls.erase(id)
-	var best := ""
-	var best_score := -INF
+	var scores := {}
 	for action in ACTIONS:
 		var s: float = call("_score_" + action) * personality.weight(action)
 		if s <= 0.0:
 			continue
-		s += randf() * 0.05
 		if action == current_action:
 			s += KEEP_ACTION_BONUS
-		if s > best_score:
-			best_score = s
-			best = action
+		scores[action] = s
+	var best := _choose(scores)
+	if best in ATTACKS and randf() < profile.hesitate_chance:
+		best = "" # a moment's hesitation: keep walking, don't attack yet
 	current_action = best
 	if best != "staff" and wizard.attack_target != null:
 		wizard.attack(null) # stop chasing with the staff
 	if best != "":
 		call("_do_" + best)
+
+
+## Weighted-random pick among the actions scoring within
+## profile.choice_spread of the best (the best stays the most likely).
+## Getting off lava is never left to chance.
+func _choose(scores: Dictionary) -> String:
+	var best := ""
+	var best_s := -INF
+	for a in scores:
+		if scores[a] > best_s:
+			best_s = scores[a]
+			best = a
+	if best == "" or best == "recover":
+		return best
+	var cut := best_s * (1.0 - profile.choice_spread)
+	var pool := {}
+	var total := 0.0
+	for a in scores:
+		if scores[a] >= cut:
+			pool[a] = scores[a] - cut + 0.02 * best_s
+			total += pool[a]
+	var r := randf() * total
+	for a in pool:
+		r -= pool[a]
+		if r <= 0.0:
+			return a
+	return best
 
 
 ## Nearest living enemy, preferring hurt ones and ones standing near lava.
@@ -403,7 +431,7 @@ func _visible_projectiles() -> Array[Projectile]:
 	var out: Array[Projectile] = []
 	for n in get_tree().get_nodes_in_group("projectiles"):
 		var p := n as Projectile
-		if p and p.caster != wizard and p.age >= profile.reaction_delay:
+		if p and p.caster != wizard and p.age >= _roll(p)[2]:
 			out.append(p)
 	return out
 
@@ -431,7 +459,8 @@ func _danger_projectile() -> Projectile:
 	return best
 
 
-## [tries to dodge, would shield] for projectile `p`, rolled once each.
+## [tries to dodge, would shield, reaction time] for projectile `p`, rolled
+## once each (the reaction varies: sometimes quick, sometimes slow).
 func _roll(p: Projectile) -> Array:
 	var id := p.get_instance_id()
 	if not _rolls.has(id):
@@ -439,7 +468,9 @@ func _roll(p: Projectile) -> Array:
 			for old in _rolls.keys():
 				if not is_instance_id_valid(old):
 					_rolls.erase(old)
-		_rolls[id] = [randf() < profile.dodge_chance, randf() < profile.shield_reflect_chance]
+		var j := profile.reaction_jitter
+		_rolls[id] = [randf() < profile.dodge_chance, randf() < profile.shield_reflect_chance,
+			profile.reaction_delay * randf_range(1.0 - j, 1.0 + 2.0 * j)]
 	return _rolls[id]
 
 
@@ -519,15 +550,18 @@ func _safe_step(goal):
 	return pos + to_centre * look
 
 
-## Where to aim at `w` for a projectile of `speed`: leads by the profile's
-## lead_amount, then adds random aim error.
+## Where to aim at `w` for a projectile of `speed`: leads by about the
+## profile's lead_amount (rolled per cast, sometimes too much), then adds a
+## bell-curve aim error (mostly close, now and then properly wide).
 func _aim_at(w: Wizard, speed: float) -> Vector2:
 	var from := wizard.global_position
 	var at := w.global_position
-	if speed > 0.0 and profile.lead_amount > 0.0:
+	if speed > 0.0:
+		var lead := clampf(profile.lead_amount + randf_range(-profile.lead_jitter, profile.lead_jitter), 0.0, 1.2)
 		var t := from.distance_to(at) / speed
-		at += w.velocity * t * profile.lead_amount
-	var err := deg_to_rad(randf_range(-profile.aim_error_deg, profile.aim_error_deg))
+		at += w.velocity * t * lead
+	var a := profile.aim_error_deg
+	var err := deg_to_rad(clampf(randfn(0.0, a * 0.6), -2.0 * a, 2.0 * a))
 	return from + (at - from).rotated(err)
 
 
