@@ -56,6 +56,12 @@ func _run() -> void:
 	await _test_watch_blocks_attacks()
 	await _test_watch_ends()
 	await _test_recover_never_random()
+	# Task 3: memory + opportunity + risk
+	await _test_memory_shield_window()
+	_test_memory_no_cheat()
+	await _test_memory_freed_enemy()
+	await _test_opportunity()
+	await _test_risk_prefers_exposed_target()
 
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -217,6 +223,107 @@ func _test_recover_never_random() -> void:
 			thinks += 1
 			ok = ok and ai.current_action == "recover"
 	_check(ok and thinks > 0, "on lava, always recover (even hesitant + watching) (%d frames)" % thinks)
+	_remove_bot(ai)
+
+
+# --- Task 3 ------------------------------------------------------------------
+
+## `w` casts `slot` for real (the bot sees it through cast_started).
+func _cast_and_wait(w: Wizard, slot: String, at: Vector2) -> void:
+	w.get_spell(slot).cooldown_left = 0.0
+	w.cast(slot, at)
+	await _frames(20)
+
+
+func _test_memory_shield_window() -> void:
+	print("memory: shield window")
+	_park_all()
+	var ai := _make_bot(blue, "caster", "normal")
+	await _frames(2)
+	_check(not ai.shield_probably_down(purple), "nothing seen yet -> not down")
+	await _cast_and_wait(purple, "R", purple.global_position)
+	_check(ai.shield_probably_down(purple), "saw the shield go up -> probably down for a while")
+	var est: float = blue.get_spell("R").cooldown_by_level[0] * 0.9
+	ai._now += est + 0.1
+	_check(not ai.shield_probably_down(purple), "after the estimate (%.1f s) it counts as back" % est)
+	await _cast_and_wait(purple, "R", purple.global_position)
+	_check(ai.shield_probably_down(purple), "a second shield refreshes the window")
+	await _cast_and_wait(purple, "W", purple.global_position + Vector2(50, 0))
+	_check(ai.blink_probably_down(purple), "blink seen -> probably down")
+	_remove_bot(ai)
+
+
+func _test_memory_no_cheat() -> void:
+	print("memory: no cheating")
+	_park_all()
+	var ai := _make_bot(blue, "caster", "normal")
+	ai.memory.watch(green)
+	green.get_spell("R").cooldown_left = 5.0 # on cooldown, but nobody saw a cast
+	_check(not ai.shield_probably_down(green), "an unseen cooldown is not known")
+	green.get_spell("R").cooldown_left = 0.0
+	_remove_bot(ai)
+
+
+func _test_memory_freed_enemy() -> void:
+	print("memory: freed enemy")
+	_park_all()
+	var ai := _make_bot(blue, "caster", "normal")
+	var extra: Wizard = load("res://scenes/wizard.tscn").instantiate()
+	game.get_node("Wizards").add_child(extra)
+	extra.reset(c + Vector2(-700, 0))
+	await _frames(2)
+	ai.memory.watch(extra)
+	await _cast_and_wait(extra, "R", extra.global_position)
+	_check(ai.memory.known() >= 1, "remembers the extra wizard's cast")
+	extra.free()
+	await _frames(2)
+	ai.memory.prune()
+	_check(ai.memory.known() == 0, "a freed wizard is forgotten (%d left)" % ai.memory.known())
+	_remove_bot(ai)
+
+
+## The spot `inside` px inside the east shore.
+func _near_east_lava(inside: float) -> Vector2:
+	var p := c
+	while not arena.is_lava_at(p):
+		p.x += 4.0
+	return p - Vector2(inside, 0)
+
+
+func _test_opportunity() -> void:
+	print("opportunity")
+	_park_all()
+	var ai := _make_bot(blue, "caster", "normal")
+	_place(purple, c)
+	await _frames(2)
+	var calm := ai.opportunity(purple)
+	_check(calm < 0.1, "healthy enemy in the middle: low (%.2f)" % calm)
+	_place(purple, _near_east_lava(30.0))
+	purple.health = 20.0
+	await _cast_and_wait(purple, "R", purple.global_position)
+	var open := ai.opportunity(purple)
+	_check(open >= 0.8, "hurt, by the lava, shield used: high (%.2f)" % open)
+	_check(open <= 1.0, "capped at 1")
+	_remove_bot(ai)
+
+
+func _test_risk_prefers_exposed_target() -> void:
+	print("risk: exposed target")
+	_park_all()
+	var ai := _make_bot(blue, "caster", "normal")
+	_place(blue, c)
+	_place(green, c + Vector2(0, 240))
+	_place(purple, c + Vector2(0, -250))
+	await _frames(2)
+	_check(ai._pick_target() == green, "both fine: the nearer one")
+	await _cast_and_wait(purple, "R", purple.global_position)
+	await _cast_and_wait(purple, "W", purple.global_position + Vector2(40, 0))
+	_place(purple, c + Vector2(0, -250))
+	purple.take_damage(1.0, player) # busy fighting someone else
+	ai.target = null
+	var opp := ai.opportunity(purple)
+	_check(opp >= 0.6, "purple is exposed (%.2f)" % opp)
+	_check(ai._pick_target() == purple, "goes for the exposed one")
 	_remove_bot(ai)
 
 

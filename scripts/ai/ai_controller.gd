@@ -41,6 +41,12 @@ const WATCH_DISTANCE := 260.0
 ## An enemy this exposed ends the watch at once.
 const WATCH_BREAK_OPPORTUNITY := 0.6
 const DEFENCES := ["dodge", "shield", "rockwall"]
+## Seen shield / blink: "probably down" for this share of our own base cooldown.
+const COOLDOWN_GUESS := 0.9
+## Opportunity: target cost bonus per point (x risk).
+const OPPORTUNITY_TARGETING := 220.0
+## Blink in from this far when the target is wide open (normally 220).
+const RISKY_BLINK := 300.0
 
 @export var profile: AIProfile
 @export var personality: AIPersonality
@@ -52,6 +58,8 @@ var target: Wizard = null
 var current_action := ""
 ## This round's mood (neutral until the game calls reset()).
 var mood := AIMood.neutral()
+## What it has seen the others do (casts, hits) -- fair information only.
+var memory: AIMemory
 
 var _think_left := 0.0
 var _now := 0.0
@@ -82,6 +90,8 @@ func _ready() -> void:
 	if personality == null:
 		personality = AIPersonality.new()
 	_strafe = 1.0 if randf() < 0.5 else -1.0
+	memory = AIMemory.new(wizard, func(): return _now)
+	_watch_everyone.call_deferred()
 	_think_left = randf() * profile.think_interval # bots don't think in lockstep
 	if debug_draw:
 		_debug = DebugView.new()
@@ -101,6 +111,8 @@ func reset() -> void:
 	_cast_rolls.clear()
 	_knocked_for = 0.0
 	_think_left = randf() * profile.think_interval
+	memory.clear()
+	_watch_everyone()
 	_start_mood(AIMood.roll(personality.mood_odds))
 
 
@@ -123,9 +135,54 @@ func preferred_distance() -> float:
 	return maxf(d, WATCH_DISTANCE) if watching() else d
 
 
-## 0..1: how exposed `w` is right now (filled in by the risk task).
-func opportunity(_w: Wizard) -> float:
-	return 0.0
+func _watch_everyone() -> void:
+	if not is_inside_tree():
+		return
+	for n in get_tree().get_nodes_in_group("wizards"):
+		memory.watch(n as Wizard)
+
+
+## Saw `w` raise its shield recently enough that it's probably still
+## recharging (judged by our own shield's base cooldown).
+func shield_probably_down(w: Wizard) -> bool:
+	return _probably_down(w, "R")
+
+
+func blink_probably_down(w: Wizard) -> bool:
+	return _probably_down(w, "W")
+
+
+func _probably_down(w: Wizard, slot: String) -> bool:
+	var mine := wizard.get_spell(slot)
+	var guess: float = (mine.cooldown_by_level[0] if mine else 6.0) * COOLDOWN_GUESS
+	return memory.seen(w, slot) < guess
+
+
+## 0..1: how exposed `w` is right now, from what's on screen.
+func opportunity(w: Wizard) -> float:
+	if w == null or not is_instance_valid(w):
+		return 0.0
+	var o := 0.0
+	if w.health < w.max_health * 0.35:
+		o += 0.35
+	if _lava_within(w.global_position, NEAR_LAVA):
+		o += 0.25
+	if shield_probably_down(w):
+		o += 0.25
+	if blink_probably_down(w):
+		o += 0.15
+	if w.knockback.length() > 200.0:
+		o += 0.3
+	if w.is_casting():
+		o += 0.15
+	if memory.since_hit_by_other(w) < 1.5:
+		o += 0.2
+	return minf(o, 1.0)
+
+
+## How readily it goes for an opening this round.
+func risk() -> float:
+	return personality.risk_appetite * mood.risk_mult
 
 
 func _physics_process(delta: float) -> void:
@@ -167,12 +224,13 @@ func _think() -> void:
 		if w == null or not w.is_casting():
 			_cast_rolls.erase(id)
 	var scores := {}
+	var go_for_it := 1.0 + risk() * opportunity(target)
 	for action in ACTIONS:
 		var s: float = call("_score_" + action) * personality.weight(action)
 		if s <= 0.0:
 			continue
 		if action in ATTACKS:
-			s *= mood.attack_mult * (WATCH_ATTACK if watching() else 1.0)
+			s *= mood.attack_mult * go_for_it * (WATCH_ATTACK if watching() else 1.0)
 		elif action in DEFENCES:
 			s *= mood.defend_mult
 		if action == current_action:
@@ -228,6 +286,7 @@ func _pick_target() -> Wizard:
 		cost -= w.match_wins * LEADER_BONUS
 		if _lava_within(w.global_position, NEAR_LAVA):
 			cost -= 150.0
+		cost -= opportunity(w) * OPPORTUNITY_TARGETING * risk()
 		if w == target:
 			cost -= KEEP_TARGET_BONUS
 		if w == wizard.last_attacker and Time.get_ticks_msec() / 1000.0 - wizard.last_hit_at < RETALIATE_TIME:
@@ -378,7 +437,8 @@ func _score_blink_in() -> float:
 	if target == null or not _can_cast("W") or target.is_shielded() or target.on_lava:
 		return 0.0
 	var d := _target_distance()
-	if d < 80.0 or d > 220.0 or _blink_in_point() == null:
+	var reach := RISKY_BLINK if opportunity(target) >= 0.5 else 220.0
+	if d < 80.0 or d > reach or _blink_in_point() == null:
 		return 0.0
 	return 1.0
 
