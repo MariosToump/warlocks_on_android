@@ -19,6 +19,29 @@ Two projects share this design:
   **Exception — Android-only (v0.7 + v0.8, by choice):** fireball range 850 (PC: 700), the v0.7 HUD, pause menu and
   settings; v0.8 shop, Homing Orb, sound/music, title menu. PC is still at milestone 6. Expect a conflict in `fireball.gd` / `game.gd` / `round_hud.gd` / `touch_controls.gd` when cherry-picking.
 
+### Next up (todo list, saved 2026-11-26; Android first)
+**v0.9** (everything except the camera), in this order:
+- [ ] 0a. Start banner "Fight!" → "Burn!" with a fiery whoosh.
+- [ ] 0b. Thumbstick fixes: a thumb held through the countdown never registered; a lost touch-up left the stick dead;
+  the stick origin follows the thumb past the ring (quick reversals); smooth deadzone.
+- [ ] 0c. Movement option: Joystick / Touchpad (whole left half is a pad, Vampire Survivors style).
+- [ ] 1. Playtest harness (`tools/playtest.gd`): full bot matches at 4× speed, match length, deaths by cause, wins per bot.
+- [ ] 2. Shorter matches (5-8 min): first to 3, 2 s countdown / round-over, 10 s shop (skipped when broke), smaller island that shrinks sooner.
+- [ ] 3. Lava-first balance: lava 20 HP/s, more knockback, weaker staff, Caster bot toned down.
+- [ ] 4. Ghost mode: dead player floats as a ghost, can shove (haunt) wizards, no damage.
+- [ ] 5. Game feel: screen shake, hit-stop, knockback trail.
+- [ ] 6. Shield buff: a spell reflected by a shield comes back at 2× speed and 2× range (once per spell).
+- [ ] 7. Stones + pillars: block spells, boulders get shoved by knockback into wizards, sink in lava.
+- [ ] 8. Earth spell "Rock Wall" (shop) + fireball craters that slow walkers.
+- [ ] 9. Release v0.9: docs, APK on the phone, push, GitHub release.
+
+**v1.0:** camera that tilts from top-down into a 3D perspective (2.5D hybrid, inspired by storm.game; our own code):
+gameplay stays 2D, a 3D render layer mirrors it (heightmap island, billboard sprites, lava plane), Camera3D blends
+orthographic top-down ↔ tilted perspective; then real hills/heights. Prototype on a branch, check phone performance.
+
+**Discuss later:** medals (First Blood, Double Kill, Revenge, Lava Bath), kill-streak powers, levels + daily
+challenges, cosmetic unlocks, a step-by-step tutorial.
+
 ### Milestones
 - [x] 1. Project setup, arena with stone and lava tiles, camera.
 - [x] 2. Player wizard: movement, animations, lava damage.
