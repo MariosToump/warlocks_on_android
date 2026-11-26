@@ -339,7 +339,7 @@ func _make_bot(w: Wizard, pers: String, prof: String) -> AIController:
 
 func _remove_bot(ai: AIController) -> void:
 	var w := ai.wizard
-	ai.queue_free()
+	ai.free() # now, not at frame end: a queued bot would still think (and cast) once
 	w.move_target = null
 	w.move_dir = Vector2.ZERO
 	w.attack(null)
