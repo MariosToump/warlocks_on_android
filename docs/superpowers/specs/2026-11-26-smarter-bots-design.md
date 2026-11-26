@@ -77,7 +77,7 @@ never changes.
 
 | Mood | Attack actions | Dodge / shield | Preferred distance | Opening watch | Risk appetite |
 |---|---|---|---|---|---|
-| aggressive | ×1.2 | ×1.0 | ×0.8 | 0 s | ×1.3 |
+| aggressive | ×1.1 (was ×1.2) | ×1.0 | ×0.9 (was ×0.8) | 0 s | ×1.15 (was ×1.3) |
 | cautious | ×0.85 | ×1.15 | ×1.25 | 2-4 s | ×0.6 |
 | opportunist | ×1.0 | ×1.0 | ×1.15 | 3-5 s | ×1.5 |
 
@@ -122,9 +122,12 @@ It's used in three places:
   - Weights: dodge 1.0 → 1.4, shield 1.4 → 1.1, so he can dodge now.
   - While closing in from beyond 120 px, he zig-zags. The goal is offset ±40 px across his approach line, and the
     side flips every 0.4-0.7 s.
-  - He waits for an opening: unless the target's opportunity is ≥ 0.4, or the bot saw the target cast an attack spell
-    in the last 1.2 s, he holds at about 130 px instead of 50 px.
-  - `risk_appetite` 1.0. Mood odds: aggressive 0.6, cautious 0.15, opportunist 0.25.
+  - He waits for an opening, holding just **outside lightning range** (his own Lightning's `max_range` + 20 px, so
+    250 px today; first tried at 130 px, but that left him standing inside zap range). He charges to 50 px when the
+    target's opportunity is ≥ 0.4, when the target threw a fireball or orb in the last 1.2 s, or when the target used
+    Lightning recently enough that it is probably still recharging.
+  - Fireball weight 0.5 → 0.8, so he pokes while he waits.
+  - `risk_appetite` 1.0. Mood odds: aggressive 0.45, cautious 0.15, opportunist 0.4 (tuned from 0.6 / 0.15 / 0.25).
 - **Caster (green), the sniper.** He keeps his style. Mood variety and the noise make him beatable.
   `risk_appetite` 0.5. Mood odds: aggressive 0.3, cautious 0.45, opportunist 0.25.
 - **Trickster (purple), the opportunist.** He hangs back and goes after enemies that are busy fighting or hurt.
@@ -137,6 +140,14 @@ It's used in three places:
 - `tools/playtest.gd` prints the round-win share per mood, next to the per-bot share.
 - Tuning loop: change → run 20 matches → read the result with the `data:statistical-analysis` skill. With about 200
   rounds, the standard error of a share is about 3%, so only differences over about 6 points count as real.
+
+## Tuning log (Normal, `tools/playtest.gd`)
+| Run | Rounds | Brawler | Caster | Trickster | Stand-in | Lava deaths | Match | Notes |
+|---|---|---|---|---|---|---|---|---|
+| v0.9 before | ~120 | 6% | 44% | 20% | 30% | 59% | 5:28 | |
+| 1 | 137 | 12% | 38% | 23% | 28% | 62% | 6:39 | first build |
+| 2 | 269 | 7% | 39% | 27% | 27% | 64% | 6:25 | 40 matches; aggressive mood loses for every bot |
+| 3 | 279 | 10% | 39% | 25% | 26% | 64% | 6:40 | hold outside lightning range; softer aggressive |
 
 ## Left to the builder
 - Exact constant values beyond the ones above (tune by sims).

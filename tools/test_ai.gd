@@ -107,6 +107,7 @@ func _test_reposition_approaches() -> void:
 		t += 1.0 / 60.0
 		d = minf(d, blue.global_position.distance_to(green.global_position))
 	_check(d < 150.0, "brawler closes on an open target from 400 px to < 150 px in 3 s (closest %.0f)" % d)
+	_restore(green)
 	_remove_bot(ai)
 
 
@@ -239,35 +240,39 @@ func _test_brawler_uses_staff() -> void:
 	await _open_up(green, c + Vector2(200, 0))
 	var t := await _time_to_use(blue, "A", 4.0)
 	_check(t >= 0.0, "brawler walks up to an open target and swings within 4 s (%.1f s)" % t)
+	_restore(green)
 	_remove_bot(ai)
 
 
-## Mean distance to a passive target over 6 s.
-func _mean_distance(pers: String) -> float:
+## Closest a bot gets to a passive target in 12 s (v0.10: the Brawler waits
+## a few seconds for an opening, then charges, so an average mostly measured
+## the waiting and his lightning shoving the dummy away).
+func _closest_distance(pers: String) -> float:
 	_park_all()
 	var ai := _make_bot(blue, pers, "normal")
 	_place(blue, c)
 	_place(green, c + Vector2(250, 0))
 	green.lava_dps = 0.0
-	var sum := 0.0
-	var n := 0
+	green.knockback_taken_multiplier = 0.0 # measure where he walks, not how far his hits shove the dummy
+	var best := INF
 	var t := 0.0
-	while t < 6.0:
+	while t < 12.0:
 		await _frames(1)
 		t += 1.0 / 60.0
 		green.health = 100.0 # keep it alive and in place-ish
-		sum += blue.global_position.distance_to(green.global_position)
-		n += 1
+		best = minf(best, blue.global_position.distance_to(green.global_position))
 	green.lava_dps = 20.0
+	green.knockback_taken_multiplier = 1.0
 	_remove_bot(ai)
-	return sum / n
+	return best
 
 
 func _test_personalities_keep_different_distances() -> void:
 	print("personalities")
-	var brawler := await _mean_distance("brawler")
-	var caster := await _mean_distance("caster")
-	_check(brawler + 50.0 < caster, "brawler fights closer than caster (%.0f vs %.0f px)" % [brawler, caster])
+	var brawler := await _closest_distance("brawler")
+	var caster := await _closest_distance("caster")
+	_check(brawler < 90.0, "brawler goes into melee range (closest %.0f px)" % brawler)
+	_check(caster > 130.0, "caster never does (closest %.0f px)" % caster)
 
 
 func _test_dead_target() -> void:
@@ -535,6 +540,11 @@ func _open_up(w: Wizard, at: Vector2) -> void:
 	await _frames(20)
 	w.global_position = at
 	w.health = 30.0
+	w.knockback_taken_multiplier = 0.0 # positioning tests: hits don't shove it away
+
+
+func _restore(w: Wizard) -> void:
+	w.knockback_taken_multiplier = 1.0
 
 ## "survivor" = a bot that only dodges, shields and recovers, and otherwise
 ## stands still (so survival tests can't pass by accident).

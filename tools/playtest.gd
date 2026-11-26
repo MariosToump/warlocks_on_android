@@ -19,6 +19,10 @@ var _player_died_at := -1.0
 var _m := {} ## this match's numbers
 var _all: Array[Dictionary] = []
 var _done := false
+## v0.10 moods: rounds played / won in each mood, and each bot's mood rolls.
+var _mood_rounds := {}
+var _mood_wins := {}
+var _bot_moods := {}
 
 
 func _init() -> void:
@@ -87,6 +91,18 @@ func _tick() -> void:
 func _on_round_started(_n: int) -> void:
 	_round_start = t
 	_player_died_at = -1.0
+	for w: Wizard in game.all_wizards:
+		var m := _mood(w)
+		_mood_rounds[m] = _mood_rounds.get(m, 0) + 1
+		var who := _name(w)
+		if not _bot_moods.has(who):
+			_bot_moods[who] = {}
+		_bot_moods[who][m] = _bot_moods[who].get(m, 0) + 1
+
+
+func _mood(w: Wizard) -> String:
+	var ai := w.get_node_or_null("AIController") as AIController
+	return ai.mood.name if ai else "?"
 
 
 func _on_died(w: Wizard) -> void:
@@ -108,6 +124,10 @@ func _on_round_ended(winner: Wizard) -> void:
 		_m.player_dead += t - _player_died_at
 	if winner:
 		_m.wins[_name(winner)] += 1
+		var m := _mood(winner)
+		_mood_wins[m] = _mood_wins.get(m, 0) + 1
+		var key := _name(winner) + ":" + m # per wizard too (mood odds differ per bot)
+		_mood_wins[key] = _mood_wins.get(key, 0) + 1
 
 
 func _on_shop_opened() -> void:
@@ -182,6 +202,16 @@ func _finish() -> void:
 		share[k] = "%d%%" % _pct(wins[k], wtotal)
 	print("deaths per wizard %s, kills %s" % [died, killed])
 	print("round wins share %s (target: nobody > 40%%)" % share)
+	var mood_rate := {}
+	for m in _mood_rounds:
+		mood_rate[m] = "%d%%" % _pct(_mood_wins.get(m, 0), _mood_rounds[m])
+	print("win rate per mood %s (rounds per mood %s)" % [mood_rate, _mood_rounds])
+	print("moods per wizard %s" % _bot_moods)
+	for who in _bot_moods:
+		var rates := []
+		for m in _bot_moods[who]:
+			rates.append("%s %d%% of %d" % [m, _pct(_mood_wins.get(who + ":" + m, 0), _bot_moods[who][m]), _bot_moods[who][m]])
+		print("  %s win rate by mood: %s" % [who, ", ".join(rates)])
 	quit()
 
 

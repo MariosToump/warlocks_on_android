@@ -47,12 +47,20 @@ const COOLDOWN_GUESS := 0.9
 const OPPORTUNITY_TARGETING := 220.0
 ## Blink in from this far when the target is wide open (normally 220).
 const RISKY_BLINK := 300.0
-## Patient charge (Brawler): hold this far off until the target is this open,
-## or was seen throwing an attack spell this recently.
-const PATIENT_HOLD := 130.0
+## Patient charge (Brawler): wait just outside lightning range (ours, +this
+## margin) until the target is this open, threw a spell this recently, or used
+## its lightning recently enough that it's probably still recharging.
+const PATIENT_MARGIN := 20.0
 const PATIENT_OPENING := 0.4
 const PATIENT_SEEN := 1.2
-const ATTACK_SLOTS := ["Q", "E", "D"]
+const ATTACK_SLOTS := ["Q", "D"]
+## Patient charge: after waiting this long (rolled) with no opening he goes in
+## anyway, for CHARGE_TIME s; while charging, closing in counts this much more
+## than poking from range (commit to it).
+const PATIENCE_MIN := 3.0
+const PATIENCE_MAX := 5.0
+const CHARGE_TIME := 3.0
+const CHARGE_COMMIT := 1.6
 ## Zig-zag (Brawler): steps this long, this far to the side.
 const ZIG_STEP := 80.0
 const ZIG_SIDE := 40.0
@@ -81,6 +89,12 @@ var _strafe_left := 0.0
 ## Zig-zag side (+1 / -1) and time until it flips.
 var _zig := 1.0
 var _zig_left := 0.0
+## Patient charge: time spent waiting for an opening, how long it will wait,
+## and when an impatient charge ends.
+var _waited := 0.0
+var _patience := randf_range(PATIENCE_MIN, PATIENCE_MAX)
+var _charge_until := -1.0
+var _last_think := 0.0
 ## Per projectile (instance id): [tries to dodge, would shield] rolled once.
 var _rolls := {}
 ## Per enemy (instance id) mid-cast: shield against this cast? Rolled once.
@@ -125,6 +139,9 @@ func reset() -> void:
 	_think_left = randf() * profile.think_interval
 	memory.clear()
 	_watch_everyone()
+	_waited = 0.0
+	_charge_until = -1.0
+	_patience = randf_range(PATIENCE_MIN, PATIENCE_MAX)
 	_start_mood(AIMood.roll(personality.mood_odds))
 
 
@@ -145,19 +162,42 @@ func watching() -> bool:
 func preferred_distance() -> float:
 	var d := personality.preferred_distance
 	if personality.patient_charge and target and not _opening_to_charge():
-		d = maxf(d, PATIENT_HOLD)
+		d = maxf(d, _patient_hold())
 	d *= mood.distance_mult
 	return maxf(d, WATCH_DISTANCE) if watching() else d
 
 
-## Patient charge: is the target open, or did it just throw a spell?
+## Patient charge: wait just out of lightning reach (judged by our own).
+func _patient_hold() -> float:
+	var bolt := wizard.get_spell("E") as LightningSpell
+	return (bolt.max_range if bolt else 230.0) + PATIENT_MARGIN
+
+
+## Patient charge: is the target open, did it just throw a spell, or is its
+## lightning (the thing that punishes a charge) probably recharging?
 func _opening_to_charge() -> bool:
-	if opportunity(target) >= PATIENT_OPENING:
+	if _now < _charge_until:
+		return true # impatient: going in anyway
+	if opportunity(target) >= PATIENT_OPENING or _probably_down(target, "E"):
 		return true
 	for slot in ATTACK_SLOTS:
 		if memory.seen(target, slot) < PATIENT_SEEN:
 			return true
 	return false
+
+
+## Patient charge: count the wait; when patience runs out, charge anyway.
+func _update_patience(dt: float) -> void:
+	if not personality.patient_charge or target == null or _now < _charge_until:
+		return
+	if _opening_to_charge():
+		_waited = 0.0
+		return
+	_waited += dt
+	if _waited >= _patience:
+		_charge_until = _now + CHARGE_TIME
+		_waited = 0.0
+		_patience = randf_range(PATIENCE_MIN, PATIENCE_MAX)
 
 
 func _watch_everyone() -> void:
@@ -245,6 +285,8 @@ func _physics_process(delta: float) -> void:
 
 func _think() -> void:
 	target = _pick_target()
+	_update_patience(_now - _last_think)
+	_last_think = _now
 	if watching() and (wizard.last_hit_at != _watch_hit_mark 			or (target and opportunity(target) >= WATCH_BREAK_OPPORTUNITY)):
 		_watch_until = _now # hit, or someone left wide open: join in
 	_danger = _danger_projectile()
@@ -262,6 +304,8 @@ func _think() -> void:
 			s *= mood.attack_mult * go_for_it * (WATCH_ATTACK if watching() else 1.0)
 		elif action in DEFENCES:
 			s *= mood.defend_mult
+		elif action == "reposition" and personality.patient_charge and target 				and _opening_to_charge() and _target_distance() > preferred_distance() + 60.0:
+			s *= CHARGE_COMMIT
 		if action == current_action:
 			s += KEEP_ACTION_BONUS
 		scores[action] = s

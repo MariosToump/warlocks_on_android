@@ -8,7 +8,7 @@ extends RefCounted
 ## name: [attack, defend, distance, risk, watch_min, watch_max]
 const TABLE := {
 	"neutral": [1.0, 1.0, 1.0, 1.0, 0.0, 0.0],
-	"aggressive": [1.2, 1.0, 0.8, 1.3, 0.0, 0.0],
+	"aggressive": [1.1, 1.0, 0.9, 1.15, 0.0, 0.0], # v0.10 sims: 1.2/0.8/1.3 lost far too often
 	"cautious": [0.85, 1.15, 1.25, 0.6, 2.0, 4.0],
 	"opportunist": [1.0, 1.0, 1.15, 1.5, 3.0, 5.0],
 }
