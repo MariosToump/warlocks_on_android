@@ -98,14 +98,15 @@ func _test_reposition_approaches() -> void:
 	_park_all()
 	var ai := _make_bot(blue, "brawler", "normal")
 	_place(blue, c)
-	_place(green, c + Vector2(400, 0))
+	(blue.get_spell("E") as Spell).cooldown_left = 99.0 # walking, not zapping it away
+	await _open_up(green, c + Vector2(400, 0))
 	var d := INF
 	var t := 0.0
 	while t < 3.0:
 		await _frames(1)
 		t += 1.0 / 60.0
 		d = minf(d, blue.global_position.distance_to(green.global_position))
-	_check(d < 150.0, "brawler closes from 400 px to < 150 px in 3 s (closest %.0f)" % d)
+	_check(d < 150.0, "brawler closes on an open target from 400 px to < 150 px in 3 s (closest %.0f)" % d)
 	_remove_bot(ai)
 
 
@@ -234,9 +235,10 @@ func _test_brawler_uses_staff() -> void:
 	_park_all()
 	var ai := _make_bot(blue, "brawler", "normal")
 	_place(blue, c)
-	_place(green, c + Vector2(200, 0))
+	(blue.get_spell("E") as Spell).cooldown_left = 99.0 # the staff, not a zap
+	await _open_up(green, c + Vector2(200, 0))
 	var t := await _time_to_use(blue, "A", 4.0)
-	_check(t >= 0.0, "brawler walks up and swings the staff within 4 s (%.1f s)" % t)
+	_check(t >= 0.0, "brawler walks up to an open target and swings within 4 s (%.1f s)" % t)
 	_remove_bot(ai)
 
 
@@ -522,6 +524,17 @@ func _test_retaliates_against_attacker() -> void:
 
 
 # --- helpers -----------------------------------------------------------------
+
+## v0.10: the Brawler waits for an opening before charging. Give `w` one a
+## player would see (hurt + just blinked), then put it at `at`.
+func _open_up(w: Wizard, at: Vector2) -> void:
+	await _frames(2) # the bot's memory starts watching a frame after it's added
+	_place(w, at)
+	(w.get_spell("W") as Spell).cooldown_left = 0.0
+	w.cast("W", at + Vector2(0, 40))
+	await _frames(20)
+	w.global_position = at
+	w.health = 30.0
 
 ## "survivor" = a bot that only dodges, shields and recovers, and otherwise
 ## stands still (so survival tests can't pass by accident).

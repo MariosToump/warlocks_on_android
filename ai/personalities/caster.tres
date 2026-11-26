@@ -8,3 +8,5 @@ personality_name = "Caster"
 preferred_distance = 220.0
 retreat_bias = 0.5
 weights = {"homing": 1.0, "blink_in": 0.6, "dodge": 0.9, "fireball": 1.0, "lightning": 1.0, "recover": 1.0, "reposition": 1.0, "shield": 1.0, "staff": 0.7}
+mood_odds = {"aggressive": 0.3, "cautious": 0.45, "opportunist": 0.25}
+risk_appetite = 0.5

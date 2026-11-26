@@ -62,6 +62,11 @@ func _run() -> void:
 	await _test_memory_freed_enemy()
 	await _test_opportunity()
 	await _test_risk_prefers_exposed_target()
+	# Task 4: personalities
+	await _test_brawler_dodges()
+	await _test_brawler_zigzags()
+	await _test_brawler_waits_for_opening()
+	await _test_trickster_third_party()
 
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
@@ -324,6 +329,109 @@ func _test_risk_prefers_exposed_target() -> void:
 	var opp := ai.opportunity(purple)
 	_check(opp >= 0.6, "purple is exposed (%.2f)" % opp)
 	_check(ai._pick_target() == purple, "goes for the exposed one")
+	_remove_bot(ai)
+
+
+# --- Task 4 ------------------------------------------------------------------
+
+## Blue used to shield everything he could have dodged. With his shield
+## ready, 20 fireballs from 400 px: he should sidestep most of them.
+func _test_brawler_dodges() -> void:
+	print("brawler dodges")
+	_park_all()
+	var ai := _make_bot(blue, "brawler", "normal")
+	for s in ["Q", "E", "A"]: # no counter-attacks: only dodge or shield
+		(blue.get_spell(s) as Spell).cooldown_left = 999.0
+	var dodged := 0
+	var shielded := 0
+	for i in 20:
+		blue.reset(c)
+		green.reset(c + Vector2.from_angle(i * TAU / 20.0) * 400.0)
+		(green.get_spell("Q") as Spell).cooldown_left = 0.0
+		(blue.get_spell("R") as Spell).cooldown_left = 0.0
+		(blue.get_spell("W") as Spell).cooldown_left = 0.0
+		await _frames(2)
+		if not green.cast("Q", blue.global_position):
+			continue
+		var used_shield := false
+		for f in 72:
+			await _frames(1)
+			used_shield = used_shield or blue.is_shielded()
+		if used_shield:
+			shielded += 1
+		elif blue.health >= 99.99:
+			dodged += 1
+	_check(dodged >= 6 and dodged >= shielded * 2, "dodges more than he shields (dodged %d, shielded %d)" % [dodged, shielded])
+	for s in ["Q", "E", "A"]:
+		(blue.get_spell(s) as Spell).cooldown_left = 0.0
+	_remove_bot(ai)
+
+
+func _test_brawler_zigzags() -> void:
+	print("brawler zig-zags")
+	_park_all()
+	var ai := _make_bot(blue, "brawler", "normal")
+	for s in ["Q", "E", "W", "A"]: # walk only: no spells, no staff
+		(blue.get_spell(s) as Spell).cooldown_left = 99.0
+	_place(blue, c)
+	_place(green, c + Vector2(520, 0))
+	# Count changes of sideways direction (his strafe already curves the
+	# path to one side, so "both sides of the line" isn't the measure).
+	var flips := 0
+	var side := 0
+	var last_y := blue.global_position.y
+	for i in 200:
+		await _frames(1)
+		var vy := (blue.global_position.y - last_y) * 60.0
+		last_y = blue.global_position.y
+		if blue.global_position.distance_to(green.global_position) > 140.0 and absf(vy) > 20.0:
+			var now := 1 if vy > 0.0 else -1
+			if side != 0 and now != side:
+				flips += 1
+			side = now
+	_check(flips >= 2, "weaves on the way in (%d sideways turns)" % flips)
+	_park_all()
+	_remove_bot(ai)
+
+
+func _test_brawler_waits_for_opening() -> void:
+	print("brawler waits for an opening")
+	_park_all()
+	var ai := _make_bot(blue, "brawler", "normal")
+	_place(blue, c)
+	_place(green, c + Vector2(300, 0))
+	await _frames(2)
+	ai.target = green
+	var hold := ai.preferred_distance()
+	_check(absf(hold - 130.0) < 1.0, "healthy enemy, nothing seen: holds at ~130 (%.0f)" % hold)
+	await _cast_and_wait(green, "Q", c + Vector2(300, -300))
+	var go := ai.preferred_distance()
+	_check(go < 60.0, "enemy just threw a spell: charges in (%.0f)" % go)
+	_remove_bot(ai)
+
+
+## The Trickster goes after the wizard busy fighting someone else.
+func _test_trickster_third_party() -> void:
+	print("trickster third party")
+	_park_all()
+	var ai := _make_bot(purple, "trickster", "normal")
+	_place(purple, c)
+	_place(green, c + Vector2(300, 0)) # busy: just hit by the player
+	_place(blue, c + Vector2(-250, 0)) # idle, a bit nearer
+	await _frames(2)
+	green.take_damage(1.0, player)
+	ai.target = null
+	_check(ai._pick_target() == green, "picks the busy enemy over the nearer idle one")
+	var caster := _make_bot(green, "caster", "normal") # control: the sniper doesn't care as much
+	_place(green, c)
+	_place(blue, c + Vector2(300, 0))
+	_place(player, c + Vector2(-250, 0))
+	_place(purple, c + Vector2(-900, -300)) # out of the way
+	await _frames(2)
+	blue.take_damage(1.0, purple)
+	caster.target = null
+	_check(caster._pick_target() == player, "the Caster still takes the nearer one")
+	_remove_bot(caster)
 	_remove_bot(ai)
 
 

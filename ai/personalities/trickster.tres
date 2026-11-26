@@ -8,3 +8,6 @@ personality_name = "Trickster"
 preferred_distance = 180.0
 retreat_bias = 0.5
 weights = {"homing": 1.2, "blink_in": 1.6, "dodge": 1.1, "fireball": 1.0, "lightning": 1.3, "recover": 1.0, "reposition": 1.0, "shield": 0.8, "staff": 1.0}
+mood_odds = {"aggressive": 0.2, "cautious": 0.2, "opportunist": 0.6}
+risk_appetite = 1.2
+opportunist_targeting = 1.5

@@ -23,3 +23,11 @@ func weight(action: String) -> float:
 ## goes for an opening (scales the opportunity bonus).
 @export var mood_odds := {"aggressive": 1.0, "cautious": 1.0, "opportunist": 1.0}
 @export var risk_appetite := 0.8
+## v0.10 Brawler: weave from side to side while closing in.
+@export var zigzag := false
+## v0.10 Brawler: hold just out of reach until the target is open or has
+## just thrown a spell, then charge in.
+@export var patient_charge := false
+## v0.10: how much an enemy's opportunity counts when picking a target
+## (the Trickster's third-party instinct).
+@export var opportunist_targeting := 1.0

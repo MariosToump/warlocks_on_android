@@ -47,6 +47,15 @@ const COOLDOWN_GUESS := 0.9
 const OPPORTUNITY_TARGETING := 220.0
 ## Blink in from this far when the target is wide open (normally 220).
 const RISKY_BLINK := 300.0
+## Patient charge (Brawler): hold this far off until the target is this open,
+## or was seen throwing an attack spell this recently.
+const PATIENT_HOLD := 130.0
+const PATIENT_OPENING := 0.4
+const PATIENT_SEEN := 1.2
+const ATTACK_SLOTS := ["Q", "E", "D"]
+## Zig-zag (Brawler): steps this long, this far to the side.
+const ZIG_STEP := 80.0
+const ZIG_SIDE := 40.0
 
 @export var profile: AIProfile
 @export var personality: AIPersonality
@@ -69,6 +78,9 @@ var _goal = null
 ## +1 / -1: which way the bot circles its target while repositioning.
 var _strafe := 1.0
 var _strafe_left := 0.0
+## Zig-zag side (+1 / -1) and time until it flips.
+var _zig := 1.0
+var _zig_left := 0.0
 ## Per projectile (instance id): [tries to dodge, would shield] rolled once.
 var _rolls := {}
 ## Per enemy (instance id) mid-cast: shield against this cast? Rolled once.
@@ -131,8 +143,21 @@ func watching() -> bool:
 ## Distance it wants from its target: personality x mood, and well out of
 ## reach while watching.
 func preferred_distance() -> float:
-	var d := personality.preferred_distance * mood.distance_mult
+	var d := personality.preferred_distance
+	if personality.patient_charge and target and not _opening_to_charge():
+		d = maxf(d, PATIENT_HOLD)
+	d *= mood.distance_mult
 	return maxf(d, WATCH_DISTANCE) if watching() else d
+
+
+## Patient charge: is the target open, or did it just throw a spell?
+func _opening_to_charge() -> bool:
+	if opportunity(target) >= PATIENT_OPENING:
+		return true
+	for slot in ATTACK_SLOTS:
+		if memory.seen(target, slot) < PATIENT_SEEN:
+			return true
+	return false
 
 
 func _watch_everyone() -> void:
@@ -205,6 +230,10 @@ func _physics_process(delta: float) -> void:
 	if _strafe_left <= 0.0:
 		_strafe_left = randf_range(1.5, 3.5)
 		_strafe = -_strafe
+	_zig_left -= delta
+	if _zig_left <= 0.0:
+		_zig_left = randf_range(0.4, 0.7)
+		_zig = -_zig
 	_think_left -= delta
 	if _think_left <= 0.0:
 		_think_left = profile.think_interval * randf_range(0.8, 1.2)
@@ -286,7 +315,7 @@ func _pick_target() -> Wizard:
 		cost -= w.match_wins * LEADER_BONUS
 		if _lava_within(w.global_position, NEAR_LAVA):
 			cost -= 150.0
-		cost -= opportunity(w) * OPPORTUNITY_TARGETING * risk()
+		cost -= opportunity(w) * OPPORTUNITY_TARGETING * risk() * personality.opportunist_targeting
 		if w == target:
 			cost -= KEEP_TARGET_BONUS
 		if w == wizard.last_attacker and Time.get_ticks_msec() / 1000.0 - wizard.last_hit_at < RETALIATE_TIME:
@@ -345,6 +374,12 @@ func _do_reposition() -> void:
 		want = lerpf(d, want, personality.retreat_bias)
 	var dir := from_target.normalized().rotated(_strafe * 0.35)
 	_goal = target.global_position + dir * want
+	if personality.zigzag and d > want:
+		# Weave in: short steps toward the goal, alternating sides.
+		var step: Vector2 = _goal - wizard.global_position
+		if step.length() > ZIG_STEP + 20.0:
+			var f := step.normalized()
+			_goal = wizard.global_position + f * ZIG_STEP + f.orthogonal() * ZIG_SIDE * _zig
 
 
 ## Homing Orb (slot D, bought in the shop): slow but it curves, so good at
