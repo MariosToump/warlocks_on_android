@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
+_Last updated: 2026-11-27 (todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -61,6 +61,21 @@ brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) sta
   an "All rights reserved" notice (LICENSE + README), and a separate public repo with only the APK (e.g.
   `warlocks_on_android-releases`) so download links still work; each release gets published there. Later, before
   a store release: Godot PCK encryption (custom export templates). Optional: an itch.io page for testers.
+- [ ] 12. **More spells (the original map's set, our own versions)** (user, 2026-11-27): Thrust (dash + shove),
+  Link (tether that pulls), Drain (life steal over time), Bouncer (bounces between enemies), Splitter (breaks into
+  pieces), Rush / Windwalk (speed burst, maybe brief invisibility). Own names / art / numbers. Each gets bot
+  `_score_X` / `_do_X`, a test and a harness check. After todo 13 settles the design.
+- [ ] 13. **Spell interactions and combos (planning)** — a matrix of which spells combine (e.g. Gravity Well + Meteor,
+  Time Stop + Meteor, Link / Swap + lava, Bouncer off Rock Walls, Thrust into Gravity Well) and which counter which;
+  bots learn the main combos. Brainstorm first, before todo 12.
+- [ ] 14. **Swappable starters** — sell Fireball / Lightning / Blink / Shield in the shop to buy others. To settle in
+  the todo 13 brainstorm: Q-R become normal slots; a minimum loadout (e.g. keep one projectile or one escape)?;
+  refund rule; bots must play any loadout; button icons follow the spell.
+- [ ] 15. **Shop redesign: icon grid + info box** (the user's choice, 2026-11-27) — with ~17 spells the row list in
+  `scripts/shop_panel.gd` is too long for a 10 s shop. Your spells + upgrades as a tile row at the top (tap:
+  upgrade / sell); new spells as an icon grid (~6 per row, price on each tile), tap one for name, description,
+  combo hint and Buy in an info box on the right; items as a tile row. Fits 1280x720 with no scrolling; update
+  `tools/test_shop_layout.gd`. Before or with todo 12.
 - [ ] 0. **Graphics and design** **← next** — _visual pass 1 (Godot) done 2026-11-27, Android v0.13. Design:
   `docs/superpowers/specs/2026-11-27-visual-pass-design.md`. The user: don't darken the arena for now (so no
   normal maps yet). Next: the PixelLab finish (below), then more Godot polish after the user's phone check._
