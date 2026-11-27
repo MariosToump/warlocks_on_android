@@ -100,6 +100,7 @@ func _test_reposition_approaches() -> void:
 	_place(blue, c)
 	(blue.get_spell("E") as Spell).cooldown_left = 99.0 # walking, not zapping it away
 	await _open_up(green, c + Vector2(400, 0))
+	await _lightning_down(green) # v0.12: he rushes a hurt target only once its lightning is spent
 	var d := INF
 	var t := 0.0
 	while t < 3.0:
@@ -238,15 +239,15 @@ func _test_brawler_uses_staff() -> void:
 	_place(blue, c)
 	(blue.get_spell("E") as Spell).cooldown_left = 99.0 # the staff, not a zap
 	await _open_up(green, c + Vector2(200, 0))
+	await _lightning_down(green) # v0.12: he rushes a hurt target only once its lightning is spent
 	var t := await _time_to_use(blue, "A", 4.0)
 	_check(t >= 0.0, "brawler walks up to an open target and swings within 4 s (%.1f s)" % t)
 	_restore(green)
 	_remove_bot(ai)
 
 
-## Closest a bot gets to a passive target in 12 s (v0.10: the Brawler waits
-## a few seconds for an opening, then charges, so an average mostly measured
-## the waiting and his lightning shoving the dummy away).
+## Closest a bot gets to a passive, healthy target in 12 s (v0.12: the
+## Brawler holds mid range until there's a real chance).
 func _closest_distance(pers: String) -> float:
 	_park_all()
 	var ai := _make_bot(blue, pers, "normal")
@@ -271,7 +272,7 @@ func _test_personalities_keep_different_distances() -> void:
 	print("personalities")
 	var brawler := await _closest_distance("brawler")
 	var caster := await _closest_distance("caster")
-	_check(brawler < 90.0, "brawler goes into melee range (closest %.0f px)" % brawler)
+	_check(brawler > 200.0 and brawler < 380.0, "brawler holds mid range against a healthy target (closest %.0f px)" % brawler)
 	_check(caster > 130.0, "caster never does (closest %.0f px)" % caster)
 
 
@@ -541,6 +542,13 @@ func _open_up(w: Wizard, at: Vector2) -> void:
 	w.global_position = at
 	w.health = 30.0
 	w.knockback_taken_multiplier = 0.0 # positioning tests: hits don't shove it away
+
+
+## `w` zaps away from everyone, so its lightning is recharging (bots saw it).
+func _lightning_down(w: Wizard) -> void:
+	(w.get_spell("E") as Spell).cooldown_left = 0.0
+	w.cast("E", w.global_position + Vector2(0, -300))
+	await _frames(20)
 
 
 func _restore(w: Wizard) -> void:

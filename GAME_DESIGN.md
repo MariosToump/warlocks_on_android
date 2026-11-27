@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (Android v0.11 released: Lightning rework + slower lava. Next: secondary spell effects)_
+_Last updated: 2026-11-27 (Android: Brawler rework done (19-20% of round wins), not yet released. Next, the user's choice: the remaining spells (milestone 9))_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -59,9 +59,11 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
   N wizards, phone performance).
 - [ ] 6. **Terrain stone walls brainstorm** — the user meant stones / stone walls as part of the island terrain, not a
   spell. Separate brainstorm session. The Rock Wall shop spell stays for now.
-- [ ] 7. **Brawler balance (discuss):** after the bot rework he still wins only ~9% of rounds (6-7% after the v0.11 Lightning reach) (target 15%). Bot-only
-  tuning plateaued; melee is weak in the lava-first balance. Options: more staff knockback, a gap-closer, or accept
-  him as the underdog.
+- [x] 7. **Brawler balance** — _done 2026-11-27 on Android. Design + sim log:
+  `docs/superpowers/specs/2026-11-27-brawler-midrange-design.md`; details under "Android v0.12 Brawler" below._
+  The user: a mid-range fighter who rushes in only on a chance, with a reward for it, as a rule for every wizard
+  (option A). Holds 300 px; rushes only when the target is wide open (opportunity >= 0.7), or below 35% HP with its
+  Lightning down. A staff hit within 1.5 s of your own Blink pushes x1.4. Round wins 6% -> 19-20%.
 
 **v1.0:** camera that tilts from top-down into a 3D perspective (2.5D hybrid, inspired by storm.game; our own code):
 gameplay stays 2D, a 3D render layer mirrors it (heightmap island, billboard sprites, lava plane), Camera3D blends
@@ -79,7 +81,8 @@ challenges, cosmetic unlocks, a step-by-step tutorial.
 - [x] 6. Rounds, score, shrinking arena, win screen. _Done 2026-11-24 (PC and Android)._
 - [x] 7. Shop between rounds, gold, upgrades, items. _Done 2026-11-25 (Android only)._
 - [x] 8. Polish: screen shake, hit flash, particles, sounds, menu. _Done on Android in v0.8 + v0.9 (2026-11-26)._
-- [ ] 9. Remaining spells. (Homing Orb v0.8, Rock Wall v0.9 done on Android) — after the v1.0 camera.
+- [ ] 9. Remaining spells. (Homing Orb v0.8, Rock Wall v0.9 done on Android) **← next** (the user, 2026-11-27:
+  before the v1.0 camera; effect art drawn in Godot code, pixel style like the PixelLab effects).
 
 Right now it's a match of rounds against three AI bots (they fight you and each other). Last wizard standing
 wins the round; first to 5 round wins takes the match, then a results screen with "Play again".
@@ -240,6 +243,32 @@ Android v0.11: a longer Lightning with a stronger tip; the lava shrinks every 18
     stand-in 27%, Trickster 27%, Brawler 6% (v0.10: 6:16, 44 s, 65%, 40 / 28 / 25 / 7-10%).
   - Tests: `tools/test_lightning.gd` (new: reach, tip knockback, tip width, shield, bots); `test_spells` (out-of-range
     now 520 px), `test_ai_human` (weave test starts further out).
+
+- **Android v0.12 Brawler** (2026-11-27, Android only).
+  - **Behaviour:**
+    - `brawler.tres`: `preferred_distance` 50 -> 300, and a new `charge_distance` of 50.
+    - `AIController._opening_to_charge` is true when `opportunity` >= 0.7, or when the target is below 35% HP
+      **and** its Lightning is probably down.
+    - The impatient charge and the "threw a spell 1.2 s ago" trigger are gone.
+  - **Blink-staff combo (every wizard):**
+    - `Wizard.last_blink_at` is set by Blink.
+    - `StaffStrikeSpell.combo_open(w)`: within `COMBO_WINDOW` (1.5 s), knockback x`COMBO_KNOCKBACK` (1.4) and a
+      1.5x arc.
+    - Bots score the staff +0.6 while the combo is open.
+    - When rushing, they Blink in (26 px short, on their side) even with no lava near.
+  - **Debugging (project copies, 40 matches each):**
+    - With the default personality he wins 21-25% of rounds, and with mid range and no rush 32%.
+    - Any rush that's frequent or goes deep drops him to 5-11%. Walking into melee was what killed him all along.
+  - **Harness (Normal, 2 x 40 matches):**
+    - round wins: Brawler 19 / 20%, Caster 32 / 31%, Player stand-in 26 / 25%, Trickster 23 / 24%
+    - lava deaths 64 / 62%
+    - fights 50 s
+    - Matches are **8:16 / 8:19** (target 5-8): with more even bots it takes about 8 rounds to reach 3 wins.
+  - **Tests:**
+    - `tools/test_brawler.gd` is new: combo ratio and window, the 300 px hold, rush triggers, no impatience,
+      Blink-in without lava.
+    - `test_ai_human`: the old wait and impatience tests were removed.
+    - `test_ai`: the open-target tests spend the target's Lightning first; "holds mid range" replaces "melee".
 
 ### Changed from the plan above
 - Move speed is **165** (not 140). Fireball flies 560 px/s.

@@ -43,6 +43,8 @@ var damage_taken := 0.0
 ## Who hit us last, and when (seconds, Time.get_ticks_msec() based).
 var last_attacker: Wizard = null
 var last_hit_at := -100.0
+## When we last blinked (same clock): opens the Blink -> staff combo.
+var last_blink_at := -100.0
 var alive := true
 var on_lava := false
 var arena: Arena

@@ -66,8 +66,7 @@ func _run() -> void:
 	# Task 4: personalities
 	await _test_brawler_dodges()
 	await _test_brawler_zigzags()
-	await _test_brawler_waits_for_opening()
-	await _test_brawler_gets_impatient()
+	# (v0.12: the Brawler's hold / rush rules live in tools/test_brawler.gd)
 	await _test_trickster_third_party()
 
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
@@ -427,55 +426,6 @@ func _test_brawler_zigzags() -> void:
 			side = now
 	_check(flips >= 2, "weaves on the way in (%d sideways turns)" % flips)
 	_park_all()
-	_remove_bot(ai)
-
-
-func _test_brawler_waits_for_opening() -> void:
-	print("brawler waits for an opening")
-	_park_all()
-	var ai := _make_bot(blue, "brawler", "normal")
-	_place(blue, c)
-	_place(green, c + Vector2(300, 0))
-	await _frames(2)
-	ai.target = green
-	var hold := ai.preferred_distance()
-	var zap: float = (green.get_spell("E") as LightningSpell).max_range
-	_check(hold > zap, "healthy enemy, nothing seen: waits outside lightning range (%.0f > %.0f)" % [hold, zap])
-	await _cast_and_wait(green, "Q", c + Vector2(300, -300))
-	var go := ai.preferred_distance()
-	_check(go < 60.0, "enemy just threw a fireball: charges in (%.0f)" % go)
-	ai._now += 2.0
-	_check(ai.preferred_distance() > zap, "a while later: back to waiting")
-	await _cast_and_wait(green, "E", c + Vector2(300, -300))
-	ai._now += 3.0
-	_check(ai.preferred_distance() < 60.0, "lightning used 3 s ago (still recharging): charges in")
-	ai._now += 2.0
-	_check(ai.preferred_distance() > zap, "lightning probably back: waits again")
-	_remove_bot(ai)
-
-
-## Waiting forever on a target that never attacks isn't human: after a few
-## seconds without an opening he goes in anyway.
-func _test_brawler_gets_impatient() -> void:
-	print("brawler gets impatient")
-	_park_all()
-	var ai := _make_bot(blue, "brawler", "normal")
-	for s in ["Q", "E", "W", "D"]: # waiting / walking only
-		if blue.get_spell(s):
-			(blue.get_spell(s) as Spell).cooldown_left = 999.0
-	_place(blue, c)
-	_place(green, c + Vector2(300, 0))
-	await _frames(30)
-	_check(ai.preferred_distance() > 200.0, "waits at first (%.0f)" % ai.preferred_distance())
-	var charged := false
-	for i in 6 * 60:
-		await _frames(1)
-		green.health = 100.0
-		charged = charged or ai.preferred_distance() < 60.0
-	_check(charged, "charges in anyway within 6 s")
-	for s in ["Q", "E", "W", "D"]:
-		if blue.get_spell(s):
-			(blue.get_spell(s) as Spell).cooldown_left = 0.0
 	_remove_bot(ai)
 
 

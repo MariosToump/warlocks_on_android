@@ -25,9 +25,10 @@ func weight(action: String) -> float:
 @export var risk_appetite := 0.8
 ## v0.10 Brawler: weave from side to side while closing in.
 @export var zigzag := false
-## v0.10 Brawler: hold just out of reach until the target is open or has
-## just thrown a spell, then charge in.
+## Brawler (v0.12): hold at preferred_distance (mid range) and rush in to
+## charge_distance only when the target is open or its lightning is down.
 @export var patient_charge := false
+@export var charge_distance := 50.0
 ## v0.10: how much an enemy's opportunity counts when picking a target
 ## (the Trickster's third-party instinct).
 @export var opportunist_targeting := 1.0

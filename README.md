@@ -45,7 +45,7 @@ After every round you get gold — 10, plus 5 per kill, plus 5 if you won the ro
 | Left half of the screen | Floating joystick — walk (the ring follows your thumb). Or **Touchpad** (setting): the whole left half is a pad, slide a little to walk at full speed |
 | Big button (bottom right) | Staff swing on the spot; hold to keep swinging |
 | Fireball | Tap = auto-aim (nearest enemy in range, ones you can see first, aimed ahead of a walker); drag to aim (the guide shows the full range); drag back onto the button to cancel |
-| Blink | Short teleport (tap = forward, or drag to aim) |
+| Blink | Short teleport (tap = forward, or drag to aim). A staff hit within 1.5 s of your Blink pushes 40% harder |
 | Lightning | Instant bolt (450 px) with big knockback. Hit with the tip for an extra push |
 | Shield | 1.5 s bubble that reflects projectiles |
 | Homing Orb (once bought) | Tap = toward the nearest enemy in range; drag to aim |
@@ -70,7 +70,7 @@ The game opens on a title menu with the bots already fighting behind it. Back on
 ### The bots
 | Colour | Personality | Plays like |
 |---|---|---|
-| Blue | Brawler | The charger: dodges your spells, weaves in, waits just out of zap range and rushes you when you've used your lightning or left yourself open |
+| Blue | Brawler | The bruiser: dodges your spells and trades zaps and fireballs from mid range, then rushes in (often with a Blink and a staff combo) when you're hurt with your lightning spent, or wide open |
 | Green | Caster | The sniper: keeps its distance, fireballs, zaps anyone who gets close; often plays it safe |
 | Purple | Trickster | The opportunist: hangs back while others fight, then blinks in to push hurt wizards into the lava |
 

@@ -51,20 +51,18 @@ const OPPORTUNITY_TARGETING := 220.0
 ## Recover at least this urgent (on lava, lava arriving, flying toward it)
 ## wins outright: no mood, opportunity or random pick can outrank it.
 const URGENT_RECOVER := 2.5
-## Patient charge (Brawler): wait just outside lightning range (ours, +this
-## margin) until the target is this open, threw a spell this recently, or used
-## its lightning recently enough that it's probably still recharging.
-const PATIENT_MARGIN := 20.0
-const PATIENT_OPENING := 0.4
-const PATIENT_SEEN := 1.2
-const ATTACK_SLOTS := ["Q", "D"]
-## Patient charge: after waiting this long (rolled) with no opening he goes in
-## anyway, for CHARGE_TIME s; while charging, closing in counts this much more
-## than poking from range (commit to it).
-const PATIENCE_MIN := 3.0
-const PATIENCE_MAX := 5.0
-const CHARGE_TIME := 3.0
+## Patient charge (Brawler, v0.12): hold at his own preferred (mid) range and
+## rush in to personality.charge_distance only on a strong chance: the target
+## is this open, or it's hurt (below LOW_HP of max) and its lightning (what
+## punishes a rush) is probably recharging. Sims: rushing on weaker chances
+## (or often) gets him killed -- 5-11% of round wins vs 25% like this.
+## While rushing, closing in counts this much more than poking from range.
+const PATIENT_OPENING := 0.7
+const LOW_HP := 0.35
 const CHARGE_COMMIT := 1.6
+## Blink -> staff combo window (StaffStrikeSpell.COMBO_WINDOW): the staff
+## scores this much more while it's open.
+const COMBO_STAFF_BONUS := 0.6
 ## Zig-zag (Brawler): steps this long, this far to the side.
 const ZIG_STEP := 80.0
 const ZIG_SIDE := 40.0
@@ -93,11 +91,6 @@ var _strafe_left := 0.0
 ## Zig-zag side (+1 / -1) and time until it flips.
 var _zig := 1.0
 var _zig_left := 0.0
-## Patient charge: time spent waiting for an opening, how long it will wait,
-## and when an impatient charge ends.
-var _waited := 0.0
-var _patience := randf_range(PATIENCE_MIN, PATIENCE_MAX)
-var _charge_until := -1.0
 var _last_think := 0.0
 ## Per projectile (instance id): [tries to dodge, would shield] rolled once.
 var _rolls := {}
@@ -143,9 +136,6 @@ func reset() -> void:
 	_think_left = randf() * profile.think_interval
 	memory.clear()
 	_watch_everyone()
-	_waited = 0.0
-	_charge_until = -1.0
-	_patience = randf_range(PATIENCE_MIN, PATIENCE_MAX)
 	_start_mood(AIMood.roll(personality.mood_odds))
 
 
@@ -165,43 +155,15 @@ func watching() -> bool:
 ## reach while watching.
 func preferred_distance() -> float:
 	var d := personality.preferred_distance
-	if personality.patient_charge and target and not _opening_to_charge():
-		d = maxf(d, _patient_hold())
+	if personality.patient_charge and target and _opening_to_charge():
+		d = personality.charge_distance
 	d *= mood.distance_mult
 	return maxf(d, WATCH_DISTANCE) if watching() else d
 
 
-## Patient charge: wait just out of lightning reach (judged by our own).
-func _patient_hold() -> float:
-	var bolt := wizard.get_spell("E") as LightningSpell
-	return (bolt.max_range if bolt else 230.0) + PATIENT_MARGIN
-
-
-## Patient charge: is the target open, did it just throw a spell, or is its
-## lightning (the thing that punishes a charge) probably recharging?
+## Patient charge: is the target wide open, or hurt with its lightning down?
 func _opening_to_charge() -> bool:
-	if _now < _charge_until:
-		return true # impatient: going in anyway
-	if opportunity(target) >= PATIENT_OPENING or _probably_down(target, "E"):
-		return true
-	for slot in ATTACK_SLOTS:
-		if memory.seen(target, slot) < PATIENT_SEEN:
-			return true
-	return false
-
-
-## Patient charge: count the wait; when patience runs out, charge anyway.
-func _update_patience(dt: float) -> void:
-	if not personality.patient_charge or target == null or _now < _charge_until:
-		return
-	if _opening_to_charge():
-		_waited = 0.0
-		return
-	_waited += dt
-	if _waited >= _patience:
-		_charge_until = _now + CHARGE_TIME
-		_waited = 0.0
-		_patience = randf_range(PATIENCE_MIN, PATIENCE_MAX)
+	return opportunity(target) >= PATIENT_OPENING 		or (target.health < target.max_health * LOW_HP and _probably_down(target, "E"))
 
 
 func _watch_everyone() -> void:
@@ -289,7 +251,6 @@ func _physics_process(delta: float) -> void:
 
 func _think() -> void:
 	target = _pick_target()
-	_update_patience(_now - _last_think)
 	_last_think = _now
 	if watching() and (wizard.last_hit_at != _watch_hit_mark 			or (target and opportunity(target) >= WATCH_BREAK_OPPORTUNITY)):
 		_watch_until = _now # hit, or someone left wide open: join in
@@ -514,7 +475,10 @@ func _score_staff() -> float:
 	var d := _target_distance()
 	if d > STAFF_ENGAGE or not _reachable(target):
 		return 0.0
-	return 0.8 + (0.4 if _lava_behind(target, wizard.global_position) else 0.0)
+	var s := 0.8 + (0.4 if _lava_behind(target, wizard.global_position) else 0.0)
+	if StaffStrikeSpell.combo_open(wizard):
+		s += COMBO_STAFF_BONUS # just blinked in: follow up with the strong swing
+	return s
 
 
 func _do_staff() -> void:
@@ -534,6 +498,17 @@ func _score_blink_in() -> float:
 	return 1.0
 
 
+## Rushing (patient charge, a real chance): blink in short of the target, on
+## our side, for the Blink -> staff combo -- lava nearby or not.
+func _rush_blink_point():
+	if not personality.patient_charge or not _opening_to_charge():
+		return null
+	var at := target.global_position + (wizard.global_position - target.global_position).normalized() * 26.0
+	if _unsafe(at):
+		return null
+	return at
+
+
 func _do_blink_in() -> void:
 	var at = _blink_in_point()
 	if at != null and _cast("W", at):
@@ -549,7 +524,7 @@ func _blink_in_point():
 		if _unsafe(target.global_position + d * NEAR_LAVA):
 			lava_dir += d
 	if lava_dir == Vector2.ZERO:
-		return null
+		return _rush_blink_point()
 	var at := target.global_position - lava_dir.normalized() * 26.0
 	var blink := wizard.get_spell("W") as BlinkSpell
 	if _lava_within(at, 12.0) or blink == null 			or wizard.global_position.distance_to(at) > blink.max_distance:
