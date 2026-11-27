@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (Android v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. Next: secondary spell effects)_
+_Last updated: 2026-11-27 (Android v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design, then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -53,7 +53,13 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
   Reach 230 -> 450 (not the fireball's 850: an instant bolt that far would take over); hitbox = a capsule around
   the drawn bolt (16 px); tip zone = last 70 px, 28 px wide, knockback x1.25, bigger spark. Bots use it up to 93%
   of the reach and favour tip hits. Lava (user, 2026-11-27): shrink every 12 -> 18 s, hold 8 -> 12 s.
-- [ ] 3. **Secondary spell effects** **← next** (after the user tests the v0.12 spells) — details to discuss. Bots learn each effect as it's added.
+**Paused 2026-11-27 (the user):** todos 3, 4, 5 and 8 wait while we work on graphics and design (more animation,
+a more "real" feel; research: a bigger PixelLab plan vs doing more in Godot). Order after the pause: terrain stones
+brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) stays last.
+- [ ] 0. **Graphics and design** **← next** — research Godot (lights, shaders, particles, juice) vs a paid PixelLab
+  plan (the account is on the free trial), then brainstorm and plan.
+- [ ] 3. **Secondary spell effects** (paused, later) — the user's direction: an "enchanted" version of each spell
+  that adds a secondary effect, with its own visuals. Details to discuss later. Bots learn each effect as it's added.
 - [ ] 4. **Extra / bonus rounds with trigger conditions** — details to discuss. Sim how often triggers fire.
 - [ ] 5. **8-warlock mode** — details to discuss (bigger island, 7 bots, spawns, HUD / score for 8, harness for
   N wizards, phone performance).
