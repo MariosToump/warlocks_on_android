@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (Android v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. Next: secondary spell effects)_
+_Last updated: 2026-11-27 (docs fixes after review; Android v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. Next: secondary spell effects)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -64,6 +64,12 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
   The user: a mid-range fighter who rushes in only on a chance, with a reward for it, as a rule for every wizard
   (option A). Holds 300 px; rushes only when the target is wide open (opportunity >= 0.7), or below 35% HP with its
   Lightning down. A staff hit within 1.5 s of your own Blink pushes x1.4. Round wins 6% -> 19-20%.
+- [ ] 8. **Match length** — v0.12 matches average 8:12 in the harness (target 5-8 min), because the four wizards
+  are now closer in strength. Wait for the user's phone test; if it feels long, try a faster lava shrink or
+  first to 3 with a shorter fight timer, and re-run `tools/playtest.gd`.
+- [ ] 9. **Test quirk** — in headless tests the player wizard creeps up about 12 px on its own (not in the game);
+  find the cause. (The flaky `test_hud_v07` "lava sizzles" check is fixed, 2026-11-27: it waited 3 frames, and
+  headless frames can pass with no physics tick; it now waits 0.2 s.)
 
 **v1.0:** camera that tilts from top-down into a 3D perspective (2.5D hybrid, inspired by storm.game; our own code):
 gameplay stays 2D, a 3D render layer mirrors it (heightmap island, billboard sprites, lava plane), Camera3D blends
@@ -278,8 +284,8 @@ Android v0.11: a longer Lightning with a stronger tip; the lava shrinks every 18
     - A bought spell takes its `home` slot, else the other free one. Both full: buying is refused.
     - `Shop.sell_spell` gives back half the price; the panel has Sell buttons and "Slots full".
     - Code finds bought spells with `Wizard.slot_of(id)`, never by a fixed slot.
-  - **Spells** (`scripts/spells/`; objects in the arena: `boomerang.gd`, `meteor_strike.gd`, `gravity_well.gd`,
-    `time_stop_field.gd`):
+  - **Spells** (`scripts/spells/`; their objects in the arena are in `scripts/`: `boomerang.gd`,
+    `meteor_strike.gd`, `gravity_well.gd`, `time_stop_field.gd`):
     - Boomerang: 6-8 dmg, kb 360-450, cd 5-3.5.
     - Swap: orb 650 px/s, range 650-800, cd 9-7.5 (`Projectile.on_hit`).
     - Meteor: 1 s delay, 75 px, 14-18 dmg, kb 650-800, crater, cd 8-6.5.
@@ -367,7 +373,7 @@ Trial: 3 generations left (out of 40). Character id `2c9f98f0-5a77-4c63-aca5-e01
 | D/F | Gravity well | Pulls enemies within 160 px to a point for 2.5 s; weaker at the rim (shop, 20). |
 | D/F | Swap | Fast orb; on a hit, you and the target trade places (shop, 15). |
 | D/F | Time stop | Freezes projectiles in a 120 px circle for 2 s (shop, 20). |
-Shop spells (v0.12): at most two at a time, in slots D and F; sell one for half its price to buy another.
+Shop spells (v0.12, Android only; the PC copy has Q-R): at most two at a time, in slots D and F; sell one for half its price to buy another.
 Every spell has a cooldown and 3 upgrade levels (more damage, knockback or shorter cooldown).
 
 ## Shop & economy

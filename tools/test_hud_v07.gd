@@ -125,7 +125,7 @@ func _run() -> void:
 	await _seconds(0.3)
 	_check("fireball" in Sfx.played, "fireball makes a sound")
 	player.global_position = _first_lava_east() + Vector2(40, 0)
-	await _frames(3)
+	await _seconds(0.2) # on_lava updates on a physics tick; 3 headless frames can pass without one
 	_check(Sfx.is_looping("lava"), "lava sizzles while you burn")
 	player.reset(c)
 	await _seconds(0.2) # on_lava updates on a physics tick
