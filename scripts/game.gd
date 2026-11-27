@@ -517,7 +517,7 @@ func _remove_ghost() -> void:
 
 func _on_wizard_died(w: Wizard) -> void:
 	var k := w.last_attacker
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := GameClock.now()
 	if is_instance_valid(k) and k != w and now - w.last_hit_at <= kill_credit_window \
 			and state in [State.FIGHT, State.FREE]:
 		kills[k] = kills.get(k, 0) + 1
@@ -662,7 +662,7 @@ func _on_player_damaged(_amount: float, source: Wizard) -> void:
 	if source != null:
 		_buzz(40)
 	else:
-		var now := Time.get_ticks_msec() / 1000.0
+		var now := GameClock.now()
 		if now - _last_lava_buzz >= 0.5:
 			_last_lava_buzz = now
 			_buzz(25)

@@ -34,7 +34,7 @@ func _init() -> void:
 
 
 static func combo_open(w: Wizard) -> bool:
-	return Time.get_ticks_msec() / 1000.0 - w.last_blink_at <= COMBO_WINDOW
+	return GameClock.now() - w.last_blink_at <= COMBO_WINDOW
 
 
 func release(target: Vector2) -> void:

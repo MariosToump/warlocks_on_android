@@ -64,7 +64,7 @@ func _test_combo_knockback() -> void:
 	var plain := _staff_push()
 	_place(player, c)
 	(player.get_spell("W") as Spell).release(c + Vector2(0, 100))
-	_check(Time.get_ticks_msec() / 1000.0 - player.last_blink_at < 0.5, "blink records when it happened")
+	_check(GameClock.now() - player.last_blink_at < 0.5, "blink records when it happened")
 	var combo := _staff_push()
 	_check(plain > 0.0 and combo / plain > 1.35 and combo / plain < 1.45,
 		"staff right after a blink pushes ~1.4x harder (%.0f vs %.0f)" % [combo, plain])
@@ -77,7 +77,7 @@ func _test_combo_window_ends() -> void:
 	player.last_blink_at = -100.0
 	var plain := _staff_push()
 	_place(player, c)
-	player.last_blink_at = Time.get_ticks_msec() / 1000.0 - 1.6
+	player.last_blink_at = GameClock.now() - 1.6
 	var late := _staff_push()
 	_check(is_equal_approx(late, plain), "1.6 s after the blink: no bonus (%.0f vs %.0f)" % [late, plain])
 

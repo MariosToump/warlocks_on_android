@@ -344,7 +344,7 @@ func _pick_target() -> Wizard:
 		cost -= opportunity(w) * OPPORTUNITY_TARGETING * risk() * personality.opportunist_targeting
 		if w == target:
 			cost -= KEEP_TARGET_BONUS
-		if w == wizard.last_attacker and Time.get_ticks_msec() / 1000.0 - wizard.last_hit_at < RETALIATE_TIME:
+		if w == wizard.last_attacker and GameClock.now() - wizard.last_hit_at < RETALIATE_TIME:
 			cost -= RETALIATE_BONUS
 		if cost < best_cost:
 			best_cost = cost

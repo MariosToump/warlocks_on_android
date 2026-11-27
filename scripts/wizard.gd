@@ -305,7 +305,7 @@ func take_damage(amount: float, source: Wizard = null) -> void:
 		return
 	if source != null and source != self:
 		last_attacker = source
-		last_hit_at = Time.get_ticks_msec() / 1000.0
+		last_hit_at = GameClock.now()
 	health = maxf(health - amount, 0.0)
 	damage_taken += amount
 	damaged.emit(amount, source)

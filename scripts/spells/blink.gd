@@ -26,7 +26,7 @@ func release(target: Vector2) -> void:
 	var fx_parent := caster.get_parent()
 	EffectOneShot.spawn_at_feet(PUFF, fx_parent, from)
 	caster.global_position = to
-	caster.last_blink_at = Time.get_ticks_msec() / 1000.0
+	caster.last_blink_at = GameClock.now()
 	caster.knockback = Vector2.ZERO
 	caster.move_target = null
 	caster.reset_physics_interpolation()
