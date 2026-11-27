@@ -66,8 +66,8 @@ static func burst(parent: Node, pos: Vector2, color: Color, amount := 12, speed 
 	p.initial_velocity_max = speed
 	p.damping_min = speed * 0.8
 	p.damping_max = speed * 1.6
-	p.scale_amount_min = 1.0
-	p.scale_amount_max = 2.0
+	p.scale_amount_min = 2.0
+	p.scale_amount_max = 3.0
 	var ramp := Gradient.new()
 	ramp.set_color(0, Color(1, 1, 1, 1).lerp(color, 0.4))
 	ramp.set_color(1, Color(color.r * 0.6, color.g * 0.4, color.b * 0.4, 0.0))
@@ -92,7 +92,7 @@ static func hit(parent: Node, pos: Vector2, dir: Vector2, kind: String) -> void:
 		"lightning":
 			burst(parent, at, c, 14, 140.0, dir, 70.0, 0.25)
 		_:
-			burst(parent, at, c, 12, 100.0, dir, 60.0, 0.35)
+			burst(parent, at, c, 16, 110.0, dir, 70.0, 0.4)
 
 
 ## A small puff at the staff when a spell is let go.

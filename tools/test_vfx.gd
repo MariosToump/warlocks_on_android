@@ -104,6 +104,12 @@ func _run() -> void:
 	GameSettings.reset()
 	GameSettings.save_settings()
 
+	print("shadows")
+	_check(Wizard.SHADOW.x > Wizard.SHADOW.y and Wizard.SHADOW.y > 0.0, "wizards have a flat shadow")
+	var orb: Projectile = load("res://scenes/projectile_fireball.tscn").instantiate()
+	_check(orb.draws_shadow, "projectiles draw a shadow")
+	orb.free()
+
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 

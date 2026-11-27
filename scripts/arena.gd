@@ -62,6 +62,8 @@ var embers: CPUParticles2D
 ## Heat shimmer over the lava (screen-reading shader); see set_heat_haze().
 var heat_haze: ColorRect
 var _embers_radius := -100.0 ## radius the ember spots were placed for
+var _embers_at := Vector2.ZERO ## camera position they were placed for
+var _embers_clock := 0.0
 
 
 func _ready() -> void:
@@ -161,6 +163,14 @@ func regrow() -> void:
 	rebuild()
 	_update_ember_points()
 	restart_shrink_timer()
+
+
+func _process(delta: float) -> void:
+	_embers_clock += delta
+	if embers and _embers_clock >= 0.5:
+		_embers_clock = 0.0
+		if camera.global_position.distance_to(_embers_at) > 96.0:
+			_update_ember_points()
 
 
 func _physics_process(delta: float) -> void:
@@ -271,26 +281,43 @@ func _make_embers() -> void:
 	embers.gravity = Vector2(0, -18)
 	embers.initial_velocity_min = 8.0
 	embers.initial_velocity_max = 22.0
-	embers.scale_amount_min = 1.0
-	embers.scale_amount_max = 2.0
+	embers.scale_amount_min = 2.0
+	embers.scale_amount_max = 3.0
+	# Bright yellow-white cores: plain orange vanishes against the lava.
 	var ramp := Gradient.new()
-	ramp.set_color(0, Color(1.0, 0.85, 0.4, 0.0))
-	ramp.set_color(1, Color(0.6, 0.1, 0.0, 0.0))
-	ramp.add_point(0.15, Color(1.0, 0.7, 0.25, 1.0))
-	ramp.add_point(0.7, Color(1.0, 0.35, 0.05, 0.8))
+	ramp.set_color(0, Color(1.0, 1.0, 0.8, 0.0))
+	ramp.set_color(1, Color(0.35, 0.08, 0.02, 0.0))
+	ramp.add_point(0.12, Color(1.0, 0.97, 0.7, 1.0))
+	ramp.add_point(0.6, Color(1.0, 0.75, 0.3, 0.9))
+	ramp.add_point(0.85, Color(0.45, 0.12, 0.04, 0.8))
 	embers.color_ramp = ramp
 	add_child(embers)
 	_update_ember_points()
 	embers.emitting = true
 
 
-## Up to 64 random lava spots 1.5-5 tiles outside the current edge.
+## Up to 64 random lava spots 1.5-5 tiles outside the current edge, on
+## screen when the camera shows some (the ring is too long for 40 embers to
+## be seen otherwise), else all around the island.
 func _update_ember_points() -> void:
 	if embers == null:
 		return
 	_embers_radius = radius_tiles
+	_embers_at = camera.global_position
 	var pts := PackedVector2Array()
 	var center := get_center()
+	var half := get_viewport_rect().size / camera.zoom / 2.0
+	for i in 160:
+		if pts.size() >= 64:
+			break
+		var p := camera.global_position + Vector2(randf_range(-half.x, half.x), randf_range(-half.y, half.y))
+		var out := _tiles_from_center(p) - _edge_at(p, radius_tiles)
+		if out >= 1.0 and out <= 5.0 and is_lava_at(p):
+			pts.append(p)
+	if pts.size() >= 8:
+		embers.emission_points = pts
+		return
+	pts.clear()
 	for i in 160:
 		if pts.size() >= 64:
 			break

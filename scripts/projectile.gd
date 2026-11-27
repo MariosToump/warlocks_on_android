@@ -11,6 +11,8 @@ const IMPACT := preload("res://scenes/effect_one_shot.tscn")
 
 ## Spark colour when it hits a wizard (Vfx.COLORS).
 var hit_kind := "fire"
+## A small shadow on the ground under the flying sprite.
+var draws_shadow := true
 var caster: Wizard
 var direction := Vector2.RIGHT
 var speed := 560.0
@@ -158,3 +160,8 @@ func _explode(fx_scale: float) -> void:
 		fx.scale = Vector2(fx_scale, fx_scale)
 		get_parent().add_child(fx)
 	queue_free()
+
+
+func _draw() -> void:
+	if draws_shadow:
+		Wizard.draw_shadow(self, Vector2.ZERO, Vector2(6.0, 2.5))

@@ -22,6 +22,9 @@ const DIR_FALLBACK := {"east": ["south-east"], "south-east": ["east", "south"], 
 const SHIELD_FRAMES := preload("res://assets/sprites/effects/shield_bubble_frames.tres")
 ## Radius of the shield bubble (projectiles bounce off here).
 const SHIELD_RADIUS := 22.0
+## Soft shadow under the feet (half-width, half-height) and its centre.
+const SHADOW := Vector2(9.0, 3.5)
+const SHADOW_AT := Vector2(0, 5)
 
 @export var max_health := 100.0
 @export var move_speed := 165.0
@@ -148,12 +151,22 @@ func has_trail() -> bool:
 
 
 func _draw() -> void:
+	if alive:
+		draw_shadow(self, SHADOW_AT, SHADOW)
 	var n := _trail.size()
 	for i in range(1, n):
 		var k := float(i) / n
 		var lift := Vector2(0, -12)
 		draw_line(to_local(_trail[i - 1]) + lift, to_local(_trail[i]) + lift,
 				Color(1.0, 0.9, 0.7, 0.75 * k), 1.5 + 3.5 * k)
+
+
+## A soft dark ellipse (two layers for a soft rim) on `ci` at `at`.
+static func draw_shadow(ci: CanvasItem, at: Vector2, half: Vector2) -> void:
+	ci.draw_set_transform(at, 0.0, Vector2(1.0, half.y / half.x))
+	ci.draw_circle(Vector2.ZERO, half.x, Color(0, 0, 0, 0.22))
+	ci.draw_circle(Vector2.ZERO, half.x * 0.7, Color(0, 0, 0, 0.22))
+	ci.draw_set_transform(Vector2.ZERO)
 
 
 func _wants_to_walk() -> bool:
@@ -354,6 +367,7 @@ func reset(at: Vector2) -> void:
 	scale = Vector2.ONE
 	sprite.scale = Vector2.ONE
 	_set_dissolve(0.0)
+	queue_redraw()
 	health_changed.emit(health, max_health)
 	_play("idle")
 	reset_physics_interpolation() # a jump, not a slide
