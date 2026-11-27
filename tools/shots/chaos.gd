@@ -20,5 +20,9 @@ func _run() -> void:
 	var i := 0
 	for w in [player, blue, green, purple]:
 		give(w, ids[i]); give(w, ids[i + 1]); i += 2
-	await seconds(14.0)
+	var secs := 14.0
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("secs="):
+			secs = float(a.get_slice("=", 1))
+	await seconds(secs)
 	quit()
