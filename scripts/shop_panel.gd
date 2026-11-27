@@ -1,16 +1,23 @@
 class_name ShopPanel
 extends Control
-## The between-rounds shop for the player: spell upgrades, the Homing Orb,
-## and items (max 2, sell for half). Opens on game.shop_opened, closes on
-## Ready or when the timer runs out. Item icons are drawn in code.
+## The between-rounds shop for the player: spell upgrades, new spells (two
+## slots), and items (max 2, sell for half). Opens on game.shop_opened, closes
+## on Ready or when the timer runs out. Item icons are drawn in code.
+## Layout (v0.12 fix): fills the screen with a margin, three columns (your
+## spells | new spells | items) in a ScrollContainer, so it never runs off a
+## phone screen; on a 1280x720 or wider screen nothing needs scrolling.
+
+const MARGIN := 12
 
 var game: Node
+var ready_button: Button
+var scroll: ScrollContainer
 
 var _dim: ColorRect
 var _gold: Label
 var _timer: Label
-var _ready_button: Button
 var _spells_box: VBoxContainer
+var _new_box: VBoxContainer
 var _items_box: VBoxContainer
 var _items_title: Label
 
@@ -29,61 +36,69 @@ func _ready() -> void:
 	sb.bg_color = Color(0.08, 0.05, 0.05, 0.95)
 	sb.border_color = Color(1.0, 0.45, 0.15)
 	sb.set_border_width_all(3)
-	sb.set_content_margin_all(18)
+	sb.set_content_margin_all(14)
 	panel.add_theme_stylebox_override("panel", sb)
 	_dim.add_child(panel)
-	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, MARGIN)
 
 	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", 12)
+	root.add_theme_constant_override("separation", 8)
 	panel.add_child(root)
 
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 24)
 	root.add_child(head)
-	var title := _label("Shop", 32)
-	head.add_child(title)
-	_gold = _label("", 24, Color(1, 0.8, 0.3))
+	head.add_child(_label("Shop", 30))
+	_gold = _label("", 22, Color(1, 0.8, 0.3))
 	_gold.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(_gold)
-	_timer = _label("", 24)
+	_timer = _label("", 22)
 	head.add_child(_timer)
-	_ready_button = _button("Ready", _on_ready, Vector2(150, 52))
-	head.add_child(_ready_button)
+	ready_button = _button("Ready", _on_ready, Vector2(150, 48))
+	head.add_child(ready_button)
 
+	scroll = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_child(scroll)
 	var cols := HBoxContainer.new()
-	cols.add_theme_constant_override("separation", 28)
-	root.add_child(cols)
-	var left := VBoxContainer.new()
-	left.add_theme_constant_override("separation", 6)
-	cols.add_child(left)
-	left.add_child(_label("Spells", 22, Color(1, 0.6, 0.25)))
-	_spells_box = VBoxContainer.new()
-	_spells_box.add_theme_constant_override("separation", 6)
-	left.add_child(_spells_box)
-	var right := VBoxContainer.new()
-	right.add_theme_constant_override("separation", 6)
-	cols.add_child(right)
-	_items_title = _label("", 22, Color(1, 0.6, 0.25))
-	right.add_child(_items_title)
-	_items_box = VBoxContainer.new()
-	_items_box.add_theme_constant_override("separation", 6)
-	right.add_child(_items_box)
+	cols.add_theme_constant_override("separation", 20)
+	cols.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(cols)
+	_spells_box = _column(cols, "Your spells")
+	_new_box = _column(cols, "New spells (2 slots)")
+	_items_box = _column(cols, "")
+	_items_title = _items_box.get_parent().get_child(0)
 
 	visible = false
+
+
+func _column(cols: HBoxContainer, title: String) -> VBoxContainer:
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 4)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cols.add_child(col)
+	col.add_child(_label(title, 20, Color(1, 0.6, 0.25)))
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 4)
+	col.add_child(box)
+	return box
 
 
 func setup(g: Node) -> void:
 	game = g
 	game.shop_opened.connect(open)
-	game.shop_closed.connect(func(): visible = false)
+	game.shop_closed.connect(_close)
 
 
 func open() -> void:
 	visible = true
+	game.pause_menu.set_pause_button(false) # the panel fills the screen; Ready / the timer end it
 	refresh()
+
+
+func _close() -> void:
+	visible = false
+	game.pause_menu.set_pause_button(true)
 
 
 func _process(_delta: float) -> void:
@@ -104,6 +119,8 @@ func refresh() -> void:
 		c.queue_free()
 	for c in _items_box.get_children():
 		c.queue_free()
+	for c in _new_box.get_children():
+		c.queue_free()
 
 	for slot in Shop.SLOTS:
 		var s := w.get_spell(slot)
@@ -111,16 +128,16 @@ func refresh() -> void:
 			continue
 		var row := _row()
 		row.add_child(_spell_icon(s))
-		var lbl := _label("%s  Lv %d/3" % [s.spell_name, s.level], 20)
-		lbl.custom_minimum_size.x = 230
+		var lbl := _label("%s  Lv %d/3" % [s.spell_name, s.level], 18)
+		lbl.custom_minimum_size.x = 160
 		row.add_child(lbl)
 		var cost := Shop.upgrade_cost(w, slot)
-		var b := _button("Max" if cost < 0 else "Upgrade %dg" % cost, func(): _buy(func(): return Shop.upgrade(game, w, slot)))
+		var b := _button("Max" if cost < 0 else "Up %dg" % cost, func(): _buy(func(): return Shop.upgrade(game, w, slot)), Vector2(100, 44))
 		b.disabled = not Shop.can_upgrade(game, w, slot)
 		row.add_child(b)
 		if s.spell_id != "" and Shop.SPELLS.has(s.spell_id):
 			var id := s.spell_id
-			row.add_child(_button("Sell +%dg" % Shop.spell_sell_price(id), func(): _buy(func(): return Shop.sell_spell(game, w, id))))
+			row.add_child(_button("Sell +%dg" % Shop.spell_sell_price(id), func(): _buy(func(): return Shop.sell_spell(game, w, id)), Vector2(100, 44)))
 		_spells_box.add_child(row)
 	for id in Shop.SPELLS:
 		if Shop.has_spell(w, id):
@@ -132,19 +149,20 @@ func refresh() -> void:
 		icon.texture = sample.icon
 		icon.modulate = sample.icon_tint
 		sample.free()
-		icon.custom_minimum_size = Vector2(44, 44)
+		icon.custom_minimum_size = Vector2(36, 36)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		row.add_child(icon)
-		var lbl := _label("New: %s\n%s" % [info.name, info.desc], 16)
+		var lbl := _label("%s\n%s" % [info.name, info.desc], 14)
 		lbl.custom_minimum_size.x = 230
+		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 		row.add_child(lbl)
 		var full := Shop.free_slot(w, id) == ""
-		var b := _button("Slots full" if full else "Buy %dg" % info.price, func(): _buy(func(): return Shop.buy_spell(game, w, id)))
+		var b := _button("Full" if full else "Buy %dg" % info.price, func(): _buy(func(): return Shop.buy_spell(game, w, id)), Vector2(90, 44))
 		b.disabled = not Shop.can_buy_spell(game, w, id)
 		row.add_child(b)
-		_spells_box.add_child(row)
+		_new_box.add_child(row)
 
 	_items_title.text = "Items (%d/%d)" % [w.items.size(), Shop.MAX_ITEMS]
 	for id in Shop.ITEMS:
@@ -153,14 +171,16 @@ func refresh() -> void:
 		var icon := ItemIcon.new()
 		icon.item = id
 		row.add_child(icon)
-		var lbl := _label("%s\n%s" % [info.name, info.desc], 17)
-		lbl.custom_minimum_size.x = 200
+		var lbl := _label("%s\n%s" % [info.name, info.desc], 15)
+		lbl.custom_minimum_size.x = 170
+		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 		row.add_child(lbl)
 		var b: Button
 		if id in w.items:
-			b = _button("Sell +%dg" % Shop.sell_price(id), func(): _buy(func(): return Shop.sell_item(game, w, id)))
+			b = _button("Sell +%dg" % Shop.sell_price(id), func(): _buy(func(): return Shop.sell_item(game, w, id)), Vector2(90, 44))
 		else:
-			b = _button("Buy %dg" % info.price, func(): _buy(func(): return Shop.buy_item(game, w, id)))
+			b = _button("Buy %dg" % info.price, func(): _buy(func(): return Shop.buy_item(game, w, id)), Vector2(90, 44))
 			b.disabled = not Shop.can_buy_item(game, w, id)
 		row.add_child(b)
 		_items_box.add_child(row)
@@ -182,7 +202,7 @@ func _spell_icon(s: Spell) -> TextureRect:
 	var t := TextureRect.new()
 	t.texture = s.icon
 	t.modulate = s.icon_tint
-	t.custom_minimum_size = Vector2(44, 44)
+	t.custom_minimum_size = Vector2(36, 36)
 	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	return t
@@ -200,7 +220,7 @@ func _label(text: String, font_size: int, col := Color.WHITE) -> Label:
 func _button(text: String, cb: Callable, min_size := Vector2(150, 48)) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.add_theme_font_size_override("font_size", 20)
+	b.add_theme_font_size_override("font_size", 18)
 	b.custom_minimum_size = min_size
 	b.focus_mode = Control.FOCUS_NONE
 	b.pressed.connect(cb)

@@ -42,6 +42,7 @@ func _run() -> void:
 	await _seconds(0.45)
 	_check(game.state == game.State.SHOP, "shop opens after the round")
 	_check(panel.visible, "shop panel shown")
+	_check(_panel_has_text(panel, "Time Stop"), "every new spell is listed")
 	_check(Shop.gold_of(game, player) == 10 + 2 * 5 + 5, "base 10 + 2 kills x5 + win 5 = %d" % Shop.gold_of(game, player))
 	_check(blue.get_spell("Q").level == 1 and Shop.gold_of(game, blue) == 0, "bots spend their gold (blue Q lv %d, %d gold)" % [blue.get_spell("Q").level, Shop.gold_of(game, blue)])
 
@@ -93,7 +94,7 @@ func _run() -> void:
 	_check(Shop.upgrade_cost(player, "D") == 10, "and it can be upgraded")
 	panel.refresh()
 	await _frames(1) # old rows are freed at the end of the frame
-	_check(not _panel_has_text(panel, "New: Homing Orb"), "panel stops offering it")
+	_check(not _panel_has_text(panel, "Homing Orb\n"), "panel stops offering it")
 
 	print("two shop slots (v0.12)")
 	game.gold[player] = 100
@@ -121,8 +122,10 @@ func _run() -> void:
 	game.gold[player] = 25
 
 	print("ready starts the next round, buys are kept")
-	panel._ready_button.pressed.emit()
+	_check(not game.pause_menu._pause_button.visible, "no pause button over the shop")
+	panel.ready_button.pressed.emit()
 	await _frames(2)
+	_check(game.pause_menu._pause_button.visible, "pause button back after the shop")
 	_check(game.state == game.State.COUNTDOWN and game.round_number == 2, "Ready -> round 2 countdown")
 	_check(not panel.visible, "panel closed")
 	_check(q.level == 1 and player.get_spell("D") != null and player.items.size() == 2, "upgrades, spells and items kept")

@@ -5,15 +5,15 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (docs fixes after review; Android v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. Next: secondary spell effects)_
+_Last updated: 2026-11-27 (Android v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. Next: secondary spell effects)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
 - **PC**: `D:\Godot\Projects\claude_mcp\lava-warlocks` (keyboard + mouse, Forward+ renderer). Local git only.
 - **Android**: `D:\Godot\Projects\claude_mcp\lava-warlocks-mobile` (touch controls, Compatibility renderer).
-  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.12 (2026-11-27).
+  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.12.1 (2026-11-27).
   Build + install on the phone: `bash tools/deploy_android.sh`. APK: `build/warlocks_on_android.apk`.
-  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7, v0.8, v0.8.1 (2026-11-25), v0.9 (2026-11-26), v0.10, v0.11, v0.12 (2026-11-27)
+  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7, v0.8, v0.8.1 (2026-11-25), v0.9 (2026-11-26), v0.10, v0.11, v0.12, v0.12.1 (2026-11-27)
   (`gh release create vX.Y build/warlocks_on_android.apk`; bump `version/code` + `version/name` in export_presets.cfg first).
   Gameplay changes are made in PC first, then ported (`git cherry-pick` from the `pc` remote).
   **Exception — Android-only (v0.7 - v0.9, by choice):** fireball range 850 (PC: 700), the v0.7 HUD, pause menu and
@@ -311,6 +311,12 @@ Android v0.11: a longer Lightning with a stronger tip; the lava shrinks every 18
     - fights 51 s
     - **matches 8:12** (target 5-8)
   - **Tests:** `tools/test_new_spells.gd` (new); `test_shop` (the two slots).
+  - **v0.12.1 shop fix** (the user, on the phone: the shop ran off the screen). With 7 new spells listed in one
+    column the panel was 968 px tall on a 720 px screen (the phone, 2400x1080, is 1600x720 in game), so Ready, the
+    timer and the last spells were cut off. Now the panel fills the screen with a 12 px margin, three columns
+    (Your spells | New spells | Items) inside a ScrollContainer; nothing needs scrolling at 1280x720 or wider.
+    The pause button hides while the shop is open (it covered the timer). New windowed test
+    `tools/test_shop_layout.gd` (1600x720 and 1280x720; headless Godot measures text as zero size).
     - Known test quirk: in headless tests the player wizard creeps up about 12 px on its own (not in the game).
       `test_hud_v07` "lava sizzles" failed once, then passed 3 times in a row (timing).
 
@@ -330,7 +336,7 @@ Android v0.11: a longer Lightning with a stronger tip; the lava shrinks every 18
 - `Wizard.take_damage(amount, source)` remembers `last_attacker` (for kill credit in rounds); bots turn on whoever just hit them.
 
 ### Tests
-`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai, test_arena, test_rounds (+ on Android: test_hud_v07, test_shop, test_homing, test_title, test_ghost, test_feel, test_terrain, and test_touch, which needs a window: no `--headless`). All passing (2026-11-26).
+`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai, test_arena, test_rounds (+ on Android: test_hud_v07, test_shop, test_homing, test_title, test_ghost, test_feel, test_terrain, test_new_spells, and test_touch + test_shop_layout, which need a window: no `--headless`). All passing (2026-11-27).
 test_ai and test_homing use the old 38-tile island (they place wizards ~900 px out).
 Tests set `game.bot_ai = false` so bots are passive dummies (`BotBlue`, `BotGreen`, `BotPurple`).
 
