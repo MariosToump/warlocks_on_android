@@ -59,6 +59,8 @@ var _full_vertices: Array[PackedByteArray] = []
 var _phase_offset := 0.0 ## wobble phase of the edge
 ## Embers rising off the lava just outside the island (visual pass 1).
 var embers: CPUParticles2D
+## Heat shimmer over the lava (screen-reading shader); see set_heat_haze().
+var heat_haze: ColorRect
 var _embers_radius := -100.0 ## radius the ember spots were placed for
 
 
@@ -74,6 +76,7 @@ func _ready() -> void:
 	line.arena = self
 	line.z_index = 1
 	add_child(line)
+	_make_heat_haze()
 	_make_embers()
 	restart_shrink_timer()
 
@@ -237,6 +240,23 @@ func _set_radius(r: float) -> void:
 							cells[Vector2i(cc, cr)] = true
 	for cell in cells:
 		_paint(cell.y, cell.x)
+
+
+func _make_heat_haze() -> void:
+	heat_haze = ColorRect.new()
+	heat_haze.name = "HeatHaze"
+	heat_haze.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	heat_haze.position = get_bounds().position
+	heat_haze.size = get_bounds().size
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/heat_haze.gdshader")
+	heat_haze.material = mat
+	add_child(heat_haze)
+
+
+func set_heat_haze(on: bool) -> void:
+	heat_haze.visible = on
+	heat_haze.process_mode = Node.PROCESS_MODE_INHERIT if on else Node.PROCESS_MODE_DISABLED
 
 
 func _make_embers() -> void:

@@ -85,6 +85,25 @@ func _run() -> void:
 	_check(arena.embers.emission_points.size() > 0, "and when the island is gone")
 	arena.regrow()
 
+	print("heat shimmer")
+	_check(arena.heat_haze != null and arena.heat_haze.visible, "shimmer over the lava by default")
+	arena.set_heat_haze(false)
+	_check(not arena.heat_haze.visible and arena.heat_haze.process_mode == Node.PROCESS_MODE_DISABLED,
+		"turned off: hidden and not running")
+	arena.set_heat_haze(true)
+	GameSettings.path = "user://test_vfx_settings.cfg"
+	GameSettings.heat_haze = false
+	GameSettings.save_settings()
+	GameSettings.heat_haze = true
+	GameSettings.load_settings()
+	_check(not GameSettings.heat_haze, "the setting is saved")
+	GameSettings.reset()
+	_check(GameSettings.heat_haze, "and defaults to on")
+	game.pause_menu._toggle_heat_haze()
+	_check(not arena.heat_haze.visible, "the pause menu toggle turns it off in the match")
+	GameSettings.reset()
+	GameSettings.save_settings()
+
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 

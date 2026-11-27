@@ -15,6 +15,7 @@ var _zoom: Button
 var _bots: Button
 var _wins: Button
 var _haptics: Button
+var _haze: Button
 var _move: Button
 var _sound: Button
 var _music: Button
@@ -94,6 +95,7 @@ func _build_panel() -> void:
 	_sound = _button(grid, "", _toggle_sound)
 	_music = _button(grid, "", _toggle_music)
 	_move = _button(grid, "", _cycle_move)
+	_haze = _button(grid, "", _toggle_heat_haze)
 	_refresh()
 	dim.visible = false
 
@@ -182,6 +184,7 @@ func _refresh() -> void:
 	_sound.text = "Sound: %s" % ("On" if GameSettings.sound else "Off")
 	_music.text = "Music: %s" % ("On" if GameSettings.music else "Off")
 	_move.text = "Move: %s" % GameSettings.move_mode.capitalize()
+	_haze.text = "Heat shimmer: %s" % ("On" if GameSettings.heat_haze else "Off")
 
 
 func _cycle_zoom() -> void:
@@ -207,6 +210,11 @@ func _cycle_move() -> void:
 
 func _toggle_haptics() -> void:
 	GameSettings.haptics = not GameSettings.haptics
+	_changed()
+
+
+func _toggle_heat_haze() -> void:
+	GameSettings.heat_haze = not GameSettings.heat_haze
 	_changed()
 
 

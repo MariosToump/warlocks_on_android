@@ -127,6 +127,7 @@ func _ready() -> void:
 		bot_difficulty = GameSettings.difficulty as Difficulty
 		wins_to_take_match = GameSettings.wins_to_take_match
 		touch.touchpad = GameSettings.move_mode == "touchpad"
+		arena.set_heat_haze(GameSettings.heat_haze)
 	arena.shrinks = shrink_arena
 	arena.regrows = not rounds # rounds end in sudden death instead
 	_lava_label = _make_lava_label()
@@ -647,6 +648,7 @@ func apply_live_settings() -> void:
 	arena.camera.set_design_zoom(follow_zoom)
 	bot_difficulty = GameSettings.difficulty as Difficulty
 	touch.touchpad = GameSettings.move_mode == "touchpad"
+	arena.set_heat_haze(GameSettings.heat_haze)
 	for w in all_wizards:
 		var ai := w.get_node_or_null("AIController") as AIController
 		if ai:

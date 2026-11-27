@@ -15,6 +15,7 @@ static var haptics := true
 static var sound := true
 static var music := true
 static var move_mode := "joystick"
+static var heat_haze := true ## shimmer over the lava (off for slow phones)
 static var _loaded := false
 
 
@@ -39,6 +40,7 @@ static func load_settings() -> void:
 	sound = cf.get_value("game", "sound", sound)
 	music = cf.get_value("game", "music", music)
 	move_mode = cf.get_value("game", "move_mode", move_mode)
+	heat_haze = cf.get_value("game", "heat_haze", heat_haze)
 	if not move_mode in MOVES:
 		move_mode = "joystick"
 
@@ -52,6 +54,7 @@ static func save_settings() -> void:
 	cf.set_value("game", "sound", sound)
 	cf.set_value("game", "music", music)
 	cf.set_value("game", "move_mode", move_mode)
+	cf.set_value("game", "heat_haze", heat_haze)
 	cf.save(path)
 
 
@@ -68,4 +71,5 @@ static func reset() -> void:
 	sound = true
 	music = true
 	move_mode = "joystick"
+	heat_haze = true
 	_loaded = true
