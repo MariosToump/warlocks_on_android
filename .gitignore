@@ -8,3 +8,5 @@ build/
 tools/sim/out/
 tools/sim/*.log
 review_frames/
+tools/sim/__pycache__/
+__pycache__/
