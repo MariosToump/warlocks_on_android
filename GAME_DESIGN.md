@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
+_Last updated: 2026-11-27 (review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -56,7 +56,26 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
 **Paused 2026-11-27 (the user):** todos 3, 4, 5 and 8 wait while we work on graphics and design (more animation,
 a more "real" feel; research: a bigger PixelLab plan vs doing more in Godot). Order after the pause: terrain stones
 brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) stays last.
-- **Reviews 2026-11-27** (Android v0.13.1; findings only, nothing fixed yet — the user picks what to do):
+- **Review fixes 2026-11-27** (the user: do all of them except the PC port; checklist `docs/fixes-2026-11-27.md`):
+  - Audio: Master limiter (-1 dB), every sound high-passed at 80 Hz and set to its role's loudness
+    (`ROLE_LUFS` in `tools/build_audio.gd`), mid-range layers so phones hear hits and music, 7 s seamless lava loop,
+    11 new sounds (shield reflect, kill, lava warning, heartbeat under 25% HP, match win / lose, not enough gold,
+    rock wall, boomerang return, ghost, homing hum), at most 3 of one sound at once with priority sounds never cut,
+    the music muffles in the shop. Fight mix: peak +0.3 -> -0.83 dBTP, 202 -> 0 clipped samples, bass 75% -> 42%.
+    Check: `python tools/audio_check.py`.
+  - Feel: every feel number in `scripts/feel.gd` (unchanged values); pause menu "Screen shake: Full / Reduced" (x0.35).
+  - Visual: Homing Orb has its own violet orb + burst; Meteor blast and Time Stop ring redrawn at the wizards' pixel
+    scale; Blink after-images, Swap beam; meteor warning shadow + pulsing ring; scoreboard 1.3x, big countdown digit,
+    damage numbers white / yellow (yours) / red; Far zoom 1.35 -> 1.6; reflected shots tinted in the reflector's team
+    colour; no lava-only first frame; rocks with flat shading and rough edges, 3 different wall rocks; far lava
+    tiles flipped + crust patches; our own pixel font (`tools/build_font.gd`, project theme) with the smooth font
+    kept for shop descriptions; north / north-east walk redone in PixelLab (2 generations; 1 trial generation left).
+  - Spells: balance pass 1 (`docs/sim/2026-11-27-balance-pass/`): Homing Orb nerfed (duel 64% -> 57%), Meteor,
+    Boomerang, Swap, Time Stop, Rock Wall buffed; bots raise walls / Time Stop when they can't sidestep;
+    personality weights for the 6 shop spells. Still open: Gravity Well now strongest (62%), Meteor still weak,
+    bots barely use Rock Wall. New tests `test_spell_edges`, `test_rock_wall`, `test_audio`; whole suite
+    `bash tools/run_tests.sh`.
+- **Reviews 2026-11-27** (Android v0.13.1; the findings that the fixes above answer):
   visual `docs/visual-reviews/2026-11-27-full.md` (top: Homing Orb looks like a fireball; Meteor / Time Stop drawn
   with bigger pixels; back-facing walk sprites don't match), audio `docs/audio-reviews/2026-11-27.md` (top: the
   fight mix clips — no limiter on Master; most energy is bass phones can't play; SFX levels 12 dB apart),

@@ -432,11 +432,17 @@ func _score_rockwall() -> float:
 	var slot := wizard.slot_of("rockwall")
 	if slot == "" or not _can_cast(slot) or _danger == null:
 		return 0.0
-	if not _roll(_danger)[0] or (wizard.get_spell("R") and wizard.get_spell("R").is_ready()):
+	if not _roll(_danger)[0]:
 		return 0.0
 	if _danger.global_position.distance_to(wizard.global_position) < 70.0:
 		return 0.0 # too late, the wall would come up behind it
-	return 1.9
+	# Balance 2026-11-27: dodge (2.0) always won, so bots never raised a wall
+	# (0.1 a minute). Now the wall is the answer when there's no room to
+	# sidestep, and still an option with the shield ready.
+	if _dodge_point(_danger) == null:
+		return 2.4
+	var shield := wizard.get_spell("R")
+	return 1.0 if shield and shield.is_ready() else 1.9
 
 
 func _do_rockwall() -> void:
@@ -505,8 +511,8 @@ func _score_meteor() -> float:
 
 
 func _do_meteor() -> void:
-	# Aim where it's heading: it lands in 1 s.
-	_cast(wizard.slot_of("meteor"), target.global_position + target.velocity * 0.6)
+	# Aim where it's heading: it lands in 0.85 s.
+	_cast(wizard.slot_of("meteor"), target.global_position + target.velocity * 0.5)
 
 
 ## Gravity Well (if bought): drag a target in, best one near the lava.
@@ -534,10 +540,12 @@ func _score_timestop() -> float:
 	if slot == "" or not _can_cast(slot) or _danger == null or not is_instance_valid(_danger):
 		return 0.0
 	var d := _danger.global_position.distance_to(wizard.global_position)
-	if d < 60.0 or d > 400.0:
+	if d < 50.0 or d > 450.0:
 		return 0.0
+	if _dodge_point(_danger) == null:
+		return 2.3 # no room to sidestep: freeze it instead
 	var shield := wizard.get_spell("R")
-	return 0.75 if shield and shield.is_ready() else 1.2
+	return 1.0 if shield and shield.is_ready() else 1.5
 
 
 func _do_timestop() -> void:

@@ -14,7 +14,7 @@ func _init() -> void:
 	spell_name = "Rock Wall"
 	spell_id = "rockwall"
 	icon = Prop._texture(Prop.Kind.WALL)
-	cooldown_by_level = [10.0, 9.0, 8.0, 7.0]
+	cooldown_by_level = [8.0, 7.0, 6.0, 5.0] # was 10-7 (balance 2026-11-27)
 	cast_time = 0.3
 	release_time = 0.15
 

@@ -16,7 +16,7 @@ func _init() -> void:
 	placed = true
 	area_radius = 120.0
 	icon = FRAMES.get_frame_texture("default", 0)
-	cooldown_by_level = [12.0, 11.5, 11.0, 10.5]
+	cooldown_by_level = [9.0, 8.5, 8.0, 7.5] # was 12-10.5 (balance 2026-11-27)
 	cast_time = 0.2
 	release_time = 0.1
 

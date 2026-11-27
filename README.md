@@ -118,6 +118,8 @@ The APK ends up in `build/warlocks_on_android.apk` (not committed).
 | `scripts/spells/` | Fireball, Blink, Lightning, Shield, Staff strike, Homing Orb, Rock Wall, Boomerang, Swap, Meteor, Gravity Well, Time Stop |
 | `scripts/boomerang.gd`, `meteor_strike.gd`, `gravity_well.gd`, `time_stop_field.gd` | The new spells' objects in the arena |
 | `tools/build_effects.gd`, `assets/sprites/effects/` | Draws the new spells' pixel-art effects in code (the older effects are PixelLab) |
+| `scripts/feel.gd`, `scripts/flash_fx.gd` | All game-feel numbers in one place; code-drawn flashes, beams, after-images |
+| `tools/build_font.gd`, `assets/ui/` | Our own pixel font and the project theme |
 | `scripts/prop.gd`, `scripts/crater.gd` | Boulders, pillars, wall rocks (art drawn in code); fireball craters |
 | `scripts/ghost.gd` | The player's ghost after dying (float, haunt) |
 | `scripts/touch_controls.gd` | Joystick, spell buttons, tap auto-aim |
@@ -131,6 +133,8 @@ The APK ends up in `build/warlocks_on_android.apk` (not committed).
 | `tools/` | Tests, AI simulation, demo recorder, deploy script |
 
 ### Tests
+The whole suite in one go: `bash tools/run_tests.sh` (prints `ok` / `FAIL` per test and `suite: N/N passed`).
+One by one:
 ```bash
 GODOT=/d/Godot/Godot_v4.7.2-stable_win64.exe/Godot_v4.7.2-stable_win64.exe
 for t in wizard fireball spells staff ai ai_human brawler lightning arena rounds hud_v07 shop homing title ghost feel terrain new_spells; do
@@ -142,6 +146,10 @@ done
 "$GODOT" --headless --path . -s tools/test_clock.gd   # gameplay timers run on game time
 "$GODOT" --headless --fixed-fps 60 --path . -s tools/test_sim.gd   # the sim sandbox (~15 s)
 python -I tools/sim/test_analyze.py   # sim analysis maths
+"$GODOT" --headless --path . -s tools/test_audio.gd   # limiter, voice limits, feedback sounds
+"$GODOT" --headless --path . -s tools/test_spell_edges.gd   # shop spells: dead caster, stones, lava, shields
+"$GODOT" --headless --path . -s tools/test_rock_wall.gd
+python tools/audio_check.py   # loudness / peaks / bass / loop seams of every sound (numpy, scipy, pyloudnorm)
 ```
 Each prints `ok` / `FAIL` lines and exits non-zero on failure.
 `tools/sim_ai.gd -- <easy|normal|hard> [seconds]` runs a bots-only fight and
@@ -149,7 +157,10 @@ prints stats.
 `tools/playtest.gd` plays whole matches (the player is a bot too) as fast as the CPU allows and prints match
 length, fight length, deaths in lava and each bot's share of round wins:
 `"$GODOT" --headless --fixed-fps 60 --path . -s tools/playtest.gd -- 10 normal`.
-`tools/build_audio.gd` rebuilds all sounds and music (they are made in code, no recordings).
+`tools/build_audio.gd` rebuilds all sounds and music (they are made in code, no recordings); every sound is
+high-passed at 80 Hz and set to its role's loudness (`ROLE_LUFS`). `tools/build_font.gd` rebuilds our pixel font
+(`assets/ui/pixel_font.tres`, the project theme's font). Game-feel numbers (shake, hit-stop, particles) are all in
+`scripts/feel.gd`; changes go in `docs/feel-log.md`.
 `tools/build_effects.gd` redraws the new spells' effects.
 `tools/sim/` is the spell sim sandbox (not in the APK): forced spell loadouts, no menus or shop, many workers in
 parallel. `python -I tools/sim/run.py --mode ffa|duel --rounds-per-worker N --workers 16` writes a report with win

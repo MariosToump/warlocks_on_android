@@ -7,8 +7,8 @@ extends Spell
 const SCENE := preload("res://scenes/projectile_boomerang.tscn")
 const FRAMES := preload("res://assets/sprites/effects/boomerang_frames.tres")
 
-@export var damage_by_level: Array[float] = [6.0, 6.5, 7.0, 8.0]
-@export var knockback_by_level: Array[float] = [360.0, 390.0, 420.0, 450.0]
+@export var damage_by_level: Array[float] = [7.0, 7.5, 8.0, 9.0] ## was 6-8 (balance 2026-11-27)
+@export var knockback_by_level: Array[float] = [410.0, 440.0, 470.0, 500.0] ## was 360-450
 @export var speed := 520.0
 @export var out_range := 420.0
 
@@ -17,7 +17,7 @@ func _init() -> void:
 	spell_name = "Boomerang"
 	spell_id = "boomerang"
 	icon = FRAMES.get_frame_texture("default", 1)
-	cooldown_by_level = [5.0, 4.5, 4.0, 3.5]
+	cooldown_by_level = [4.5, 4.0, 3.5, 3.0] # was 5-3.5
 	cast_time = 0.3
 	release_time = 0.15
 

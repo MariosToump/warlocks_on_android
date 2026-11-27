@@ -16,7 +16,7 @@ func _init() -> void:
 	spell_name = "Swap"
 	spell_id = "swap"
 	icon = FRAMES.get_frame_texture("default", 0)
-	cooldown_by_level = [9.0, 8.5, 8.0, 7.5]
+	cooldown_by_level = [7.0, 6.5, 6.0, 5.5] # was 9-7.5 (balance 2026-11-27)
 	cast_time = 0.25
 	release_time = 0.12
 

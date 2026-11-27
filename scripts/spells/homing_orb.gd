@@ -9,11 +9,11 @@ const PROJECTILE := preload("res://scenes/projectile_homing.tscn")
 const FRAMES := preload("res://assets/sprites/effects/homing_orb_frames.tres")
 const TINT := Color.WHITE
 
-@export var damage_by_level: Array[float] = [8.0, 10.0, 12.0, 14.0]
-@export var knockback_by_level: Array[float] = [480.0, 510.0, 540.0, 570.0]
+@export var damage_by_level: Array[float] = [7.0, 8.5, 10.0, 11.5] ## was 8-14 (balance 2026-11-27)
+@export var knockback_by_level: Array[float] = [410.0, 440.0, 470.0, 500.0] ## was 480-570 (balance 2026-11-27)
 @export var speed := 300.0
 @export var max_range := 1100.0
-@export var turn_rate := 2.5 ## radians per second
+@export var turn_rate := 1.9 ## radians per second (was 2.5: too hard to sidestep)
 
 
 func _init() -> void:
@@ -21,7 +21,7 @@ func _init() -> void:
 	spell_id = "homing"
 	icon = FRAMES.get_frame_texture("default", 0)
 	icon_tint = TINT
-	cooldown_by_level = [6.0, 5.5, 5.0, 4.5]
+	cooldown_by_level = [7.5, 7.0, 6.5, 6.0] # was 6-4.5 (balance 2026-11-27)
 	cast_time = 0.3
 	release_time = 0.18
 
