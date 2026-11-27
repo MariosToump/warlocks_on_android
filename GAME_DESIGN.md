@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
+_Last updated: 2026-11-27 (todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -68,6 +68,14 @@ brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) sta
 - [ ] 13. **Spell interactions and combos (planning)** — a matrix of which spells combine (e.g. Gravity Well + Meteor,
   Time Stop + Meteor, Link / Swap + lava, Bouncer off Rock Walls, Thrust into Gravity Well) and which counter which;
   bots learn the main combos. Brainstorm first, before todo 12.
+  - [x] Step 1 (2026-11-27, Android): sim sandbox `tools/sim/` (not in the APK; Claude only): forced loadouts,
+    no menus / shop, 16 parallel workers ~21x real time, FFA / duel / scenario modes, `python -I tools/sim/run.py`.
+    Gameplay timers now run on game time (`GameClock`). Data: `docs/sim/2026-11-27-pair-synergy/` (2240 FFA +
+    4352 duel rounds). Result: no pair shows synergy beyond noise (CIs +-10 pp; bots don't plan combos). Strength
+    is real: Homing Orb is far ahead (duel 61% alone vs 38% with no shop spell; with Gravity Well 76%), Gravity
+    Well next (55%); Time Stop, Rock Wall, Swap, Meteor, Boomerang alone are no better than nothing for bots.
+    Scenario: a lone Gravity Well at the lava edge pulls a still target in 5/5, a bot walks out 20/20.
+  - [ ] Step 2: the user decides — balance first (Homing Orb), bots that play combos, or longer runs for synergy.
 - [ ] 14. **Swappable starters** — sell Fireball / Lightning / Blink / Shield in the shop to buy others. To settle in
   the todo 13 brainstorm: Q-R become normal slots; a minimum loadout (e.g. keep one projectile or one escape)?;
   refund rule; bots must play any loadout; button icons follow the spell.
