@@ -36,6 +36,7 @@ func setup(from: Wizard) -> void:
 	add_child(sprite)
 	z_index = 5
 	_play("idle")
+	Sfx.play_at("ghost", global_position)
 
 
 func _physics_process(delta: float) -> void:

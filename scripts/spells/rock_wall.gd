@@ -46,4 +46,4 @@ func release(target: Vector2) -> void:
 		var rock := Prop.make(Prop.Kind.WALL, p, caster.arena)
 		rock.life = life_by_level[level]
 		parent.add_child(rock)
-	Sfx.play_at("hit", caster.global_position, -6.0)
+	Sfx.play_at("rockwall", caster.global_position)

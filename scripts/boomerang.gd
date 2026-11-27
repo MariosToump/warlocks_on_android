@@ -47,6 +47,7 @@ func _physics_process(delta: float) -> void:
 	if not returning and _travelled >= out_range:
 		returning = true
 		_hit.clear()
+		Sfx.play_at("boomerang_return", global_position)
 
 
 func _on_body_entered(body: Node) -> void:

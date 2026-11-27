@@ -17,81 +17,135 @@ func _init() -> void:
 	_save("fireball", _mix([
 		voice({"wave": "noise", "dur": 0.35, "attack": 0.03, "lowpass": 0.18, "vol": 0.55}),
 		voice({"wave": "saw", "f0": 320.0, "f1": 110.0, "dur": 0.3, "vol": 0.22, "lowpass": 0.3}),
-	]))
+	]), "cast")
 	_save("homing", _mix([
 		voice({"wave": "sine", "f0": 520.0, "f1": 880.0, "dur": 0.35, "vib": 18.0, "vib_depth": 0.06, "vol": 0.4}),
 		voice({"wave": "tri", "f0": 1040.0, "f1": 1760.0, "dur": 0.3, "vol": 0.18}),
-	]))
+	]), "cast")
 	_save("hit", _mix([
 		voice({"wave": "noise", "dur": 0.32, "lowpass": 0.35, "lowpass_end": 0.05, "vol": 0.5}),
-		voice({"wave": "sine", "f0": 150.0, "f1": 45.0, "dur": 0.25, "vol": 0.45}),
-	]))
+		voice({"wave": "sine", "f0": 150.0, "f1": 45.0, "dur": 0.25, "vol": 0.3}),
+		# mid "thwack" so phone speakers hear the impact, not just a click
+		voice({"wave": "square", "f0": 340.0, "f1": 150.0, "dur": 0.12, "vol": 0.16, "drive": 3.0, "lowpass": 0.3}),
+	]), "impact")
 	_save("lightning", _mix([
 		voice({"wave": "noise", "dur": 0.4, "lowpass": 0.9, "vol": 0.45, "crackle": 0.35}),
 		voice({"wave": "square", "f0": 1800.0, "f1": 400.0, "dur": 0.25, "vol": 0.15, "duty": 0.3}),
 		voice({"wave": "sine", "f0": 90.0, "f1": 40.0, "dur": 0.3, "vol": 0.35}),
-	]))
+	]), "cast")
 	_save("shield", _mix([
 		voice({"wave": "sine", "f0": 380.0, "f1": 760.0, "dur": 0.55, "attack": 0.05, "vib": 22.0, "vib_depth": 0.05, "vol": 0.35}),
 		voice({"wave": "tri", "f0": 760.0, "f1": 1520.0, "dur": 0.5, "attack": 0.08, "vol": 0.2}),
-	]))
+	]), "cast")
 	_save("blink", _mix([
 		voice({"wave": "sine", "f0": 1400.0, "f1": 260.0, "dur": 0.2, "vol": 0.4}),
 		voice({"wave": "noise", "dur": 0.12, "lowpass": 0.5, "vol": 0.25}),
-	]))
+	]), "cast")
 	# v0.12 shop spells
 	_save("boomerang", _mix([ # a whirring blade
 		voice({"wave": "saw", "f0": 300.0, "f1": 420.0, "dur": 0.4, "vib": 28.0, "vib_depth": 0.25, "vol": 0.22, "lowpass": 0.35}),
 		voice({"wave": "noise", "dur": 0.35, "lowpass": 0.3, "vol": 0.2, "crackle": 0.5}),
-	]))
+	]), "cast")
 	_save("meteor_fall", _mix([ # a falling whistle with a roar under it
 		voice({"wave": "sine", "f0": 1600.0, "f1": 300.0, "dur": 0.95, "attack": 0.1, "vol": 0.25}),
 		voice({"wave": "noise", "dur": 0.95, "attack": 0.5, "lowpass": 0.08, "lowpass_end": 0.3, "vol": 0.35}),
-	]))
+	]), "cast")
 	_save("meteor_boom", _mix([
 		voice({"wave": "noise", "dur": 0.7, "lowpass": 0.5, "lowpass_end": 0.04, "vol": 0.6}),
 		voice({"wave": "sine", "f0": 110.0, "f1": 30.0, "dur": 0.6, "vol": 0.6}),
 		voice({"wave": "saw", "f0": 90.0, "f1": 35.0, "dur": 0.5, "vol": 0.2, "drive": 5.0, "lowpass": 0.2}),
-	]))
+		voice({"wave": "saw", "f0": 260.0, "f1": 90.0, "dur": 0.45, "vol": 0.18, "drive": 4.0, "lowpass": 0.35}),
+		voice({"wave": "noise", "dur": 0.5, "lowpass": 0.6, "lowpass_end": 0.15, "vol": 0.18, "crackle": 0.4}),
+	]), "impact")
 	_save("well", _mix([ # a deep rising hum
 		voice({"wave": "saw", "f0": 70.0, "f1": 140.0, "dur": 0.9, "attack": 0.2, "detune": 0.02, "vol": 0.3, "lowpass": 0.15}),
 		voice({"wave": "sine", "f0": 400.0, "f1": 200.0, "dur": 0.8, "vib": 9.0, "vib_depth": 0.1, "vol": 0.15}),
-	]))
+	]), "cast")
 	_save("swap", _mix([ # zip there and back
 		voice({"wave": "square", "f0": 400.0, "f1": 1600.0, "dur": 0.12, "vol": 0.2, "duty": 0.3}),
 		voice({"wave": "square", "f0": 1600.0, "f1": 400.0, "dur": 0.14, "vol": 0.2, "duty": 0.3, "delay": 0.12}),
-	]))
+	]), "cast")
 	_save("timestop", _mix([ # a bright chime that hangs in the air
 		voice({"wave": "tri", "f0": 1568.0, "dur": 0.9, "vol": 0.22, "vib": 6.0, "vib_depth": 0.01}),
 		voice({"wave": "sine", "f0": 2349.0, "dur": 0.8, "vol": 0.14, "delay": 0.05}),
 		voice({"wave": "sine", "f0": 784.0, "dur": 0.9, "vol": 0.18}),
-	]))
-	_save("staff", voice({"wave": "noise", "dur": 0.16, "attack": 0.04, "lowpass": 0.25, "lowpass_end": 0.6, "vol": 0.4}))
+	]), "cast")
+	_save("staff", voice({"wave": "noise", "dur": 0.16, "attack": 0.04, "lowpass": 0.25, "lowpass_end": 0.6, "vol": 0.4}), "cast")
 	# --- wizards ------------------------------------------------------------
-	_save("hurt", voice({"wave": "square", "f0": 260.0, "f1": 120.0, "dur": 0.14, "vol": 0.3, "duty": 0.4}))
+	_save("hurt", voice({"wave": "square", "f0": 260.0, "f1": 120.0, "dur": 0.14, "vol": 0.3, "duty": 0.4}), "impact")
 	_save("death", _mix([
 		voice({"wave": "saw", "f0": 320.0, "f1": 55.0, "dur": 0.7, "vol": 0.3, "lowpass": 0.25}),
 		voice({"wave": "noise", "dur": 0.6, "lowpass": 0.12, "vol": 0.35}),
-	]))
-	_save("lava", _lava_loop(2.0), true)
+	]), "death")
+	_save("lava", _lava_loop(7.0), "ambience", true)
 	# --- round / UI ---------------------------------------------------------
-	_save("beep", voice({"wave": "square", "f0": 660.0, "dur": 0.12, "vol": 0.25}))
+	_save("beep", voice({"wave": "square", "f0": 660.0, "dur": 0.12, "vol": 0.25}), "ui")
 	# "Burn!": a fiery whoosh (rising roar of flame + a low growl that drops).
 	_save("fight", _mix([
 		voice({"wave": "noise", "dur": 0.75, "attack": 0.12, "lowpass": 0.05, "lowpass_end": 0.55, "vol": 0.55, "crackle": 0.15}),
 		voice({"wave": "saw", "f0": 140.0, "f1": 55.0, "dur": 0.7, "attack": 0.05, "vol": 0.3, "drive": 4.0, "lowpass": 0.2}),
 		voice({"wave": "square", "f0": 660.0, "f1": 990.0, "dur": 0.25, "vol": 0.12, "delay": 0.05}),
-	]))
-	_save("win", _arpeggio([523.25, 659.25, 783.99, 1046.5], 0.1, 0.5, "square"))
-	_save("lose", _arpeggio([392.0, 329.63, 261.63], 0.16, 0.45, "tri"))
+		voice({"wave": "saw", "f0": 300.0, "f1": 140.0, "dur": 0.6, "attack": 0.08, "vol": 0.16, "drive": 4.0, "lowpass": 0.3}),
+	]), "impact")
+	_save("win", _arpeggio([523.25, 659.25, 783.99, 1046.5], 0.1, 0.5, "square"), "jingle")
+	_save("lose", _arpeggio([392.0, 329.63, 261.63], 0.16, 0.45, "tri"), "jingle")
 	_save("coin", _mix([
 		voice({"wave": "square", "f0": 988.0, "dur": 0.07, "vol": 0.22}),
 		voice({"wave": "square", "f0": 1318.5, "dur": 0.22, "vol": 0.22, "delay": 0.07}),
-	]))
-	_save("click", voice({"wave": "square", "f0": 1500.0, "dur": 0.035, "vol": 0.18}))
+	]), "ui")
+	_save("click", voice({"wave": "square", "f0": 1500.0, "dur": 0.035, "vol": 0.18}), "ui")
+	# --- feedback sounds (audio review 2026-11-27) ------------------------------
+	_save("reflect", _mix([ # a bright glassy ting: the shield sent it back
+		voice({"wave": "sine", "f0": 2093.0, "dur": 0.4, "vol": 0.3}),
+		voice({"wave": "tri", "f0": 3136.0, "dur": 0.25, "vol": 0.16, "delay": 0.02}),
+		voice({"wave": "square", "f0": 1046.5, "f1": 1568.0, "dur": 0.06, "vol": 0.1, "duty": 0.25}),
+	]), "impact")
+	_save("kill", _mix([ # a short rising sting when you get the kill
+		voice({"wave": "square", "f0": 784.0, "dur": 0.08, "vol": 0.2, "duty": 0.3}),
+		voice({"wave": "square", "f0": 1175.0, "dur": 0.22, "vol": 0.2, "duty": 0.3, "delay": 0.08}),
+		voice({"wave": "noise", "dur": 0.2, "lowpass": 0.5, "vol": 0.12, "delay": 0.08}),
+	]), "death")
+	_save("lava_warn", _mix([ # the ground growls: the lava is about to close in
+		voice({"wave": "saw", "f0": 55.0, "f1": 48.0, "dur": 1.3, "attack": 0.4, "release": 0.5, "vol": 0.3, "drive": 3.0, "lowpass": 0.1}),
+		voice({"wave": "saw", "f0": 220.0, "f1": 180.0, "dur": 1.2, "attack": 0.5, "release": 0.5, "vol": 0.12, "drive": 5.0, "lowpass": 0.2, "vib": 7.0, "vib_depth": 0.04}),
+		voice({"wave": "noise", "dur": 1.3, "attack": 0.6, "release": 0.4, "lowpass": 0.08, "vol": 0.3, "crackle": 0.3}),
+	]), "warning")
+	_save("heartbeat", _mix([ # lub-dub, played slowly while under 25% health
+		voice({"wave": "sine", "f0": 95.0, "f1": 55.0, "dur": 0.14, "vol": 0.5}),
+		voice({"wave": "square", "f0": 190.0, "f1": 110.0, "dur": 0.1, "vol": 0.2, "lowpass": 0.25, "duty": 0.4}),
+		voice({"wave": "sine", "f0": 85.0, "f1": 50.0, "dur": 0.16, "vol": 0.4, "delay": 0.2}),
+		voice({"wave": "square", "f0": 170.0, "f1": 100.0, "dur": 0.12, "vol": 0.17, "lowpass": 0.25, "duty": 0.4, "delay": 0.2}),
+	]), "warning")
+	_save("match_win", _mix([ # longer than a round win: arpeggio, then a held chord
+		_arpeggio([523.25, 659.25, 783.99, 1046.5, 1318.5], 0.1, 0.3, "square"),
+		voice({"wave": "square", "f0": 1046.5, "dur": 1.0, "attack": 0.02, "release": 0.6, "vol": 0.1, "delay": 0.5}),
+		voice({"wave": "square", "f0": 1318.5, "dur": 1.0, "attack": 0.02, "release": 0.6, "vol": 0.08, "delay": 0.5}),
+		voice({"wave": "square", "f0": 1568.0, "dur": 1.0, "attack": 0.02, "release": 0.6, "vol": 0.07, "delay": 0.5}),
+	]), "jingle")
+	_save("match_lose", _mix([
+		_arpeggio([392.0, 349.23, 311.13, 261.63], 0.2, 0.3, "tri"),
+		voice({"wave": "tri", "f0": 196.0, "dur": 1.2, "attack": 0.05, "release": 0.8, "vol": 0.2, "delay": 0.8}),
+		voice({"wave": "tri", "f0": 233.08, "dur": 1.2, "attack": 0.05, "release": 0.8, "vol": 0.15, "delay": 0.8}),
+	]), "jingle")
+	_save("denied", _mix([ # not enough gold
+		voice({"wave": "square", "f0": 220.0, "dur": 0.07, "vol": 0.2, "duty": 0.4}),
+		voice({"wave": "square", "f0": 175.0, "dur": 0.1, "vol": 0.2, "duty": 0.4, "delay": 0.09}),
+	]), "ui")
+	_save("rockwall", _mix([ # stone grinding up out of the ground
+		voice({"wave": "noise", "dur": 0.45, "attack": 0.05, "lowpass": 0.2, "lowpass_end": 0.08, "vol": 0.5, "crackle": 0.6}),
+		voice({"wave": "saw", "f0": 120.0, "f1": 70.0, "dur": 0.4, "vol": 0.2, "drive": 6.0, "lowpass": 0.2}),
+		voice({"wave": "square", "f0": 300.0, "f1": 200.0, "dur": 0.1, "vol": 0.1, "delay": 0.32, "drive": 3.0, "lowpass": 0.3}),
+	]), "impact")
+	_save("boomerang_return", voice({"wave": "saw", "f0": 260.0, "f1": 520.0, "dur": 0.35, "attack": 0.15,
+			"vib": 30.0, "vib_depth": 0.25, "vol": 0.2, "lowpass": 0.35}), "soft")
+	_save("ghost", _mix([ # an eerie falling moan when a ghost rises
+		voice({"wave": "sine", "f0": 660.0, "f1": 440.0, "dur": 0.8, "attack": 0.2, "vib": 5.0, "vib_depth": 0.03, "vol": 0.25}),
+		voice({"wave": "tri", "f0": 990.0, "f1": 660.0, "dur": 0.7, "attack": 0.25, "vib": 6.0, "vib_depth": 0.03, "vol": 0.1}),
+	]), "soft")
+	_save("homing_hum", _homing_hum(), "hum", true)
 	# --- music ----------------------------------------------------------------
-	_save("music_fight", _music_fight(), true)
-	_save("music_title", _music_title(), true)
+	_save("music_fight", _music_fight(), "music", true)
+	_save("music_title", _music_title(), "music", true)
 	print("audio built in %.1f s" % ((Time.get_ticks_msec() - t0) / 1000.0))
 	quit()
 
@@ -191,12 +245,21 @@ func _mix(parts: Array) -> PackedFloat32Array:
 	return out
 
 
-## Add `src` into `dst` starting at sample `at` (grows nothing; clips at end).
+## While building a loop, sounds that run past the end wrap round to the
+## start, so the loop point has no step (the tail is where the next lap needs it).
+var _wrap := false
+
+
+## Add `src` into `dst` starting at sample `at` (grows nothing; the end clips,
+## or wraps round while `_wrap` is on).
 func _add(dst: PackedFloat32Array, src: PackedFloat32Array, at: int) -> void:
+	var n := dst.size()
 	for i in src.size():
 		var j := at + i
-		if j >= dst.size():
-			return
+		if j >= n:
+			if not _wrap:
+				return
+			j %= n
 		dst[j] += src[i]
 
 
@@ -209,20 +272,53 @@ func _arpeggio(freqs: Array, step: float, tail: float, wave: String) -> PackedFl
 	return _mix(parts)
 
 
-## Bubbling lava: dark rumble + random pops, seamless (fades handled by
-## keeping the rumble steady; pops never cross the loop point).
+## Bubbling lava: a dark rumble, a slowly breathing mid "boil", random pops
+## and small crackles. Seamless: the noise is filtered round the loop twice
+## (the first lap only settles the filters) and the pops wrap round the end.
 func _lava_loop(seconds: float) -> PackedFloat32Array:
 	var n := int(seconds * RATE)
+	var noise := PackedFloat32Array()
+	noise.resize(n)
+	for i in n:
+		noise[i] = randf_range(-1.0, 1.0)
 	var out := PackedFloat32Array()
 	out.resize(n)
 	var lp := 0.0
+	var b1 := 0.0
+	var b2 := 0.0
+	for j in 2 * n:
+		var i := j % n
+		lp += (noise[i] - lp) * 0.04
+		# band around 300-600 Hz: the difference of two low-passes
+		b1 += (noise[i] - b1) * 0.16
+		b2 += (b1 - b2) * 0.06
+		if j >= n:
+			var t := float(i) / RATE
+			var breathe := 0.5 + 0.5 * sin(TAU * t * 3.0 / seconds) # 3 swells per loop: no seam
+			out[i] = lp * 0.45 + (b1 - b2) * (0.25 + 0.2 * breathe)
+	_wrap = true
+	for k in int(seconds * 4.5):
+		var pop := voice({"wave": "sine", "f0": randf_range(180.0, 420.0), "f1": randf_range(70.0, 130.0),
+				"dur": randf_range(0.05, 0.11), "vol": randf_range(0.15, 0.3)})
+		_add(out, pop, randi_range(0, n - 1))
+	for k in int(seconds * 6.0):
+		_add(out, voice({"wave": "noise", "dur": randf_range(0.008, 0.02), "lowpass": 0.8,
+				"vol": randf_range(0.05, 0.14)}), randi_range(0, n - 1))
+	_wrap = false
+	return out
+
+
+## The homing orb's flight: a soft warbling hum, a whole number of cycles in
+## the loop so it repeats without a click.
+func _homing_hum() -> PackedFloat32Array:
+	var seconds := 1.0
+	var n := int(seconds * RATE)
+	var out := PackedFloat32Array()
+	out.resize(n)
 	for i in n:
-		lp += (randf_range(-1.0, 1.0) - lp) * 0.04
-		out[i] = lp * 0.5
-	for k in 9:
-		var pop := voice({"wave": "sine", "f0": randf_range(180.0, 320.0), "f1": randf_range(60.0, 110.0),
-				"dur": randf_range(0.05, 0.1), "vol": 0.25})
-		_add(out, pop, randi_range(0, n - pop.size() - 1))
+		var t := float(i) / RATE
+		var wob := 1.0 + 0.5 * sin(TAU * 4.0 * t) # 4 Hz wobble
+		out[i] = (sin(TAU * 330.0 * t) * 0.6 + sin(TAU * 660.0 * t + 0.3 * sin(TAU * 4.0 * t)) * 0.25) * 0.3 * wob
 	return out
 
 
@@ -255,6 +351,7 @@ func _music_fight() -> PackedFloat32Array:
 	var n := int(bars * 16 * sx * RATE)
 	var out := PackedFloat32Array()
 	out.resize(n)
+	_wrap = true
 	var riffs := [RIFF_A, RIFF_B, RIFF_A, RIFF_B, RIFF_A, RIFF_B, RIFF_A, "turn",
 			"break", "break", "break", "break_fill", RIFF_A, RIFF_B, RIFF_A, "turn"]
 	var pads := ["E3", "E3", "E3", "E3", "E3", "E3", "C3", "B2",
@@ -273,7 +370,7 @@ func _music_fight() -> PackedFloat32Array:
 		var third := 1.2 if pads[bar] in ["E3", "A2"] else 1.26
 		for mult in [1.0, third, 1.5]:
 			_add(out, voice({"wave": "saw", "f0": root * mult, "dur": 16 * sx, "attack": 0.4, "release": 0.6,
-					"detune": 0.004, "lowpass": 0.025, "poles": 2, "vol": 0.11}), at0)
+					"detune": 0.004, "lowpass": 0.05, "poles": 2, "vol": 0.1}), at0)
 		if kind is Array:
 			for ev in kind:
 				_guitar(out, int((t0 + ev[0] * sx) * RATE), ev[1], ev[2] * sx)
@@ -302,6 +399,7 @@ func _music_fight() -> PackedFloat32Array:
 			_lead(out, t0 - (bar - 8) * 16 * sx, sx, break_lead, (bar - 8) * 16, 0.07)
 		if bar >= 12:
 			_lead(out, t0 - (bar - 12) * 16 * sx, sx, high_lead, (bar - 12) * 16, 0.05)
+	_wrap = false
 	return _soft_clip(out)
 
 
@@ -311,21 +409,25 @@ func _guitar(out: PackedFloat32Array, at: int, note: String, dur: float, ring :=
 		for f in [_note("E2"), _note("B2")]:
 			_add(out, voice({"wave": "saw", "f0": f, "dur": 0.11, "detune": 0.006, "drive": 7.0,
 					"lowpass": 0.09, "poles": 2, "vol": 0.17}), at)
-		_add(out, voice({"wave": "sine", "f0": _note("E1"), "dur": 0.12, "vol": 0.22}), at)
+		_add(out, voice({"wave": "sine", "f0": _note("E1"), "dur": 0.12, "vol": 0.14}), at)
 		return
 	var f := _note(note)
 	for mult in [1.0, 1.5, 2.0]:
 		_add(out, voice({"wave": "saw", "f0": f * mult, "dur": dur, "detune": 0.006, "drive": 6.0,
 				"lowpass": 0.16 if not ring else 0.12, "lowpass_end": 0.07, "poles": 2,
 				"release": 0.08 if not ring else dur * 0.5, "vol": 0.12}), at)
-	_add(out, voice({"wave": "sine", "f0": f / 2.0, "dur": dur, "release": 0.05, "vol": 0.2}), at)
+	_add(out, voice({"wave": "sine", "f0": f / 2.0, "dur": dur, "release": 0.05, "vol": 0.12}), at)
 
 
 ## Half-time heavy beat: kick on 1, the "a" of 2 and the "and" of 3; snare
 ## on 3; quiet ride on eighths; a crash on section starts.
 func _drums_heavy(out: PackedFloat32Array, t0: float, sx: float, crash: bool) -> void:
 	for step in [0, 7, 10]:
-		_add(out, voice({"wave": "sine", "f0": 115.0, "f1": 38.0, "dur": 0.22, "vol": 0.6}), int((t0 + step * sx) * RATE))
+		var at := int((t0 + step * sx) * RATE)
+		_add(out, voice({"wave": "sine", "f0": 115.0, "f1": 38.0, "dur": 0.22, "vol": 0.5}), at)
+		# beater click + a short mid knock: the kick you can hear on a phone
+		_add(out, voice({"wave": "noise", "dur": 0.015, "lowpass": 0.7, "vol": 0.25}), at)
+		_add(out, voice({"wave": "tri", "f0": 260.0, "f1": 120.0, "dur": 0.06, "vol": 0.22}), at)
 	_add(out, voice({"wave": "noise", "dur": 0.22, "lowpass": 0.45, "lowpass_end": 0.15, "vol": 0.32}), int((t0 + 8 * sx) * RATE))
 	_add(out, voice({"wave": "sine", "f0": 190.0, "f1": 140.0, "dur": 0.12, "vol": 0.18}), int((t0 + 8 * sx) * RATE))
 	for step in range(0, 16, 2):
@@ -373,18 +475,19 @@ func _music_title() -> PackedFloat32Array:
 		lp2 += (lp - lp2) * a
 		wind += (randf_range(-1.0, 1.0) - wind) * 0.01
 		if j >= n:
-			out[i] = lp2 * 0.32 + wind * (0.25 + 0.15 * sin(TAU * t / 8.0))
+			out[i] = lp2 * 0.24 + wind * (0.25 + 0.15 * sin(TAU * t / 8.0))
+	_wrap = true
 	# Pads, two bars each: Em, C, Am, B.
 	var chords := [["E3", "G3", "B3"], ["C3", "E3", "G3"], ["A2", "C3", "E3"], ["B2", "D#3", "F#3"]]
 	for c in 4:
 		for note_name in chords[c]:
 			_add(out, voice({"wave": "saw", "f0": _note(note_name), "dur": 9.0, "attack": 2.5, "release": 3.0,
-					"detune": 0.005, "lowpass": 0.02, "poles": 2, "vol": 0.12}), int(c * 8.0 * RATE))
+					"detune": 0.005, "lowpass": 0.05, "poles": 2, "vol": 0.12}), int(c * 8.0 * RATE))
 	# Distant bells with an echo.
 	var bells := [[1.5, "B4"], [5.0, "G4"], [10.5, "E5"], [14.0, "F#4"], [18.5, "D5"], [22.0, "B4"], [26.5, "C5"], [29.5, "B4"]]
 	for b in bells:
-		var bell := _mix([voice({"wave": "tri", "f0": _note(b[1]), "dur": 3.0, "vol": 0.09}),
-				voice({"wave": "sine", "f0": _note(b[1]) * 2.76, "dur": 1.2, "vol": 0.03})])
+		var bell := _mix([voice({"wave": "tri", "f0": _note(b[1]), "dur": 3.0, "vol": 0.15}),
+				voice({"wave": "sine", "f0": _note(b[1]) * 2.76, "dur": 1.2, "vol": 0.05})])
 		_add(out, bell, int(b[0] * RATE))
 		var echo := bell.duplicate()
 		for i in echo.size():
@@ -393,7 +496,8 @@ func _music_title() -> PackedFloat32Array:
 	# A low boom every 8 s.
 	for k in 4:
 		_add(out, voice({"wave": "sine", "f0": 58.0, "f1": 28.0, "dur": 2.6, "vol": 0.4}), int(k * 8.0 * RATE))
-		_add(out, voice({"wave": "noise", "dur": 2.5, "lowpass": 0.02, "vol": 0.6}), int(k * 8.0 * RATE))
+		_add(out, voice({"wave": "noise", "dur": 2.5, "lowpass": 0.02, "vol": 0.45}), int(k * 8.0 * RATE))
+	_wrap = false
 	return _soft_clip(out)
 
 
@@ -403,7 +507,137 @@ func _soft_clip(a: PackedFloat32Array) -> PackedFloat32Array:
 	return a
 
 
-func _save(name: String, samples: PackedFloat32Array, loop := false) -> void:
+## Loudness per role (LUFS, K-weighted). Audio review 2026-11-27: the SFX were
+## 12 dB apart for no reason. Starting points, to be fine-tuned by ear.
+const ROLE_LUFS := {
+	"cast": -18.0, # every spell cast
+	"impact": -17.0, # hits, hurt, reflect, the "Burn!" whoosh
+	"death": -15.0, # death and the kill sting: the biggest events
+	"jingle": -18.0, # round / match won or lost
+	"warning": -20.0, # lava warning, heartbeat
+	"soft": -21.0, # ghost, boomerang return
+	"hum": -26.0, # the homing orb's flight loop, under everything
+	"ui": -21.0, # taps, coin, beep
+	"ambience": -24.0, # the lava sizzle
+	"music": -16.0, # both tracks, so pressing Play doesn't jump
+}
+const CEILING := 0.89 ## -1 dBFS: nothing goes louder (a soft knee from KNEE up)
+const KNEE := 0.6
+
+
+## Every sound goes through here: high-pass at 80 Hz (phones can't play
+## below it; also removes DC offset), then gain to its role's loudness, then
+## a soft ceiling at -1 dBFS. Music gets a low-shelf cut too (it was 87-96%
+## bass). Loops are filtered round twice so the seam stays smooth.
+func _finish(x: PackedFloat32Array, role: String, loop: bool) -> PackedFloat32Array:
+	var y := _biquad(x, _hpf(80.0, 0.707), loop)
+	if role == "music":
+		y = _biquad(y, _low_shelf(160.0, -6.0), loop)
+	var lufs := _lufs(y)
+	var gain := db_to_linear(ROLE_LUFS[role] - lufs) if lufs > -70.0 else 1.0
+	var span := CEILING - KNEE
+	for i in y.size():
+		var s := y[i] * gain
+		var a := absf(s)
+		if a > KNEE:
+			s = signf(s) * (KNEE + span * tanh((a - KNEE) / span))
+		y[i] = s
+	return y
+
+
+## RBJ biquad, coefficients [b0, b1, b2, a1, a2] (a0 normalised to 1).
+func _biquad(x: PackedFloat32Array, c: Array, loop := false) -> PackedFloat32Array:
+	var y := PackedFloat32Array()
+	y.resize(x.size())
+	var x1 := 0.0
+	var x2 := 0.0
+	var y1 := 0.0
+	var y2 := 0.0
+	var laps := 2 if loop else 1
+	for j in x.size() * laps:
+		var i := j % x.size()
+		var v: float = c[0] * x[i] + c[1] * x1 + c[2] * x2 - c[3] * y1 - c[4] * y2
+		x2 = x1
+		x1 = x[i]
+		y2 = y1
+		y1 = v
+		y[i] = v
+	return y
+
+
+func _hpf(f: float, q: float, rate := RATE) -> Array:
+	var w := TAU * f / rate
+	var al := sin(w) / (2.0 * q)
+	var a0 := 1.0 + al
+	return [(1.0 + cos(w)) / 2.0 / a0, -(1.0 + cos(w)) / a0, (1.0 + cos(w)) / 2.0 / a0,
+			-2.0 * cos(w) / a0, (1.0 - al) / a0]
+
+
+func _shelf(f: float, db: float, high: bool, q := 0.707, rate := RATE) -> Array:
+	var A := pow(10.0, db / 40.0)
+	var w := TAU * f / rate
+	var al := sin(w) / (2.0 * q)
+	var cw := cos(w)
+	var sq := 2.0 * sqrt(A) * al
+	var s := 1.0 if high else -1.0
+	var b0 := A * ((A + 1.0) + s * (A - 1.0) * cw + sq)
+	var b1 := -2.0 * s * A * ((A - 1.0) + s * (A + 1.0) * cw)
+	var b2 := A * ((A + 1.0) + s * (A - 1.0) * cw - sq)
+	var a0 := (A + 1.0) - s * (A - 1.0) * cw + sq
+	var a1 := 2.0 * s * ((A - 1.0) - s * (A + 1.0) * cw)
+	var a2 := (A + 1.0) - s * (A - 1.0) * cw - sq
+	return [b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0]
+
+
+func _low_shelf(f: float, db: float) -> Array:
+	return _shelf(f, db, false)
+
+
+## Integrated loudness (ITU BS.1770: K-weighting, 400 ms blocks with 75%
+## overlap, -70 LUFS and relative -10 LU gates). Sounds shorter than one
+## block are measured whole.
+func _lufs(x: PackedFloat32Array) -> float:
+	var k := _biquad(_biquad(x, _shelf(1681.97, 4.0, true, 0.7071)), _hpf(38.13, 0.5003))
+	var block := int(0.4 * RATE)
+	var powers: Array[float] = []
+	if k.size() <= block:
+		powers.append(_mean_sq(k, 0, k.size()))
+	else:
+		var hop := block / 4
+		var start := 0
+		while start + block <= k.size():
+			powers.append(_mean_sq(k, start, block))
+			start += hop
+	var abs_gated: Array[float] = []
+	for p in powers:
+		if p > 0.0 and -0.691 + 10.0 * log(p) / log(10.0) > -70.0:
+			abs_gated.append(p)
+	if abs_gated.is_empty():
+		return -100.0
+	var rel := -0.691 + 10.0 * log(_avg(abs_gated)) / log(10.0) - 10.0
+	var gated: Array[float] = []
+	for p in abs_gated:
+		if -0.691 + 10.0 * log(p) / log(10.0) > rel:
+			gated.append(p)
+	return -0.691 + 10.0 * log(_avg(gated)) / log(10.0)
+
+
+func _mean_sq(x: PackedFloat32Array, from: int, count: int) -> float:
+	var s := 0.0
+	for i in range(from, from + count):
+		s += x[i] * x[i]
+	return s / maxf(count, 1)
+
+
+func _avg(a: Array[float]) -> float:
+	var s := 0.0
+	for v in a:
+		s += v
+	return s / maxf(a.size(), 1)
+
+
+func _save(name: String, samples: PackedFloat32Array, role: String, loop := false) -> void:
+	samples = _finish(samples, role, loop)
 	var bytes := PackedByteArray()
 	bytes.resize(samples.size() * 2)
 	for i in samples.size():

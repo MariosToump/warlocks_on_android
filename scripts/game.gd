@@ -393,7 +393,10 @@ func _end_round(winner: Wizard) -> void:
 			match_winner = winner
 	_set_controls(false)
 	arena.shrinks = false
-	Sfx.play("win" if winner == player else "lose")
+	if match_winner:
+		Sfx.play("match_win" if match_winner == player else "match_lose")
+	else:
+		Sfx.play("win" if winner == player else "lose")
 	round_ended.emit(winner)
 
 
@@ -411,6 +414,7 @@ func open_shop() -> void:
 		return
 	state = State.SHOP
 	state_left = shop_time
+	Sfx.muffle_music(true)
 	shop_opened.emit()
 
 
@@ -419,6 +423,7 @@ func close_shop() -> void:
 	if state != State.SHOP:
 		return
 	shop_closed.emit()
+	Sfx.muffle_music(false)
 	shop_skipped = false
 	start_round()
 
@@ -475,6 +480,7 @@ func _process(delta: float) -> void:
 				return
 			_update_spectate(delta)
 			_feel_lava(delta)
+			_feel_heartbeat(delta)
 		State.ROUND_OVER:
 			state_left -= delta
 			if state_left <= 0.0:
@@ -523,6 +529,8 @@ func _on_wizard_died(w: Wizard) -> void:
 		kills[k] = kills.get(k, 0) + 1
 		round_kills[k] = round_kills.get(k, 0) + 1
 		kill_scored.emit(k, w)
+		if k == player:
+			Sfx.play("kill")
 	if state == State.FREE or state == State.TITLE:
 		_respawn_later(w)
 
@@ -591,6 +599,28 @@ func _feel_lava(_delta: float) -> void:
 		if feel_effects and state == State.FIGHT and arena.phase in [Arena.Phase.SHRINK, Arena.Phase.FINAL]:
 			arena.camera.shake(2.5, 0.6)
 		_last_phase = arena.phase
+	# The ground growls once when the warning line appears.
+	var warn := arena.warning_active()
+	if warn and not _lava_warned and state == State.FIGHT:
+		Sfx.play("lava_warn")
+	_lava_warned = warn
+
+
+## A slow heartbeat while the player is under LOW_HEALTH of their health.
+const LOW_HEALTH := 0.25
+const HEARTBEAT_EVERY := 0.95
+var _lava_warned := false
+var _heartbeat_left := 0.0
+
+
+func _feel_heartbeat(delta: float) -> void:
+	if not player.alive or player.health > player.max_health * LOW_HEALTH:
+		_heartbeat_left = 0.0
+		return
+	_heartbeat_left -= delta
+	if _heartbeat_left <= 0.0:
+		_heartbeat_left = HEARTBEAT_EVERY
+		Sfx.play("heartbeat", 0.0, 0.0)
 
 
 func _exit_tree() -> void:

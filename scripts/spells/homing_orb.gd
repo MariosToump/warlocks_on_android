@@ -45,4 +45,5 @@ func release(target: Vector2) -> void:
 	p.modulate = TINT
 	p.scale = Vector2(0.85, 0.85)
 	caster.get_parent().add_child(p)
+	Sfx.attach_loop(p, "homing_hum")
 	Sfx.play_at("homing", caster.global_position)

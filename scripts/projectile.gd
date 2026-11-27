@@ -121,6 +121,7 @@ func _check_shields() -> void:
 		age = 0.0 # a new threat: bots need their reaction time again
 		sprite.rotation = direction.angle()
 		w.bubble_flash()
+		Sfx.play_at("reflect", global_position)
 		return
 
 

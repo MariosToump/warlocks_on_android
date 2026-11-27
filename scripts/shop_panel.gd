@@ -133,7 +133,7 @@ func refresh() -> void:
 		row.add_child(lbl)
 		var cost := Shop.upgrade_cost(w, slot)
 		var b := _button("Max" if cost < 0 else "Up %dg" % cost, func(): _buy(func(): return Shop.upgrade(game, w, slot)), Vector2(100, 44))
-		b.disabled = not Shop.can_upgrade(game, w, slot)
+		_deny(b, not Shop.can_upgrade(game, w, slot))
 		row.add_child(b)
 		if s.spell_id != "" and Shop.SPELLS.has(s.spell_id):
 			var id := s.spell_id
@@ -160,7 +160,7 @@ func refresh() -> void:
 		row.add_child(lbl)
 		var full := Shop.free_slot(w, id) == ""
 		var b := _button("Full" if full else "Buy %dg" % info.price, func(): _buy(func(): return Shop.buy_spell(game, w, id)), Vector2(90, 44))
-		b.disabled = not Shop.can_buy_spell(game, w, id)
+		_deny(b, not Shop.can_buy_spell(game, w, id))
 		row.add_child(b)
 		_new_box.add_child(row)
 
@@ -181,7 +181,7 @@ func refresh() -> void:
 			b = _button("Sell +%dg" % Shop.sell_price(id), func(): _buy(func(): return Shop.sell_item(game, w, id)), Vector2(90, 44))
 		else:
 			b = _button("Buy %dg" % info.price, func(): _buy(func(): return Shop.buy_item(game, w, id)), Vector2(90, 44))
-			b.disabled = not Shop.can_buy_item(game, w, id)
+			_deny(b, not Shop.can_buy_item(game, w, id))
 		row.add_child(b)
 		_items_box.add_child(row)
 
@@ -190,6 +190,15 @@ func _buy(action: Callable) -> void:
 	if action.call():
 		Sfx.play("coin")
 		refresh()
+	else:
+		Sfx.play("denied")
+
+
+## A button you can't afford (or a full / maxed slot): greyed out but still
+## tappable, so the tap answers with the "denied" blip instead of nothing.
+func _deny(b: Button, denied: bool) -> void:
+	b.modulate = Color(1, 1, 1, 0.45) if denied else Color.WHITE
+	b.set_meta("denied", denied)
 
 
 func _row() -> HBoxContainer:
