@@ -138,6 +138,7 @@ for t in wizard fireball spells staff ai ai_human brawler lightning arena rounds
 done
 "$GODOT" --path . -s tools/test_touch.gd   # needs a window (no --headless)
 "$GODOT" --path . -s tools/test_shop_layout.gd   # needs a window: the shop fits a phone screen
+"$GODOT" --headless --path . -s tools/test_vfx.gd   # sparks, dissolve, embers, heat shimmer, shadows
 ```
 Each prints `ok` / `FAIL` lines and exits non-zero on failure.
 `tools/sim_ai.gd -- <easy|normal|hard> [seconds]` runs a bots-only fight and

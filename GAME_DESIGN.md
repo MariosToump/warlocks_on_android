@@ -5,15 +5,15 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (Android v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design, then the terrain stones brainstorm)_
+_Last updated: 2026-11-27 (Android v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design, then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
 - **PC**: `D:\Godot\Projects\claude_mcp\lava-warlocks` (keyboard + mouse, Forward+ renderer). Local git only.
 - **Android**: `D:\Godot\Projects\claude_mcp\lava-warlocks-mobile` (touch controls, Compatibility renderer).
-  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.12.1 (2026-11-27).
+  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.13 (2026-11-27).
   Build + install on the phone: `bash tools/deploy_android.sh`. APK: `build/warlocks_on_android.apk`.
-  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7, v0.8, v0.8.1 (2026-11-25), v0.9 (2026-11-26), v0.10, v0.11, v0.12, v0.12.1 (2026-11-27)
+  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7, v0.8, v0.8.1 (2026-11-25), v0.9 (2026-11-26), v0.10, v0.11, v0.12, v0.12.1, v0.13 (2026-11-27)
   (`gh release create vX.Y build/warlocks_on_android.apk`; bump `version/code` + `version/name` in export_presets.cfg first).
   Gameplay changes are made in PC first, then ported (`git cherry-pick` from the `pc` remote).
   **Exception — Android-only (v0.7 - v0.9, by choice):** fireball range 850 (PC: 700), the v0.7 HUD, pause menu and
@@ -56,7 +56,16 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
 **Paused 2026-11-27 (the user):** todos 3, 4, 5 and 8 wait while we work on graphics and design (more animation,
 a more "real" feel; research: a bigger PixelLab plan vs doing more in Godot). Order after the pause: terrain stones
 brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) stays last.
-- [ ] 0. **Graphics and design** **← next** — research Godot (lights, shaders, particles, juice) vs a paid PixelLab
+- [ ] 0. **Graphics and design** **← next** — _visual pass 1 (Godot) done 2026-11-27, Android v0.13. Design:
+  `docs/superpowers/specs/2026-11-27-visual-pass-design.md`. The user: don't darken the arena for now (so no
+  normal maps yet). Next: the PixelLab finish (below), then more Godot polish after the user's phone check._
+  - Visual pass 1: `scripts/vfx.gd` builds square-pixel CPUParticles2D bursts in code (max 24 alive): sparks on
+    every hit coloured by kind (fire / lightning / push / swap / meteor), a puff when a spell is let go, embers on
+    death. Death = the sprite dissolves texel by texel with a hot orange rim (`dissolve` in team_color.gdshader).
+    Lava embers (40) rise from lava on screen near the island edge. Heat shimmer (`shaders/heat_haze.gdshader`)
+    over lava only; "Heat shimmer: On/Off" in the pause menu (saved). Squash on hits, stretch on casts. Soft
+    shadows under wizards and projectiles. Test: `tools/test_vfx.gd`.
+  - Research: research Godot (lights, shaders, particles, juice) vs a paid PixelLab
   plan (the account is on the free trial), then brainstorm and plan. The user's choice (2026-11-27): do as much
   as we can in Godot first (lights, particles, shaders, juice), then finish with PixelLab: the missing directions
   (death E/NE, attack SE/NE, hurt E is made but not imported; the west side is mirrored in code) and an idle.
@@ -346,7 +355,7 @@ Android v0.11: a longer Lightning with a stronger tip; the lava shrinks every 18
 - `Wizard.take_damage(amount, source)` remembers `last_attacker` (for kill credit in rounds); bots turn on whoever just hit them.
 
 ### Tests
-`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai, test_arena, test_rounds (+ on Android: test_hud_v07, test_shop, test_homing, test_title, test_ghost, test_feel, test_terrain, test_new_spells, and test_touch + test_shop_layout, which need a window: no `--headless`). All passing (2026-11-27).
+`godot --path . -s tools/<test>.gd`: test_wizard, test_fireball, test_spells, test_staff, test_ai, test_arena, test_rounds (+ on Android: test_hud_v07, test_shop, test_homing, test_title, test_ghost, test_feel, test_terrain, test_new_spells, test_vfx, and test_touch + test_shop_layout, which need a window: no `--headless`). All passing (2026-11-27).
 test_ai and test_homing use the old 38-tile island (they place wizards ~900 px out).
 Tests set `game.bot_ai = false` so bots are passive dummies (`BotBlue`, `BotGreen`, `BotPurple`).
 
