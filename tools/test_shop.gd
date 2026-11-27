@@ -95,6 +95,31 @@ func _run() -> void:
 	await _frames(1) # old rows are freed at the end of the frame
 	_check(not _panel_has_text(panel, "New: Homing Orb"), "panel stops offering it")
 
+	print("two shop slots (v0.12)")
+	game.gold[player] = 100
+	_check(player.slot_of("homing") == "D", "slot_of finds the Homing Orb in D")
+	_check(Shop.buy_spell(game, player, "rockwall") and player.get_spell("F") is RockWallSpell, "Rock Wall lands in F")
+	var g1 := Shop.gold_of(game, player)
+	_check(not Shop.can_buy_spell(game, player, "boomerang") and not Shop.buy_spell(game, player, "boomerang") \
+		and Shop.gold_of(game, player) == g1, "both slots full: can't buy a third, no gold taken")
+	panel.refresh()
+	await _frames(1)
+	_check(_panel_has_text(panel, "Sell +7g"), "panel offers to sell a bought spell")
+	_check(Shop.sell_spell(game, player, "homing") and Shop.gold_of(game, player) == g1 + 7 \
+		and player.get_spell("D") == null, "selling the orb refunds half (7) and frees D")
+	await _frames(1)
+	_check(Shop.buy_spell(game, player, "boomerang") and player.slot_of("boomerang") == "D", "Boomerang takes the free slot")
+	Shop.sell_spell(game, player, "boomerang")
+	Shop.sell_spell(game, player, "rockwall")
+	await _frames(1)
+	_check(Shop.buy_spell(game, player, "meteor") and player.slot_of("meteor") == "F", "Meteor takes its home slot F")
+	_check(Shop.buy_spell(game, player, "swap") and player.slot_of("swap") == "D", "Swap takes D")
+	Shop.sell_spell(game, player, "meteor")
+	Shop.sell_spell(game, player, "swap")
+	await _frames(1)
+	Shop.buy_spell(game, player, "homing")
+	game.gold[player] = 25
+
 	print("ready starts the next round, buys are kept")
 	panel._ready_button.pressed.emit()
 	await _frames(2)
@@ -116,7 +141,7 @@ func _run() -> void:
 	print("new match clears everything")
 	game.start_match()
 	await _frames(2)
-	_check(q.level == 0 and player.get_spell("D") == null and player.items.is_empty(), "levels, slot D and items cleared")
+	_check(q.level == 0 and player.get_spell("D") == null and player.get_spell("F") == null and player.items.is_empty(), "levels, slots D + F and items cleared")
 	_check(Shop.gold_of(game, player) == 0 and blue.get_spell("Q").level == 0, "gold 0, bots reset too")
 	_check(is_equal_approx(player.lava_multiplier, 1.0) and is_equal_approx(player.knockback_taken_multiplier, 1.0), "item effects gone")
 	game.wins_to_take_match = 5

@@ -20,6 +20,9 @@ var knockback := 380.0
 ## 0 = flies straight. After a shield reflection it hunts the new owner's enemies.
 var homing_turn := 0.0
 var homing_radius := 520.0
+## Swap orb: called as on_hit.call(projectile, wizard) instead of damage +
+## knockback when it hits an unshielded wizard.
+var on_hit: Callable
 ## Fireballs scorch a crater (slows walkers) where they burst.
 var leaves_crater := false
 
@@ -44,7 +47,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if _done:
+	if _done or _frozen():
 		return
 	age += delta
 	if homing_turn > 0.0:
@@ -55,6 +58,13 @@ func _physics_process(delta: float) -> void:
 	_check_shields()
 	if _travelled >= max_range:
 		_explode(0.6)
+
+
+## Inside a Time Stop: stand still and stop animating.
+func _frozen() -> bool:
+	var f := TimeStopField.freezes(get_tree(), global_position)
+	sprite.speed_scale = 0.0 if f else 1.0
+	return f
 
 
 func _steer(delta: float) -> void:
@@ -123,6 +133,10 @@ func _on_body_entered(body: Node) -> void:
 	var w := body as Wizard
 	if w.is_shielded():
 		return # _check_shields bounces it
+	if on_hit.is_valid():
+		on_hit.call(self, w)
+		_explode(impact_scale)
+		return
 	w.take_damage(damage, caster)
 	w.apply_knockback(direction * knockback)
 	w.flash_hit(direction)

@@ -9,9 +9,10 @@ extends Node
 ## movement actions set a goal that is followed every physics frame.
 
 ## Every action has _score_<name>() -> float and _do_<name>() -> void.
-const ACTIONS := ["dodge", "recover", "shield", "reposition", "fireball", "lightning", "staff", "blink_in", "homing", "rockwall"]
+const ACTIONS := ["dodge", "recover", "shield", "reposition", "fireball", "lightning", "staff", "blink_in", "homing", "rockwall",
+	"boomerang", "swap", "meteor", "well", "timestop", "evade"]
 ## Actions that attack (held back by hesitation, the opening watch, moods).
-const ATTACKS := ["fireball", "lightning", "staff", "blink_in", "homing"]
+const ATTACKS := ["fireball", "lightning", "staff", "blink_in", "homing", "boomerang", "swap", "meteor", "well"]
 ## Bonus for sticking with the current action / target (stops jitter).
 const KEEP_ACTION_BONUS := 0.1
 const KEEP_TARGET_BONUS := 80.0
@@ -43,7 +44,7 @@ const WATCH_ATTACK := 0.15
 const WATCH_DISTANCE := 260.0
 ## An enemy this exposed ends the watch at once.
 const WATCH_BREAK_OPPORTUNITY := 0.6
-const DEFENCES := ["dodge", "shield", "rockwall"]
+const DEFENCES := ["dodge", "shield", "rockwall", "timestop", "evade"]
 ## Seen shield / blink: "probably down" for this share of our own base cooldown.
 const COOLDOWN_GUESS := 0.9
 ## Opportunity: target cost bonus per point (x risk).
@@ -98,6 +99,8 @@ var _rolls := {}
 var _cast_rolls := {}
 ## How long we've been flying toward lava without having reacted yet.
 var _knocked_for := 0.0
+## How long a Gravity Well has been pulling us without a reaction yet.
+var _pulled_for := 0.0
 ## The projectile the current think is reacting to (or null).
 var _danger: Projectile = null
 ## Opening watch ends at this _now (only advances while the brain is on).
@@ -232,6 +235,14 @@ func _physics_process(delta: float) -> void:
 			_think_left = 0.0
 	else:
 		_knocked_for = 0.0
+	# A Gravity Well's pull is felt the same way.
+	if current_action != "evade" and current_action != "recover" and _well_pull() != Vector2.ZERO:
+		_pulled_for += delta
+		if _pulled_for >= profile.reaction_delay * 0.5:
+			_think_left = 0.0
+			_pulled_for = 0.0
+	else:
+		_pulled_for = 0.0
 	_strafe_left -= delta
 	if _strafe_left <= 0.0:
 		_strafe_left = randf_range(1.5, 3.5)
@@ -346,6 +357,12 @@ func _rock_in_the_way() -> bool:
 	return Prop.blocks(get_tree(), wizard.global_position, target.global_position)
 
 
+## A projectile would be stopped on the way: a rock, or a Time Stop (it would
+## hang there, and maybe get turned on us later).
+func _shot_blocked() -> bool:
+	return _rock_in_the_way() or TimeStopField.on_line(get_tree(), wizard.global_position, target.global_position)
+
+
 func _can_cast(slot: String) -> bool:
 	var spell := wizard.get_spell(slot)
 	return spell != null and spell.is_ready() and not wizard.is_casting() \
@@ -400,11 +417,11 @@ func _do_reposition() -> void:
 ## Homing Orb (slot D, bought in the shop): slow but it curves, so good at
 ## mid/long range; useless point-blank (it can't turn in time).
 func _score_homing() -> float:
-	var spell := wizard.get_spell("D") as HomingOrbSpell
-	if target == null or spell == null or not _can_cast("D") or target.is_shielded():
+	var slot := wizard.slot_of("homing")
+	if target == null or slot == "" or not _can_cast(slot) or target.is_shielded():
 		return 0.0
 	var d := _target_distance()
-	if d < 140.0 or d > 700.0:
+	if d < 140.0 or d > 700.0 or TimeStopField.on_line(get_tree(), wizard.global_position, target.global_position):
 		return 0.0
 	return 0.85
 
@@ -412,7 +429,8 @@ func _score_homing() -> float:
 ## Rock Wall (if bought): cover from a spell we've seen coming when the
 ## shield is down; a little less than a clean dodge.
 func _score_rockwall() -> float:
-	if wizard.get_spell("F") == null or not _can_cast("F") or _danger == null:
+	var slot := wizard.slot_of("rockwall")
+	if slot == "" or not _can_cast(slot) or _danger == null:
 		return 0.0
 	if not _roll(_danger)[0] or (wizard.get_spell("R") and wizard.get_spell("R").is_ready()):
 		return 0.0
@@ -423,11 +441,165 @@ func _score_rockwall() -> float:
 
 func _do_rockwall() -> void:
 	if _danger and is_instance_valid(_danger):
-		_cast("F", _danger.global_position)
+		_cast(wizard.slot_of("rockwall"), _danger.global_position)
+
+
+## Boomerang (if bought): mid range, a bit better when the target stands
+## near lava (the way-back hit drags it along).
+func _score_boomerang() -> float:
+	var slot := wizard.slot_of("boomerang")
+	if target == null or slot == "" or not _can_cast(slot) or target.is_shielded():
+		return 0.0
+	var d := _target_distance()
+	var spell := wizard.get_spell(slot) as BoomerangSpell
+	if d < 90.0 or d > spell.out_range * 0.95 or _shot_blocked():
+		return 0.0
+	return 0.8 + (0.2 if _lava_within(target.global_position, NEAR_LAVA) else 0.0)
+
+
+func _do_boomerang() -> void:
+	_cast(wizard.slot_of("boomerang"), target.global_position)
+
+
+## Swap (if bought): trade places when that leaves the target nearer the
+## lava than us -- we're on the edge and it isn't, or we're well further out
+## from the middle than it is.
+func _score_swap() -> float:
+	var slot := wizard.slot_of("swap")
+	if target == null or slot == "" or not _can_cast(slot) or target.is_shielded():
+		return 0.0
+	var spell := wizard.get_spell(slot) as SwapSpell
+	var d := _target_distance()
+	if d < 120.0 or d > spell.reach() * 0.9 or _shot_blocked():
+		return 0.0
+	var mid := wizard.arena.get_center()
+	var me_near := _lava_within(wizard.global_position, NEAR_LAVA)
+	if me_near and not _lava_within(target.global_position, NEAR_LAVA):
+		return 1.3
+	if wizard.global_position.distance_to(mid) > target.global_position.distance_to(mid) + 150.0:
+		return 0.6
+	return 0.0
+
+
+func _do_swap() -> void:
+	var t := target.global_position
+	t += target.velocity * wizard.global_position.distance_to(t) / 650.0
+	_cast(wizard.slot_of("swap"), t)
+
+
+## Meteor (if bought): a target 150-600 px away, best on one near the lava
+## (the push is huge) or one standing still to cast.
+func _score_meteor() -> float:
+	var slot := wizard.slot_of("meteor")
+	if target == null or slot == "" or not _can_cast(slot) or target.is_shielded():
+		return 0.0
+	var d := _target_distance()
+	if d < 150.0 or d > 560.0:
+		return 0.0
+	var s := 0.7
+	if _lava_within(target.global_position, NEAR_LAVA):
+		s += 0.3
+	if target.is_casting():
+		s += 0.2
+	return s
+
+
+func _do_meteor() -> void:
+	# Aim where it's heading: it lands in 1 s.
+	_cast(wizard.slot_of("meteor"), target.global_position + target.velocity * 0.6)
+
+
+## Gravity Well (if bought): drag a target in, best one near the lava.
+func _score_well() -> float:
+	var slot := wizard.slot_of("well")
+	if target == null or slot == "" or not _can_cast(slot):
+		return 0.0
+	if _target_distance() > 480.0:
+		return 0.0
+	return 0.55 + (0.6 if _lava_within(target.global_position, NEAR_LAVA) else 0.0)
+
+
+func _do_well() -> void:
+	# A target near lava: put the well a little past it, on the lava side.
+	var at := target.global_position
+	if _lava_within(at, NEAR_LAVA):
+		at += (at - wizard.arena.get_center()).normalized() * 50.0
+	_cast(wizard.slot_of("well"), at)
+
+
+## Time Stop (if bought): freeze a spell we've seen coming; better when the
+## shield is down.
+func _score_timestop() -> float:
+	var slot := wizard.slot_of("timestop")
+	if slot == "" or not _can_cast(slot) or _danger == null or not is_instance_valid(_danger):
+		return 0.0
+	var d := _danger.global_position.distance_to(wizard.global_position)
+	if d < 60.0 or d > 400.0:
+		return 0.0
+	var shield := wizard.get_spell("R")
+	return 0.75 if shield and shield.is_ready() else 1.2
+
+
+func _do_timestop() -> void:
+	if _danger and is_instance_valid(_danger):
+		_cast(wizard.slot_of("timestop"), _danger.global_position + _danger.direction * 40.0)
+
+
+## Get out of a Meteor's ring (once we've had time to see it) or a Gravity
+## Well's pull (felt at once).
+func _score_evade() -> float:
+	var best := 0.0
+	var me := wizard.global_position
+	for n in get_tree().get_nodes_in_group("meteors"):
+		var m := n as MeteorStrike
+		if m.age >= profile.reaction_delay and me.distance_to(m.global_position) <= m.radius + 25.0:
+			best = maxf(best, 2.4)
+	for n in get_tree().get_nodes_in_group("wells"):
+		var g := n as GravityWell
+		if g.caster != wizard and me.distance_to(g.global_position) <= g.radius + 10.0:
+			best = maxf(best, 2.4 if _lava_within(me, NEAR_LAVA * 1.5) else 2.0)
+	return best
+
+
+## The total pull enemy Gravity Wells put on us right now.
+func _well_pull() -> Vector2:
+	var p := Vector2.ZERO
+	for n in get_tree().get_nodes_in_group("wells"):
+		p += (n as GravityWell).pull_on(wizard)
+	return p
+
+
+func _do_evade() -> void:
+	var me := wizard.global_position
+	var away := Vector2.ZERO
+	var hurry := false
+	for n in get_tree().get_nodes_in_group("meteors"):
+		var m := n as MeteorStrike
+		var off := me - m.global_position
+		if off.length() <= m.radius + 25.0:
+			away += off.normalized() if off.length() > 1.0 else Vector2.from_angle(randf() * TAU)
+			# can't walk out before it lands?
+			hurry = hurry or (m.radius + 10.0 - off.length()) / wizard.move_speed > m.delay - m.age
+	for n in get_tree().get_nodes_in_group("wells"):
+		var g := n as GravityWell
+		var off := me - g.global_position
+		if g.caster != wizard and off.length() <= g.radius + 10.0:
+			away += off.normalized() * 1.5 if off.length() > 1.0 else Vector2.from_angle(randf() * TAU)
+			hurry = hurry or _lava_within(me, NEAR_LAVA)
+	if away == Vector2.ZERO:
+		return
+	var goal := me + away.normalized() * 120.0
+	if _unsafe(goal):
+		goal = me + (wizard.arena.get_center() - me).normalized() * 120.0
+	var blink := wizard.get_spell("W")
+	if hurry and blink and blink.is_ready() and not wizard.is_casting():
+		if _cast("W", me + (goal - me).normalized() * 200.0):
+			return
+	_goal = goal
 
 
 func _do_homing() -> void:
-	_cast("D", target.global_position)
+	_cast(wizard.slot_of("homing"), target.global_position)
 
 
 func _score_fireball() -> float:
@@ -435,7 +607,7 @@ func _score_fireball() -> float:
 	if target == null or spell == null or not _can_cast("Q") or target.is_shielded():
 		return 0.0
 	var d := _target_distance()
-	if d > spell.max_range * 0.9 or _rock_in_the_way():
+	if d > spell.max_range * 0.9 or _shot_blocked():
 		return 0.0
 	return 0.6 + 0.2 * d / spell.max_range # better at range; lightning covers close
 

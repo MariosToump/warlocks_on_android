@@ -17,11 +17,16 @@ const TINT := Color(0.75, 0.45, 1.6)
 
 func _init() -> void:
 	spell_name = "Homing Orb"
+	spell_id = "homing"
 	icon = FRAMES.get_frame_texture("default", 0)
 	icon_tint = TINT
 	cooldown_by_level = [6.0, 5.5, 5.0, 4.5]
 	cast_time = 0.3
 	release_time = 0.18
+
+
+func reach() -> float:
+	return 600.0 # it curves, so aim roughly; tap picks targets this close
 
 
 func release(target: Vector2) -> void:

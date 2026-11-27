@@ -35,9 +35,9 @@ const LAYOUT := {
 	"W": {"offset": Vector2(-144, -90), "r": 44.0},
 	"E": {"offset": Vector2(-74, -153), "r": 44.0},
 	"R": {"offset": Vector2(18, -169), "r": 44.0},
-	# Bought in the shop (Homing Orb): left of Q; only drawn once owned.
+	# The two shop slots (any bought spell): left of Q, and up-left of W;
+	# only drawn once something is bought.
 	"D": {"offset": Vector2(-266, 0), "r": 44.0},
-	# Rock Wall (shop): up-left of W.
 	"F": {"offset": Vector2(-246, -106), "r": 44.0},
 }
 
@@ -233,7 +233,7 @@ func _target_for(slot: String, aim_vec: Vector2, tapped: bool) -> Vector2:
 			return _lead(enemy, (spell as FireballSpell).speed)
 		return enemy.global_position
 	var reach := _reach(spell)
-	if slot == "W":
+	if slot == "W" or spell.placed:
 		reach *= clampf(aim_vec.length() / AIM_FULL, 0.25, 1.0)
 	return p + aim_vec.normalized() * reach
 
@@ -245,9 +245,7 @@ func _reach(spell: Spell) -> float:
 		return spell.max_range
 	if spell is FireballSpell:
 		return spell.max_range
-	if spell is HomingOrbSpell:
-		return 600.0 # it curves, so aim roughly; tap picks targets this close
-	return 100.0
+	return spell.reach()
 
 
 ## Tap target for a spell that reaches `reach` px: the closest enemy in
@@ -308,6 +306,8 @@ func _update_guide() -> void:
 	_guide.global_position = wizard.global_position
 	_guide.target = _target_for(_aim_slot, _aim_vec, tapped) - wizard.global_position
 	_guide.blink = _aim_slot == "W"
+	var spell := wizard.get_spell(_aim_slot)
+	_guide.area = spell.area_radius if spell else 0.0
 	_guide.cancel = cancel
 	_guide.queue_redraw()
 
@@ -406,6 +406,8 @@ func _draw_pie(c: Vector2, r: float, ratio: float, col: Color) -> void:
 class AimGuide extends Node2D:
 	var target := Vector2.ZERO
 	var blink := false
+	## > 0: a placed spell -- draw the ground it will cover instead of an arrow.
+	var area := 0.0
 	var cancel := false
 
 	func _ready() -> void:
@@ -420,7 +422,13 @@ class AimGuide extends Node2D:
 		for i in n:
 			if i % 2 == 0:
 				draw_line(hand.lerp(to, float(i) / n), hand.lerp(to, float(i + 1) / n), col, 2.0)
-		if blink:
+		if area > 0.0:
+			var ring := PackedVector2Array()
+			for i in 33:
+				var a := i * TAU / 32.0
+				ring.append(target + Vector2(cos(a) * area, sin(a) * area * 0.62))
+			draw_polyline(ring, col, 2.0)
+		elif blink:
 			draw_arc(target, 10.0, 0, TAU, 20, col, 2.0)
 		else:
 			var d := (to - hand).normalized()

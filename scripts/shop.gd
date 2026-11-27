@@ -4,20 +4,39 @@ extends RefCounted
 ## (Wizard -> int). Static helpers, shared by the shop panel and the bots.
 ##
 ## - Spell upgrades: level 1 / 2 / 3 cost 10 / 15 / 20.
-## - New spell: Homing Orb (slot D) 15.
+## - New spells (see SPELLS): 15-20, at most two (slots D and F).
 ## - Items, at most MAX_ITEMS, sold back for half: see ITEMS.
 
 const UPGRADE_COSTS := [10, 15, 20] ## cost to reach level 1, 2, 3
 const SLOTS := ["Q", "W", "E", "R", "D", "F", "A"] ## upgrade order on the panel
 const MAX_ITEMS := 2
 
+## Bought spells live in these two slots (v0.12; the user wants a rework
+## later). A spell takes its "home" slot if free, else the other one; with
+## both full you sell one first (half price back).
+const SHOP_SLOTS := ["D", "F"]
 const SPELLS := {
-	"homing": {"name": "Homing Orb", "slot": "D", "price": 15,
+	"homing": {"name": "Homing Orb", "home": "D", "price": 15,
 			"script": preload("res://scripts/spells/homing_orb.gd"),
 			"desc": "Slow orb that curves toward the nearest enemy."},
-	"rockwall": {"name": "Rock Wall", "slot": "F", "price": 15,
+	"rockwall": {"name": "Rock Wall", "home": "F", "price": 15,
 			"script": preload("res://scripts/spells/rock_wall.gd"),
 			"desc": "Raise 3 rocks in front of you: cover for a few seconds."},
+	"boomerang": {"name": "Boomerang", "home": "D", "price": 15,
+			"script": preload("res://scripts/spells/boomerang.gd"),
+			"desc": "Spinning blade: flies out, comes back, can hit twice."},
+	"swap": {"name": "Swap", "home": "D", "price": 15,
+			"script": preload("res://scripts/spells/swap.gd"),
+			"desc": "Fast orb: on a hit you and the target trade places."},
+	"meteor": {"name": "Meteor", "home": "F", "price": 20,
+			"script": preload("res://scripts/spells/meteor.gd"),
+			"desc": "Calls a meteor on a spot: 1 s warning, then a huge blast."},
+	"well": {"name": "Gravity Well", "home": "F", "price": 20,
+			"script": preload("res://scripts/spells/gravity_well.gd"),
+			"desc": "A vortex that drags nearby enemies to its centre."},
+	"timestop": {"name": "Time Stop", "home": "F", "price": 20,
+			"script": preload("res://scripts/spells/time_stop.gd"),
+			"desc": "Freezes every spell flying inside a circle for 2 s."},
 }
 
 const ITEMS := {
@@ -29,11 +48,13 @@ const ITEMS := {
 
 ## What each bot personality buys first (it walks the list again and again
 ## while it can afford something). "up:Q" = upgrade, "item:x", "spell:x".
+## Each wants at most two spells (the two shop slots); "up:D" / "up:F"
+## upgrade whatever sits there.
 const BOT_PRIORITY := {
-	"Caster": ["up:Q", "item:gem", "spell:homing", "up:Q", "spell:rockwall", "up:E", "item:ring", "up:R", "up:D", "up:W", "up:F"],
-	"Brawler": ["up:E", "spell:rockwall", "item:cloak", "up:A", "item:boots", "up:R", "up:W", "up:F", "up:Q", "spell:homing"],
-	"Trickster": ["up:W", "item:boots", "spell:homing", "up:Q", "spell:rockwall", "up:E", "item:gem", "up:D", "up:R", "up:F"],
-	"Bot": ["up:Q", "item:boots", "up:E", "spell:homing", "spell:rockwall", "item:cloak", "up:W", "up:R", "up:F"],
+	"Caster": ["up:Q", "item:gem", "spell:meteor", "up:Q", "spell:homing", "up:E", "item:ring", "up:R", "up:D", "up:W", "up:F"],
+	"Brawler": ["up:E", "spell:swap", "item:cloak", "up:A", "spell:well", "item:boots", "up:R", "up:W", "up:F", "up:D", "up:Q"],
+	"Trickster": ["up:W", "item:boots", "spell:boomerang", "up:Q", "spell:timestop", "up:E", "item:gem", "up:D", "up:R", "up:F"],
+	"Bot": ["up:Q", "item:boots", "up:E", "spell:homing", "spell:rockwall", "item:cloak", "up:W", "up:R", "up:D", "up:F"],
 }
 
 
@@ -74,11 +95,23 @@ static func upgrade(game: Node, w: Wizard, slot: String) -> bool:
 # --- new spells -----------------------------------------------------------------
 
 static func has_spell(w: Wizard, id: String) -> bool:
-	return w.get_spell(SPELLS[id].slot) != null
+	return w.slot_of(id) != ""
+
+
+## Where spell `id` would go: its home slot if free, else the other free
+## shop slot, else "".
+static func free_slot(w: Wizard, id: String) -> String:
+	var home: String = SPELLS[id].home
+	if w.get_spell(home) == null:
+		return home
+	for slot in SHOP_SLOTS:
+		if w.get_spell(slot) == null:
+			return slot
+	return ""
 
 
 static func can_buy_spell(game: Node, w: Wizard, id: String) -> bool:
-	return not has_spell(w, id) and gold_of(game, w) >= SPELLS[id].price
+	return not has_spell(w, id) and free_slot(w, id) != "" and gold_of(game, w) >= SPELLS[id].price
 
 
 static func buy_spell(game: Node, w: Wizard, id: String) -> bool:
@@ -87,9 +120,31 @@ static func buy_spell(game: Node, w: Wizard, id: String) -> bool:
 	_pay(game, w, SPELLS[id].price)
 	var node := Node.new()
 	node.set_script(SPELLS[id].script)
-	node.name = SPELLS[id].slot
+	node.name = free_slot(w, id)
 	w.get_node("Spells").add_child(node)
 	return true
+
+
+static func spell_sell_price(id: String) -> int:
+	return int(SPELLS[id].price / 2)
+
+
+## Sell a bought spell back for half its price (its upgrades are lost).
+static func sell_spell(game: Node, w: Wizard, id: String) -> bool:
+	var slot := w.slot_of(id)
+	if slot == "":
+		return false
+	_remove_spell(w, slot)
+	game.gold[w] = gold_of(game, w) + spell_sell_price(id)
+	return true
+
+
+## Take the spell out of `slot` now (so the slot is free at once).
+static func _remove_spell(w: Wizard, slot: String) -> void:
+	var s := w.get_spell(slot)
+	if s:
+		s.get_parent().remove_child(s)
+		s.queue_free()
 
 
 # --- items --------------------------------------------------------------------
@@ -149,11 +204,8 @@ static func clear(w: Wizard) -> void:
 	for s in w.get_node("Spells").get_children():
 		if s is Spell:
 			s.level = 0
-	for id in SPELLS:
-		var bought := w.get_spell(SPELLS[id].slot)
-		if bought:
-			bought.get_parent().remove_child(bought)
-			bought.queue_free()
+	for slot in SHOP_SLOTS:
+		_remove_spell(w, slot)
 	w.items.clear()
 	apply_items(w)
 

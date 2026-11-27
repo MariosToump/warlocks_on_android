@@ -55,8 +55,8 @@ func release(target: Vector2) -> void:
 		if w == caster or not w.alive:
 			continue
 		var shielded := w.is_shielded()
-		var reach := hit_radius + (Wizard.SHIELD_RADIUS - 8.0 if shielded else 0.0)
-		if w.global_position.distance_to(center) > reach:
+		var hit_reach := hit_radius + (Wizard.SHIELD_RADIUS - 8.0 if shielded else 0.0)
+		if w.global_position.distance_to(center) > hit_reach:
 			continue
 		var push := w.global_position - from
 		push = push.normalized() if push.length() > 1.0 else dir

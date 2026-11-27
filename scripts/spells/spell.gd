@@ -6,6 +6,14 @@ extends Node
 ## indexed by `level`.
 
 @export var spell_name := "Spell"
+## Shop id ("homing", "meteor", ...; "" for the starting spells). Bought
+## spells sit in slot D or F, so code finds them by id: Wizard.slot_of(id).
+var spell_id := ""
+## Placed at a point (Meteor, Gravity Well, Time Stop): a touch drag aims the
+## distance too (short drag = close), like Blink.
+var placed := false
+## Placed spells: the radius of the area they cover (drawn while aiming).
+var area_radius := 0.0
 @export var icon: Texture2D
 ## Tint for the icon on buttons (spells that share art look different).
 var icon_tint := Color.WHITE
@@ -50,6 +58,11 @@ func cooldown_ratio() -> float:
 
 func start_cooldown() -> void:
 	cooldown_left = cooldown() * caster.cooldown_multiplier
+
+
+## How far the spell reaches (touch auto-aim and drag aiming). Override.
+func reach() -> float:
+	return 100.0
 
 
 ## Override: do the spell's effect toward `target` (world position).

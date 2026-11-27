@@ -45,11 +45,11 @@ func release(target: Vector2) -> void:
 		if w == caster or not w.alive:
 			continue
 		var t := (w.global_position - from).dot(dir)
-		var reach := Wizard.SHIELD_RADIUS if w.is_shielded() else width_at(t)
-		if t < 0.0 or t > max_range + reach:
+		var hit_reach := Wizard.SHIELD_RADIUS if w.is_shielded() else width_at(t)
+		if t < 0.0 or t > max_range + hit_reach:
 			continue
 		var off := (w.global_position - (from + dir * t)).length()
-		if off <= reach and t < best_t:
+		if off <= hit_reach and t < best_t:
 			best = w
 			best_t = t
 

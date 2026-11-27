@@ -118,6 +118,9 @@ func refresh() -> void:
 		var b := _button("Max" if cost < 0 else "Upgrade %dg" % cost, func(): _buy(func(): return Shop.upgrade(game, w, slot)))
 		b.disabled = not Shop.can_upgrade(game, w, slot)
 		row.add_child(b)
+		if s.spell_id != "" and Shop.SPELLS.has(s.spell_id):
+			var id := s.spell_id
+			row.add_child(_button("Sell +%dg" % Shop.spell_sell_price(id), func(): _buy(func(): return Shop.sell_spell(game, w, id))))
 		_spells_box.add_child(row)
 	for id in Shop.SPELLS:
 		if Shop.has_spell(w, id):
@@ -137,7 +140,8 @@ func refresh() -> void:
 		lbl.custom_minimum_size.x = 230
 		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 		row.add_child(lbl)
-		var b := _button("Buy %dg" % info.price, func(): _buy(func(): return Shop.buy_spell(game, w, id)))
+		var full := Shop.free_slot(w, id) == ""
+		var b := _button("Slots full" if full else "Buy %dg" % info.price, func(): _buy(func(): return Shop.buy_spell(game, w, id)))
 		b.disabled = not Shop.can_buy_spell(game, w, id)
 		row.add_child(b)
 		_spells_box.add_child(row)

@@ -39,6 +39,33 @@ func _init() -> void:
 		voice({"wave": "sine", "f0": 1400.0, "f1": 260.0, "dur": 0.2, "vol": 0.4}),
 		voice({"wave": "noise", "dur": 0.12, "lowpass": 0.5, "vol": 0.25}),
 	]))
+	# v0.12 shop spells
+	_save("boomerang", _mix([ # a whirring blade
+		voice({"wave": "saw", "f0": 300.0, "f1": 420.0, "dur": 0.4, "vib": 28.0, "vib_depth": 0.25, "vol": 0.22, "lowpass": 0.35}),
+		voice({"wave": "noise", "dur": 0.35, "lowpass": 0.3, "vol": 0.2, "crackle": 0.5}),
+	]))
+	_save("meteor_fall", _mix([ # a falling whistle with a roar under it
+		voice({"wave": "sine", "f0": 1600.0, "f1": 300.0, "dur": 0.95, "attack": 0.1, "vol": 0.25}),
+		voice({"wave": "noise", "dur": 0.95, "attack": 0.5, "lowpass": 0.08, "lowpass_end": 0.3, "vol": 0.35}),
+	]))
+	_save("meteor_boom", _mix([
+		voice({"wave": "noise", "dur": 0.7, "lowpass": 0.5, "lowpass_end": 0.04, "vol": 0.6}),
+		voice({"wave": "sine", "f0": 110.0, "f1": 30.0, "dur": 0.6, "vol": 0.6}),
+		voice({"wave": "saw", "f0": 90.0, "f1": 35.0, "dur": 0.5, "vol": 0.2, "drive": 5.0, "lowpass": 0.2}),
+	]))
+	_save("well", _mix([ # a deep rising hum
+		voice({"wave": "saw", "f0": 70.0, "f1": 140.0, "dur": 0.9, "attack": 0.2, "detune": 0.02, "vol": 0.3, "lowpass": 0.15}),
+		voice({"wave": "sine", "f0": 400.0, "f1": 200.0, "dur": 0.8, "vib": 9.0, "vib_depth": 0.1, "vol": 0.15}),
+	]))
+	_save("swap", _mix([ # zip there and back
+		voice({"wave": "square", "f0": 400.0, "f1": 1600.0, "dur": 0.12, "vol": 0.2, "duty": 0.3}),
+		voice({"wave": "square", "f0": 1600.0, "f1": 400.0, "dur": 0.14, "vol": 0.2, "duty": 0.3, "delay": 0.12}),
+	]))
+	_save("timestop", _mix([ # a bright chime that hangs in the air
+		voice({"wave": "tri", "f0": 1568.0, "dur": 0.9, "vol": 0.22, "vib": 6.0, "vib_depth": 0.01}),
+		voice({"wave": "sine", "f0": 2349.0, "dur": 0.8, "vol": 0.14, "delay": 0.05}),
+		voice({"wave": "sine", "f0": 784.0, "dur": 0.9, "vol": 0.18}),
+	]))
 	_save("staff", voice({"wave": "noise", "dur": 0.16, "attack": 0.04, "lowpass": 0.25, "lowpass_end": 0.6, "vol": 0.4}))
 	# --- wizards ------------------------------------------------------------
 	_save("hurt", voice({"wave": "square", "f0": 260.0, "f1": 120.0, "dur": 0.14, "vol": 0.3, "duty": 0.4}))

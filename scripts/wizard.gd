@@ -69,6 +69,9 @@ var attack_target: Wizard = null
 var attack_once := false
 
 var knockback := Vector2.ZERO
+## Pull from Gravity Wells this frame (px/s): wells add to it, the wizard
+## uses it once and clears it.
+var pull := Vector2.ZERO
 var facing := "south"
 ## Seconds of shield left (Shield spell). Reflects projectiles, blocks lightning.
 var shield_left := 0.0
@@ -118,7 +121,8 @@ func _physics_process(delta: float) -> void:
 	knockback *= exp(-knockback_friction * delta)
 	if knockback.length() < 2.0:
 		knockback = Vector2.ZERO
-	velocity = walk + knockback
+	velocity = walk + knockback + pull
+	pull = Vector2.ZERO
 	move_and_slide()
 	_clamp_to_arena()
 	_update_lava(delta)
@@ -172,6 +176,14 @@ func _walk_velocity() -> Vector2:
 
 func get_spell(slot: String) -> Spell:
 	return spells.get_node_or_null(slot) as Spell
+
+
+## The slot holding the bought spell `id` ("homing", ...), or "" if not owned.
+func slot_of(id: String) -> String:
+	for s in spells.get_children():
+		if s is Spell and (s as Spell).spell_id == id and not s.is_queued_for_deletion():
+			return String(s.name)
+	return ""
 
 
 ## Start casting the spell in `slot` toward a world point. Returns false if

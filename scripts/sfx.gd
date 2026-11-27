@@ -13,6 +13,12 @@ extends RefCounted
 const SOUNDS := {
 	"fireball": preload("res://assets/audio/fireball.wav"),
 	"homing": preload("res://assets/audio/homing.wav"),
+	"boomerang": preload("res://assets/audio/boomerang.wav"),
+	"meteor_fall": preload("res://assets/audio/meteor_fall.wav"),
+	"meteor_boom": preload("res://assets/audio/meteor_boom.wav"),
+	"well": preload("res://assets/audio/well.wav"),
+	"swap": preload("res://assets/audio/swap.wav"),
+	"timestop": preload("res://assets/audio/timestop.wav"),
 	"hit": preload("res://assets/audio/hit.wav"),
 	"lightning": preload("res://assets/audio/lightning.wav"),
 	"shield": preload("res://assets/audio/shield.wav"),

@@ -12,6 +12,7 @@ extends Spell
 
 func _init() -> void:
 	spell_name = "Rock Wall"
+	spell_id = "rockwall"
 	icon = Prop._texture(Prop.Kind.WALL)
 	cooldown_by_level = [10.0, 9.0, 8.0, 7.0]
 	cast_time = 0.3

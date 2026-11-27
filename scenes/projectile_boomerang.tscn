@@ -1,0 +1,25 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/boomerang.gd" id="1_boom"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/effects/boomerang_frames.tres" id="2_fly"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/effects/fireball_impact_frames.tres" id="3_hit"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hit"]
+radius = 9.0
+
+[node name="Boomerang" type="Area2D"]
+collision_layer = 4
+collision_mask = 10
+monitorable = false
+script = ExtResource("1_boom")
+impact_frames = ExtResource("3_hit")
+impact_scale = 0.6
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_hit")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+z_index = 1
+position = Vector2(0, -16)
+sprite_frames = ExtResource("2_fly")
+animation = &"default"
