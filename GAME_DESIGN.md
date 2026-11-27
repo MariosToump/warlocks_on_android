@@ -5,15 +5,15 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (Android: Brawler rework done (19-20% of round wins), not yet released. Next, the user's choice: the remaining spells (milestone 9))_
+_Last updated: 2026-11-27 (Android v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. Next: secondary spell effects)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
 - **PC**: `D:\Godot\Projects\claude_mcp\lava-warlocks` (keyboard + mouse, Forward+ renderer). Local git only.
 - **Android**: `D:\Godot\Projects\claude_mcp\lava-warlocks-mobile` (touch controls, Compatibility renderer).
-  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.11 (2026-11-27).
+  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.12 (2026-11-27).
   Build + install on the phone: `bash tools/deploy_android.sh`. APK: `build/warlocks_on_android.apk`.
-  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7, v0.8, v0.8.1 (2026-11-25), v0.9 (2026-11-26), v0.10, v0.11 (2026-11-27)
+  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7, v0.8, v0.8.1 (2026-11-25), v0.9 (2026-11-26), v0.10, v0.11, v0.12 (2026-11-27)
   (`gh release create vX.Y build/warlocks_on_android.apk`; bump `version/code` + `version/name` in export_presets.cfg first).
   Gameplay changes are made in PC first, then ported (`git cherry-pick` from the `pc` remote).
   **Exception — Android-only (v0.7 - v0.9, by choice):** fireball range 850 (PC: 700), the v0.7 HUD, pause menu and
@@ -53,7 +53,7 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
   Reach 230 -> 450 (not the fireball's 850: an instant bolt that far would take over); hitbox = a capsule around
   the drawn bolt (16 px); tip zone = last 70 px, 28 px wide, knockback x1.25, bigger spark. Bots use it up to 93%
   of the reach and favour tip hits. Lava (user, 2026-11-27): shrink every 12 -> 18 s, hold 8 -> 12 s.
-- [ ] 3. **Secondary spell effects** **← next** — details to discuss. Bots learn each effect as it's added.
+- [ ] 3. **Secondary spell effects** **← next** (after the user tests the v0.12 spells) — details to discuss. Bots learn each effect as it's added.
 - [ ] 4. **Extra / bonus rounds with trigger conditions** — details to discuss. Sim how often triggers fire.
 - [ ] 5. **8-warlock mode** — details to discuss (bigger island, 7 bots, spawns, HUD / score for 8, harness for
   N wizards, phone performance).
@@ -81,8 +81,10 @@ challenges, cosmetic unlocks, a step-by-step tutorial.
 - [x] 6. Rounds, score, shrinking arena, win screen. _Done 2026-11-24 (PC and Android)._
 - [x] 7. Shop between rounds, gold, upgrades, items. _Done 2026-11-25 (Android only)._
 - [x] 8. Polish: screen shake, hit flash, particles, sounds, menu. _Done on Android in v0.8 + v0.9 (2026-11-26)._
-- [ ] 9. Remaining spells. (Homing Orb v0.8, Rock Wall v0.9 done on Android) **← next** (the user, 2026-11-27:
-  before the v1.0 camera; effect art drawn in Godot code, pixel style like the PixelLab effects).
+- [x] 9. Remaining spells — _done 2026-11-27 on Android (v0.12), before the v1.0 camera (the user's choice).
+  Homing Orb v0.8, Rock Wall v0.9, then Boomerang, Swap, Meteor, Gravity Well and Time Stop in v0.12. Effect art
+  is drawn in Godot code (`tools/build_effects.gd`), in the PixelLab effects' style. The user may redesign the
+  spells after testing. Details under "Android v0.12 spells" below._
 
 Right now it's a match of rounds against three AI bots (they fight you and each other). Last wizard standing
 wins the round; first to 5 round wins takes the match, then a results screen with "Play again".
@@ -270,6 +272,42 @@ Android v0.11: a longer Lightning with a stronger tip; the lava shrinks every 18
     - `test_ai_human`: the old wait and impatience tests were removed.
     - `test_ai`: the open-target tests spend the target's Lightning first; "holds mid range" replaces "melee".
 
+- **Android v0.12 spells** (2026-11-27, Android only). Design:
+  `docs/superpowers/specs/2026-11-27-remaining-spells-design.md`; plan: `docs/superpowers/plans/2026-11-27-remaining-spells.md`.
+  - **Two shop slots** (the user picked A, "for now, we will rework that"): `Shop.SHOP_SLOTS` D and F.
+    - A bought spell takes its `home` slot, else the other free one. Both full: buying is refused.
+    - `Shop.sell_spell` gives back half the price; the panel has Sell buttons and "Slots full".
+    - Code finds bought spells with `Wizard.slot_of(id)`, never by a fixed slot.
+  - **Spells** (`scripts/spells/`; objects in the arena: `boomerang.gd`, `meteor_strike.gd`, `gravity_well.gd`,
+    `time_stop_field.gd`):
+    - Boomerang: 6-8 dmg, kb 360-450, cd 5-3.5.
+    - Swap: orb 650 px/s, range 650-800, cd 9-7.5 (`Projectile.on_hit`).
+    - Meteor: 1 s delay, 75 px, 14-18 dmg, kb 650-800, crater, cd 8-6.5.
+    - Gravity Well: 160 px, 2.5 s, 220-300 px/s at the centre, x0.4 at the rim (my call: at a flat 220 a walker,
+      165 px/s, could never escape, so a well at the edge was a certain kill), cd 10-8.5 (`Wizard.pull`).
+    - Time Stop: 120 px, 2-2.6 s, cd 12-10.5 (`Projectile._frozen`).
+    - Placed spells: `Spell.placed` (a touch drag also aims the distance) and `area_radius` (a ring while aiming).
+  - **Art:** `tools/build_effects.gd` draws every frame pixel by pixel.
+    - It uses the palette sampled from the PixelLab fireball, blink and lightning effects, plus one accent per
+      spell, with a 1 px dark outline. Loose sparks are drawn after the outline.
+    - The Meteor blast reuses the fireball impact, scaled up. 6 new synth sounds.
+  - **Bots:**
+    - `_score_X` / `_do_X` for each spell.
+    - `evade`: walk out of Meteor rings and wells, and Blink when short of time. A well's pull triggers a re-think,
+      like being knocked toward lava.
+    - `_shot_blocked`: no projectile through a Time Stop.
+    - Wish lists: Caster meteor / homing, Brawler swap / well, Trickster boomerang / timestop.
+    - A spell-use count (8 matches) showed all 7 spells cast by bots. Time Stop is rare: it's only a reaction
+      to an incoming spell.
+  - **Harness, Normal, 40 matches:**
+    - round wins: Caster 32%, Player stand-in 29%, Brawler 21%, Trickster 19%
+    - lava deaths 61%
+    - fights 51 s
+    - **matches 8:12** (target 5-8)
+  - **Tests:** `tools/test_new_spells.gd` (new); `test_shop` (the two slots).
+    - Known test quirk: in headless tests the player wizard creeps up about 12 px on its own (not in the game).
+      `test_hud_v07` "lava sizzles" failed once, then passed 3 times in a row (timing).
+
 ### Changed from the plan above
 - Move speed is **165** (not 140). Fireball flies 560 px/s.
 - Stretch mode is **canvas_items** (not "viewport"), to keep pixels sharp on phone screens.
@@ -322,12 +360,14 @@ Trial: 3 generations left (out of 40). Character id `2c9f98f0-5a77-4c63-aca5-e01
 | W | Blink | Short teleport toward the mouse. Starts unlocked. |
 | E | Lightning | Instant line (450 px on Android), high knockback; the tip pushes harder. |
 | R | Shield | 1.5 s bubble that reflects projectiles. |
-| — | Homing orb | Slow projectile that follows the nearest enemy. |
-| — | Boomerang | Goes out and comes back, hits twice. |
-| — | Meteor | Delayed area blast at a point, big knockback. |
-| — | Gravity well | Pulls nearby enemies toward a point. |
-| — | Swap | Projectile; on hit, you and the target swap places. |
-| — | Time stop | Freezes projectiles in an area for 2 s. |
+| D/F | Homing orb | Slow projectile that follows the nearest enemy (shop, 15). |
+| D/F | Rock wall | 3 rocks across your aim for 4-5.5 s (shop, 15). |
+| D/F | Boomerang | Out 420 px and back, hits each wizard up to twice (shop, 15). |
+| D/F | Meteor | 1 s warning ring, then a 75 px blast with a big push and a crater (shop, 20). |
+| D/F | Gravity well | Pulls enemies within 160 px to a point for 2.5 s; weaker at the rim (shop, 20). |
+| D/F | Swap | Fast orb; on a hit, you and the target trade places (shop, 15). |
+| D/F | Time stop | Freezes projectiles in a 120 px circle for 2 s (shop, 20). |
+Shop spells (v0.12): at most two at a time, in slots D and F; sell one for half its price to buy another.
 Every spell has a cooldown and 3 upgrade levels (more damage, knockback or shorter cooldown).
 
 ## Shop & economy

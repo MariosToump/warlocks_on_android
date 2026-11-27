@@ -31,10 +31,18 @@ Made with Godot 4.7.2 (GDScript); pixel art made with PixelLab.
 After every round you get gold — 10, plus 5 per kill, plus 5 if you won the round — and 10 seconds to spend it
 (tap **Ready** to start sooner; when you can't afford anything the shop is skipped). The bots shop too.
 - **Upgrade a spell** (10 / 15 / 20 gold for levels 1-3): more damage and knockback, or shorter cooldowns.
-- **Homing Orb** (15 gold): a new spell in a new button left of the fireball. A slow purple orb that curves
-  toward the nearest enemy. A shield sends it back at you!
-- **Rock Wall** (15 gold): a new button up-left of Blink. Raises 3 rocks in front of you, across your aim,
-  for 4-5.5 s.
+- **New spells** (v0.12): you can carry **two**. They go on the two extra buttons, left of the fireball and
+  up-left of Blink. With both full, sell one (half price back) to buy another.
+
+| Spell | Gold | What it does |
+|---|---|---|
+| Homing Orb | 15 | A slow purple orb that curves toward the nearest enemy. A shield sends it back at you! |
+| Rock Wall | 15 | Raises 3 rocks in front of you, across your aim, for 4-5.5 s |
+| Boomerang | 15 | A spinning blade flies out 420 px and comes back, hitting each wizard on its path up to twice. The hit on the way back pulls them toward you |
+| Swap | 15 | A fast orb: on a hit, you and the target trade places. On the lava's edge? Swap, and now they are |
+| Meteor | 20 | A meteor falls on the spot you pick: a warning ring for 1 s, then a huge blast and a crater |
+| Gravity Well | 20 | A violet vortex drags nearby enemies to its centre for 2.5 s. You can walk out of the rim, not the middle. Try it at the lava's edge |
+| Time Stop | 20 | Freezes every spell flying inside a circle for 2 s, then lets them go |
 - **Items** (2 at most, sell for half price): Boots +15% speed, Stone Cloak -20% knockback taken,
   Fire Ring -50% lava damage, Focus Gem -10% cooldowns.
 - A new match starts everyone from scratch.
@@ -48,8 +56,7 @@ After every round you get gold — 10, plus 5 per kill, plus 5 if you won the ro
 | Blink | Short teleport (tap = forward, or drag to aim). A staff hit within 1.5 s of your Blink pushes 40% harder |
 | Lightning | Instant bolt (450 px) with big knockback. Hit with the tip for an extra push |
 | Shield | 1.5 s bubble that reflects projectiles |
-| Homing Orb (once bought) | Tap = toward the nearest enemy in range; drag to aim |
-| Rock Wall (once bought) | Tap = between you and the nearest enemy; drag to aim |
+| Bought spells (two extra buttons) | Tap = at the nearest enemy in range; drag to aim. Meteor, Gravity Well and Time Stop are placed: a short drag places them close, a long drag far, and the guide shows the area they'll cover |
 | II button (top right) or Back | Pause: resume, restart, quit to the menu, settings |
 
 ### On screen
@@ -108,7 +115,9 @@ The APK ends up in `build/warlocks_on_android.apk` (not committed).
 | `scripts/round_hud.gd` | Scoreboard, banners, kill feed, results screen |
 | `scripts/arena.gd` | Lava map built in code from Wang tiles; shrinking + sudden death |
 | `scripts/wizard.gd` | A wizard: movement, health, knockback, lava, animations |
-| `scripts/spells/` | Fireball, Blink, Lightning, Shield, Staff strike, Homing Orb, Rock Wall |
+| `scripts/spells/` | Fireball, Blink, Lightning, Shield, Staff strike, Homing Orb, Rock Wall, Boomerang, Swap, Meteor, Gravity Well, Time Stop |
+| `scripts/boomerang.gd`, `meteor_strike.gd`, `gravity_well.gd`, `time_stop_field.gd` | The new spells' objects in the arena |
+| `tools/build_effects.gd`, `assets/sprites/effects/` | Draws the new spells' pixel-art effects in code (the older effects are PixelLab) |
 | `scripts/prop.gd`, `scripts/crater.gd` | Boulders, pillars, wall rocks (art drawn in code); fireball craters |
 | `scripts/ghost.gd` | The player's ghost after dying (float, haunt) |
 | `scripts/touch_controls.gd` | Joystick, spell buttons, tap auto-aim |
@@ -124,7 +133,7 @@ The APK ends up in `build/warlocks_on_android.apk` (not committed).
 ### Tests
 ```bash
 GODOT=/d/Godot/Godot_v4.7.2-stable_win64.exe/Godot_v4.7.2-stable_win64.exe
-for t in wizard fireball spells staff ai arena rounds hud_v07 shop homing title ghost feel terrain; do
+for t in wizard fireball spells staff ai ai_human brawler lightning arena rounds hud_v07 shop homing title ghost feel terrain new_spells; do
   "$GODOT" --headless --path . -s tools/test_$t.gd
 done
 "$GODOT" --path . -s tools/test_touch.gd   # needs a window (no --headless)
@@ -136,11 +145,12 @@ prints stats.
 length, fight length, deaths in lava and each bot's share of round wins:
 `"$GODOT" --headless --fixed-fps 60 --path . -s tools/playtest.gd -- 10 normal`.
 `tools/build_audio.gd` rebuilds all sounds and music (they are made in code, no recordings).
+`tools/build_effects.gd` redraws the new spells' effects.
 
 ## Roadmap
 1. ~~Arena~~ 2. ~~Wizard~~ 3. ~~Fireball + knockback~~ 4. ~~Blink, Lightning, Shield~~
 5. ~~AI bots~~ 6. ~~Rounds, score, shrinking arena, win screen~~
 7. ~~Shop between rounds~~
 8. ~~Polish~~ — screen shake, hit-stop, sounds, menu (v0.9: short matches, lava balance, ghost, rocks)
-9. More spells — boomerang, meteor, gravity well, swap, time stop (homing orb, rock wall done)
+9. ~~More spells~~ — homing orb, rock wall, boomerang, swap, meteor, gravity well, time stop (v0.12)
 10. **v1.0: a camera that tilts from top-down into a 3D view** (2.5D)

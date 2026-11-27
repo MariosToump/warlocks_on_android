@@ -52,8 +52,8 @@ const ITEMS := {
 ## upgrade whatever sits there.
 const BOT_PRIORITY := {
 	"Caster": ["up:Q", "item:gem", "spell:meteor", "up:Q", "spell:homing", "up:E", "item:ring", "up:R", "up:D", "up:W", "up:F"],
-	"Brawler": ["up:E", "spell:swap", "item:cloak", "up:A", "spell:well", "item:boots", "up:R", "up:W", "up:F", "up:D", "up:Q"],
-	"Trickster": ["up:W", "item:boots", "spell:boomerang", "up:Q", "spell:timestop", "up:E", "item:gem", "up:D", "up:R", "up:F"],
+	"Brawler": ["up:E", "spell:swap", "spell:well", "item:cloak", "up:A", "item:boots", "up:R", "up:W", "up:F", "up:D", "up:Q"],
+	"Trickster": ["up:W", "spell:boomerang", "spell:timestop", "item:boots", "up:Q", "up:E", "item:gem", "up:D", "up:R", "up:F"],
 	"Bot": ["up:Q", "item:boots", "up:E", "spell:homing", "spell:rockwall", "item:cloak", "up:W", "up:R", "up:D", "up:F"],
 }
 
