@@ -353,6 +353,7 @@ func reset(at: Vector2) -> void:
 	modulate = Color.WHITE
 	scale = Vector2.ONE
 	sprite.scale = Vector2.ONE
+	_set_dissolve(0.0)
 	health_changed.emit(health, max_health)
 	_play("idle")
 	reset_physics_interpolation() # a jump, not a slide
@@ -370,15 +371,17 @@ func _die() -> void:
 	velocity = Vector2.ZERO
 	shield_left = 0.0
 	bubble.visible = false
-	# Collapse (death animation), then burn away.
+	# Collapse (death animation), then burn away pixel by pixel.
 	_play("death")
 	sprite.frame = 0
 	sprite.play()
+	Vfx.death_embers(get_parent(), global_position)
 	var t := create_tween()
 	t.tween_interval(0.6)
 	t.set_parallel()
-	t.tween_property(self, "modulate", Color(1, 0.4, 0.1, 0), 0.8)
-	t.tween_property(self, "scale", Vector2(0.6, 0.6), 0.8)
+	t.tween_method(_set_dissolve, 0.0, 1.0, 0.8)
+	t.tween_property(self, "modulate", Color(1, 0.7, 0.5), 0.8)
+	t.tween_property(self, "scale", Vector2(0.85, 0.85), 0.8)
 	t.chain().tween_callback(func(): visible = false)
 	died.emit(self)
 
@@ -443,6 +446,12 @@ func _play_cast_anim() -> void:
 			sprite.speed_scale = maxf(1.0, length / (_casting.cast_time * 1.6))
 		sprite.frame = 0
 		sprite.play()
+
+
+func _set_dissolve(v: float) -> void:
+	var mat := sprite.material as ShaderMaterial
+	if mat:
+		mat.set_shader_parameter("dissolve", v)
 
 
 func _apply_team_color() -> void:

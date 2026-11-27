@@ -61,6 +61,20 @@ func _run() -> void:
 	await _seconds(0.4)
 	_check(player.sprite.scale == Vector2.ONE, "and settles back")
 
+	print("death dissolve")
+	var green: Wizard = game.get_node("Wizards/BotGreen")
+	var mat := green.sprite.material as ShaderMaterial
+	_check(mat.get_shader_parameter("dissolve") == 0.0, "alive: no dissolve")
+	green.take_damage(500)
+	await physics_frame
+	_check(Vfx.live_count(self) >= 1, "death embers")
+	await _seconds(1.6)
+	_check(mat.get_shader_parameter("dissolve") >= 0.99, "dissolved (%.2f)" % mat.get_shader_parameter("dissolve"))
+	_check(not green.visible, "then hidden")
+	green.reset(green.global_position)
+	_check(mat.get_shader_parameter("dissolve") == 0.0 and green.visible and green.modulate == Color.WHITE,
+		"reset: whole again")
+
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 

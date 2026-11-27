@@ -4,6 +4,9 @@ shader_type canvas_item;
 // fall outside the red band and stay as drawn.
 
 uniform float hue_shift : hint_range(0.0, 1.0) = 0.0;
+// Death: 0 = whole, 1 = gone. Texels vanish in a random order with a hot
+// orange rim just before they go (visual pass 1).
+uniform float dissolve : hint_range(0.0, 1.0) = 0.0;
 
 varying vec4 tint; // modulate / self_modulate
 
@@ -38,4 +41,13 @@ void fragment() {
 		}
 	}
 	COLOR = c * tint;
+	if (dissolve > 0.0) {
+		vec2 texel = floor(UV / TEXTURE_PIXEL_SIZE);
+		float n = fract(sin(dot(texel, vec2(12.9898, 78.233))) * 43758.5453);
+		if (n < dissolve) {
+			COLOR.a = 0.0;
+		} else if (n < dissolve + 0.12) {
+			COLOR.rgb = mix(vec3(1.0, 0.45, 0.1), vec3(1.0, 0.85, 0.4), (n - dissolve) / 0.12);
+		}
+	}
 }
