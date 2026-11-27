@@ -139,6 +139,9 @@ done
 "$GODOT" --path . -s tools/test_touch.gd   # needs a window (no --headless)
 "$GODOT" --path . -s tools/test_shop_layout.gd   # needs a window: the shop fits a phone screen
 "$GODOT" --headless --path . -s tools/test_vfx.gd   # sparks, dissolve, embers, heat shimmer, shadows
+"$GODOT" --headless --path . -s tools/test_clock.gd   # gameplay timers run on game time
+"$GODOT" --headless --fixed-fps 60 --path . -s tools/test_sim.gd   # the sim sandbox (~15 s)
+python -I tools/sim/test_analyze.py   # sim analysis maths
 ```
 Each prints `ok` / `FAIL` lines and exits non-zero on failure.
 `tools/sim_ai.gd -- <easy|normal|hard> [seconds]` runs a bots-only fight and
@@ -148,6 +151,11 @@ length, fight length, deaths in lava and each bot's share of round wins:
 `"$GODOT" --headless --fixed-fps 60 --path . -s tools/playtest.gd -- 10 normal`.
 `tools/build_audio.gd` rebuilds all sounds and music (they are made in code, no recordings).
 `tools/build_effects.gd` redraws the new spells' effects.
+`tools/sim/` is the spell sim sandbox (not in the APK): forced spell loadouts, no menus or shop, many workers in
+parallel. `python -I tools/sim/run.py --mode ffa|duel --rounds-per-worker N --workers 16` writes a report with win
+rates and pair synergy to `tools/sim/out/<mode>/`; `--mode scenario --file tools/sim/scenarios/<name>.json` replays
+one set-up moment. `tools/shots/*.gd` are scripted camera shots for visual reviews
+(`"$GODOT" --path . --resolution 1280x720 --write-movie review_frames/<shot>/f.png --fixed-fps 30 -s tools/shots/<shot>.gd`).
 
 ## Roadmap
 1. ~~Arena~~ 2. ~~Wizard~~ 3. ~~Fireball + knockback~~ 4. ~~Blink, Lightning, Shield~~

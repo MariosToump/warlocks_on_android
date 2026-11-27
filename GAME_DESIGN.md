@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
+_Last updated: 2026-11-27 (reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -56,6 +56,17 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
 **Paused 2026-11-27 (the user):** todos 3, 4, 5 and 8 wait while we work on graphics and design (more animation,
 a more "real" feel; research: a bigger PixelLab plan vs doing more in Godot). Order after the pause: terrain stones
 brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) stays last.
+- **Reviews 2026-11-27** (Android v0.13.1; findings only, nothing fixed yet — the user picks what to do):
+  visual `docs/visual-reviews/2026-11-27-full.md` (top: Homing Orb looks like a fireball; Meteor / Time Stop drawn
+  with bigger pixels; back-facing walk sprites don't match), audio `docs/audio-reviews/2026-11-27.md` (top: the
+  fight mix clips — no limiter on Master; most energy is bass phones can't play; SFX levels 12 dB apart),
+  spell checklist `docs/spell-audit-2026-11-27.md` (balance + edge-case tests missing for shop spells).
+  Port check: PC has nothing Android lacks; Android is ~70 commits ahead (v0.7-v0.13), too far for one-by-one
+  cherry-picks. Release check: tests 23/23, no debug flags, no keystore in git (APK is signed with
+  `~/.android/debug.keystore` — keep a backup, or updates break). Feel numbers are spread over ~8 files
+  (game.gd shake / hit-stop / vibration, meteor_strike.gd, arena_camera.gd smoothing 8, wizard.gd squash, vfx.gd,
+  arena.gd embers, heat_haze shader); no "reduce screen shake" option yet. Not run: phone performance (phone not
+  connected), playtest notes (no tester feedback yet).
 - [ ] 11. **Protect the code** (user, 2026-11-27; do in a couple of days): make `warlocks_on_android` private
   (`gh repo edit --visibility private`; then only the user + invited GitHub accounts can see code or releases), add
   an "All rights reserved" notice (LICENSE + README), and a separate public repo with only the APK (e.g.
