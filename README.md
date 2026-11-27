@@ -14,9 +14,9 @@ Made with Godot 4.7.2 (GDScript); pixel art made with PixelLab.
 - **Last wizard standing wins the round. First to 3 round wins takes the match** (3 / 5 / 7 in the settings).
 - Lava burns fast (20 HP a second). The more damage you've taken, the further hits push you, so most
   wizards end up in the lava.
-- Every 12 s the lava rises and the platform gets smaller. A glowing line
+- Every 18 s the lava rises and the platform gets smaller. A glowing line
   shows where the new edge will be. At its smallest the platform holds for
-  8 s, then sudden death: the edge keeps creeping in until nobody is left
+  12 s, then sudden death: the edge keeps creeping in until nobody is left
   standing.
 - Knocking someone into the lava counts as your kill.
 - **Rocks:** each round a few boulders and pillars stand on the island. They block spells (cover!).
@@ -46,7 +46,7 @@ After every round you get gold — 10, plus 5 per kill, plus 5 if you won the ro
 | Big button (bottom right) | Staff swing on the spot; hold to keep swinging |
 | Fireball | Tap = auto-aim (nearest enemy in range, ones you can see first, aimed ahead of a walker); drag to aim (the guide shows the full range); drag back onto the button to cancel |
 | Blink | Short teleport (tap = forward, or drag to aim) |
-| Lightning | Short-range bolt with big knockback |
+| Lightning | Instant bolt (450 px) with big knockback. Hit with the tip for an extra push |
 | Shield | 1.5 s bubble that reflects projectiles |
 | Homing Orb (once bought) | Tap = toward the nearest enemy in range; drag to aim |
 | Rock Wall (once bought) | Tap = between you and the nearest enemy; drag to aim |

@@ -5,15 +5,15 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (Android v0.10 released: smarter bots. Next: Lightning rework)_
+_Last updated: 2026-11-27 (Android v0.11 released: Lightning rework + slower lava. Next: secondary spell effects)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
 - **PC**: `D:\Godot\Projects\claude_mcp\lava-warlocks` (keyboard + mouse, Forward+ renderer). Local git only.
 - **Android**: `D:\Godot\Projects\claude_mcp\lava-warlocks-mobile` (touch controls, Compatibility renderer).
-  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.10 (2026-11-27).
+  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.11 (2026-11-27).
   Build + install on the phone: `bash tools/deploy_android.sh`. APK: `build/warlocks_on_android.apk`.
-  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7, v0.8, v0.8.1 (2026-11-25), v0.9 (2026-11-26), v0.10 (2026-11-27)
+  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7, v0.8, v0.8.1 (2026-11-25), v0.9 (2026-11-26), v0.10, v0.11 (2026-11-27)
   (`gh release create vX.Y build/warlocks_on_android.apk`; bump `version/code` + `version/name` in export_presets.cfg first).
   Gameplay changes are made in PC first, then ported (`git cherry-pick` from the `pc` remote).
   **Exception — Android-only (v0.7 - v0.9, by choice):** fireball range 850 (PC: 700), the v0.7 HUD, pause menu and
@@ -48,16 +48,18 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
     Then a feel check on the phone.
   - **Rule from now on:** every new spell gets its own bot `_score_X` / `_do_X` (`scripts/ai/ai_controller.gd`)
     plus a short harness check, as part of that spell's task.
-- [ ] 2. **Lightning rework** **← next** (`scripts/spells/lightning.gd`): `max_range` 230 -> about the fireball's reach; a capsule
-  hitbox matching the bolt sprite (instead of the `hit_width` 14 line); a bigger tip zone with a small knockback
-  bonus. Update the AI range check + `test_spells`; re-run one harness batch.
-- [ ] 3. **Secondary spell effects** — details to discuss. Bots learn each effect as it's added.
+- [x] 2. **Lightning rework** — _done 2026-11-27 on Android (v0.11). Design:
+  `docs/superpowers/specs/2026-11-27-lightning-rework-design.md`; details under "Android v0.11" below._
+  Reach 230 -> 450 (not the fireball's 850: an instant bolt that far would take over); hitbox = a capsule around
+  the drawn bolt (16 px); tip zone = last 70 px, 28 px wide, knockback x1.25, bigger spark. Bots use it up to 93%
+  of the reach and favour tip hits. Lava (user, 2026-11-27): shrink every 12 -> 18 s, hold 8 -> 12 s.
+- [ ] 3. **Secondary spell effects** **← next** — details to discuss. Bots learn each effect as it's added.
 - [ ] 4. **Extra / bonus rounds with trigger conditions** — details to discuss. Sim how often triggers fire.
 - [ ] 5. **8-warlock mode** — details to discuss (bigger island, 7 bots, spawns, HUD / score for 8, harness for
   N wizards, phone performance).
 - [ ] 6. **Terrain stone walls brainstorm** — the user meant stones / stone walls as part of the island terrain, not a
   spell. Separate brainstorm session. The Rock Wall shop spell stays for now.
-- [ ] 7. **Brawler balance (discuss):** after the bot rework he still wins only ~9% of rounds (target 15%). Bot-only
+- [ ] 7. **Brawler balance (discuss):** after the bot rework he still wins only ~9% of rounds (6-7% after the v0.11 Lightning reach) (target 15%). Bot-only
   tuning plateaued; melee is weak in the lava-first balance. Options: more staff knockback, a gap-closer, or accept
   him as the underdog.
 
@@ -84,6 +86,7 @@ wins the round; first to 5 round wins takes the match, then a results screen wit
 Android v0.8: between rounds a 15 s shop (gold, upgrades, items, the Homing Orb); the game opens on a title menu.
 Android v0.9: first to 3 (~6 min matches), a 10 s shop, rocks on the island, a ghost when you're out.
 Android v0.10: smarter bots (a mood each round, a wait-and-see opening, human-like aim and reactions).
+Android v0.11: a longer Lightning with a stronger tip; the lava shrinks every 18 s.
 
 ### Added beyond the original plan
 - **Staff attack (slot A)**: auto-attack melee swing, 4 damage, shove 300, 0.5 s cooldown = swing animation.
@@ -224,6 +227,20 @@ Android v0.10: smarter bots (a mood each round, a wait-and-see opening, human-li
   - Tests: `tools/test_ai_human.gd` (new) + `test_ai` updated (its Brawler tests give the target an opening; the
     distance tests use a knockback-proof dummy).
 
+- **Android v0.11** (2026-11-27, Android only). The user: Lightning's reach is much shorter than the other two
+  attacks; make it longer, with a hitbox matching the bolt and a slightly bigger tip that pushes harder. Also: the
+  lava shrinks too fast.
+  - `LightningSpell`: `max_range` 230 -> 450, `hit_width` 14 -> 16 (covers the drawn bolt), `tip_length` 70,
+    `tip_width` 28, `tip_knockback` 1.25; `is_tip(t)` / `width_at(t)`; tip hits get a 1.6x spark.
+  - AI: `LIGHTNING_REACH` is now 0.93 x the spell's range (was a fixed 215); +0.35 score for a target in the tip
+    zone. The Brawler still waits just outside the enemy's reach (now ~470 px). Capping that at 300 px was tried
+    and made no difference in the sims, so it was reverted.
+  - Arena: `shrink_delay` 12 -> 18 s, `min_hold` 8 -> 12 s (island gone ~80 s into a fight instead of ~58).
+  - Harness, Normal, 40 matches: match 6:41, fights 49 s (max 75), lava deaths 56%, round wins Caster 41%,
+    stand-in 27%, Trickster 27%, Brawler 6% (v0.10: 6:16, 44 s, 65%, 40 / 28 / 25 / 7-10%).
+  - Tests: `tools/test_lightning.gd` (new: reach, tip knockback, tip width, shield, bots); `test_spells` (out-of-range
+    now 520 px), `test_ai_human` (weave test starts further out).
+
 ### Changed from the plan above
 - Move speed is **165** (not 140). Fireball flies 560 px/s.
 - Stretch mode is **canvas_items** (not "viewport"), to keep pixels sharp on phone screens.
@@ -274,7 +291,7 @@ Trial: 3 generations left (out of 40). Character id `2c9f98f0-5a77-4c63-aca5-e01
 |---|---|---|
 | Q | Fireball | Fast projectile, small damage, medium knockback. Starts unlocked. |
 | W | Blink | Short teleport toward the mouse. Starts unlocked. |
-| E | Lightning | Instant short-range line, high knockback. |
+| E | Lightning | Instant line (450 px on Android), high knockback; the tip pushes harder. |
 | R | Shield | 1.5 s bubble that reflects projectiles. |
 | — | Homing orb | Slow projectile that follows the nearest enemy. |
 | — | Boomerang | Goes out and comes back, hits twice. |
