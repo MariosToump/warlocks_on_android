@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (Android v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design, then the terrain stones brainstorm)_
+_Last updated: 2026-11-27 (Android v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -65,6 +65,14 @@ brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) sta
     Lava embers (40) rise from lava on screen near the island edge. Heat shimmer (`shaders/heat_haze.gdshader`)
     over lava only; "Heat shimmer: On/Off" in the pause menu (saved). Squash on hits, stretch on casts. Soft
     shadows under wizards and projectiles. Test: `tools/test_vfx.gd`.
+  - [x] a. Visual pass 1 in Godot (v0.13, above).
+  - [ ] b. The user's phone check of v0.13: too much / too little (sparks, shimmer), still smooth?
+  - [ ] c. PixelLab finish (~9 generations, fits the free daily bonus): death E + NE, attack SE + NE, import
+    `hurt_east_v2`, a breathing idle in 5 directions (S, SE, E, NE, N; the west side is mirrored in code).
+  - [ ] d. More Godot polish (after b): light flashes on impacts and fireballs, staff bob / robe sway.
+  - [ ] e. Later (the user said not now): a darker arena lit by the lava, then normal maps so robes catch the
+    lava light.
+  - [ ] f. Later: hit-type hurt / death animations (todo 10).
   - Research: research Godot (lights, shaders, particles, juice) vs a paid PixelLab
   plan (the account is on the free trial), then brainstorm and plan. The user's choice (2026-11-27): do as much
   as we can in Godot first (lights, particles, shaders, juice), then finish with PixelLab: the missing directions
