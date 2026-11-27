@@ -1,0 +1,58 @@
+extends SceneTree
+## Visual pass 1: hit sparks, cast puffs, squash/stretch, death dissolve,
+## lava embers, heat shimmer, shadows. Bots are passive dummies.
+##   godot --headless --path . -s tools/test_vfx.gd
+
+var game: Node
+var player: Wizard
+var blue: Wizard
+var failures := 0
+
+
+func _init() -> void:
+	game = load("res://scenes/game.tscn").instantiate()
+	game.bot_ai = false
+	game.shrink_arena = false
+	game.apply_settings = false
+	game.title_screen = false
+	game.countdown_time = 0.1
+	root.add_child(game)
+	_run.call_deferred()
+
+
+func _run() -> void:
+	await _seconds(0.3)
+	player = game.player
+	blue = game.get_node("Wizards/BotBlue")
+
+	print("hit sparks")
+	blue.global_position = player.global_position + Vector2(140, 0)
+	blue.cast("Q", player.global_position)
+	var seen_fire := false
+	for i in 90:
+		await physics_frame
+		if Vfx.last_hit_kind == "fire":
+			seen_fire = true
+			break
+	_check(seen_fire, "a fireball hit makes fire sparks")
+	_check(Vfx.live_count(self) >= 1, "a spark burst is alive (%d)" % Vfx.live_count(self))
+	for i in 40:
+		Vfx.burst(game, player.global_position, Color.WHITE)
+	_check(Vfx.live_count(self) <= Vfx.MAX_LIVE, "the burst cap holds (%d)" % Vfx.live_count(self))
+	await _seconds(0.9)
+	_check(Vfx.live_count(self) == 0, "bursts free themselves (%d left)" % Vfx.live_count(self))
+	player.flash_hit(Vector2.RIGHT, "lightning")
+	_check(Vfx.last_hit_kind == "lightning", "flash_hit passes its kind")
+
+	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
+	quit(1 if failures else 0)
+
+
+func _check(ok: bool, what: String) -> void:
+	print(("  ok   " if ok else "  FAIL ") + what)
+	if not ok:
+		failures += 1
+
+
+func _seconds(s: float) -> void:
+	await create_timer(s).timeout

@@ -298,9 +298,10 @@ func take_damage(amount: float, source: Wizard = null) -> void:
 
 ## Hit reaction: a brief white flash and the hurt animation, turned to
 ## face where the hit came from. `from_dir` is the direction the hit was
-## travelling (zero = keep facing).
-func flash_hit(from_dir := Vector2.ZERO) -> void:
+## travelling (zero = keep facing). `kind` colours the sparks (Vfx.COLORS).
+func flash_hit(from_dir := Vector2.ZERO, kind := "push") -> void:
 	sprite.self_modulate = Color(4, 4, 4)
+	Vfx.hit(get_parent(), global_position, from_dir, kind)
 	var t := create_tween()
 	t.tween_property(sprite, "self_modulate", Color.WHITE, 0.15)
 	if alive and not _casting:

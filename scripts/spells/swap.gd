@@ -37,6 +37,7 @@ func release(target: Vector2) -> void:
 	p.damage = 0.0
 	p.knockback = 0.0
 	p.on_hit = SwapSpell.trade
+	p.hit_kind = "swap"
 	p.position = caster.global_position + dir * 14.0
 	caster.get_parent().add_child(p)
 	Sfx.play_at("swap", caster.global_position, -4.0)

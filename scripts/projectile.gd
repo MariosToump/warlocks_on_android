@@ -9,6 +9,8 @@ const IMPACT := preload("res://scenes/effect_one_shot.tscn")
 @export var impact_frames: SpriteFrames
 @export var impact_scale := 1.0
 
+## Spark colour when it hits a wizard (Vfx.COLORS).
+var hit_kind := "fire"
 var caster: Wizard
 var direction := Vector2.RIGHT
 var speed := 560.0
@@ -135,11 +137,12 @@ func _on_body_entered(body: Node) -> void:
 		return # _check_shields bounces it
 	if on_hit.is_valid():
 		on_hit.call(self, w)
+		Vfx.hit(get_parent(), w.global_position, direction, hit_kind)
 		_explode(impact_scale)
 		return
 	w.take_damage(damage, caster)
 	w.apply_knockback(direction * knockback)
-	w.flash_hit(direction)
+	w.flash_hit(direction, hit_kind)
 	_explode(impact_scale)
 
 

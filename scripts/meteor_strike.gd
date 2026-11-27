@@ -73,7 +73,7 @@ func _blast() -> void:
 			continue
 		w.take_damage(damage, caster if is_instance_valid(caster) else null)
 		w.apply_knockback(dir * knockback)
-		w.flash_hit(dir)
+		w.flash_hit(dir, "meteor")
 	var arena := get_parent() as Arena
 	if arena and not arena.is_lava_at(global_position):
 		Crater.spawn(arena, global_position)

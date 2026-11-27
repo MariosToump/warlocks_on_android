@@ -70,7 +70,7 @@ func release(target: Vector2) -> void:
 			var tip := is_tip(best_t)
 			best.take_damage(damage_by_level[level], caster)
 			best.apply_knockback(dir * knockback_by_level[level] * (tip_knockback if tip else 1.0))
-			best.flash_hit(dir)
+			best.flash_hit(dir, "lightning")
 			var spark := EffectOneShot.spawn_at_feet(HIT, parent, best.global_position)
 			if tip:
 				spark.scale = Vector2(1.6, 1.6)
