@@ -77,6 +77,26 @@ func _run() -> void:
 		r.queue_free()
 		await process_frame
 
+	print("scenario")
+	r = SimRunner.new()
+	r.mode = "scenario"
+	r.scenario_file = "res://tools/sim/scenarios/well_lava_edge.json"
+	r.rounds = 3
+	root.add_child(r)
+	var t1 := GameClock.now()
+	while r.records.size() < 3 and GameClock.now() - t1 < 120.0:
+		await physics_frame
+	_check(r.records.size() == 3, "3 scenario repeats logged")
+	var keys_ok := true
+	for rec in r.records:
+		for k in ["deaths", "lava_deaths", "positions", "secs"]:
+			if not rec.has(k):
+				keys_ok = false
+	_check(keys_ok, "scenario records have deaths / lava_deaths / positions / secs")
+	_check(r.game.all_wizards.size() == 2, "the scenario's 2 wizards only")
+	r.queue_free()
+	await process_frame
+
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 

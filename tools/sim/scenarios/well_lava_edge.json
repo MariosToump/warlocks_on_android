@@ -1,0 +1,11 @@
+{
+	"note": "An enemy just inside the lava edge; a still caster opens a Gravity Well beyond them, out over the lava. How often does the pull drag them in?",
+	"wizards": [
+		{"loadout": ["well"], "edge_inset": 400, "ai": false},
+		{"loadout": [], "edge_inset": 40, "ai": true}
+	],
+	"cast": {"who": 0, "spell": "well", "at_edge": -60},
+	"until": "death",
+	"secs": 4.0,
+	"repeats": 20
+}

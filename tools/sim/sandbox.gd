@@ -6,14 +6,17 @@ extends SceneTree
 
 
 func _init() -> void:
-	var opts := {"mode": "ffa", "rounds": "10", "seed": "1", "out": "", "file": ""}
+	var opts := {"mode": "ffa", "rounds": "", "seed": "1", "out": "", "file": ""}
 	for a in OS.get_cmdline_user_args():
 		if "=" in a:
 			opts[a.get_slice("=", 0)] = a.get_slice("=", 1)
 	seed(int(opts.seed))
 	var r := SimRunner.new()
 	r.mode = opts.mode
-	r.rounds = int(opts.rounds)
+	r.rounds = int(opts.rounds) if opts.rounds != "" else 10
+	if opts.mode == "scenario" and opts.rounds == "":
+		var cfg = JSON.parse_string(FileAccess.get_file_as_string("res://" + opts.file))
+		r.rounds = int(cfg.get("repeats", 10))
 	r.out_path = opts.out
 	r.scenario_file = opts.file
 	r.finished.connect(func():
