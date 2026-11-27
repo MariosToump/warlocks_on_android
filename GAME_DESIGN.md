@@ -5,15 +5,15 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-26 (Android v0.10 item 1 done: smarter, less predictable bots; not released yet)_
+_Last updated: 2026-11-27 (Android v0.10 released: smarter bots. Next: Lightning rework)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
 - **PC**: `D:\Godot\Projects\claude_mcp\lava-warlocks` (keyboard + mouse, Forward+ renderer). Local git only.
 - **Android**: `D:\Godot\Projects\claude_mcp\lava-warlocks-mobile` (touch controls, Compatibility renderer).
-  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.9 (2026-11-26).
+  GitHub (public): https://github.com/MariosToump/warlocks_on_android — app name "Warlocks on Android", v0.10 (2026-11-27).
   Build + install on the phone: `bash tools/deploy_android.sh`. APK: `build/warlocks_on_android.apk`.
-  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7, v0.8, v0.8.1 (2026-11-25), v0.9 (2026-11-26)
+  Releases (APK download): https://github.com/MariosToump/warlocks_on_android/releases — v0.6 (2026-11-24), v0.7, v0.8, v0.8.1 (2026-11-25), v0.9 (2026-11-26), v0.10 (2026-11-27)
   (`gh release create vX.Y build/warlocks_on_android.apk`; bump `version/code` + `version/name` in export_presets.cfg first).
   Gameplay changes are made in PC first, then ported (`git cherry-pick` from the `pc` remote).
   **Exception — Android-only (v0.7 - v0.9, by choice):** fireball range 850 (PC: 700), the v0.7 HUD, pause menu and
@@ -37,7 +37,7 @@ Two projects share this design:
 
 **v0.10+** (before the v1.0 camera; planned 2026-11-26). Testing / sim cost, most first: bots > 8 warlocks >
 secondary effects > extra rounds > lightning. Build order (user's choice): bots now, with the current spells.
-- [x] 1. **Smarter, less predictable bots** — _done 2026-11-26 on Android (branch merged, no APK yet). Design:
+- [x] 1. **Smarter, less predictable bots** — _done 2026-11-26 on Android, released as v0.10 on 2026-11-27. Design:
   `docs/superpowers/specs/2026-11-26-smarter-bots-design.md`; details under "Android v0.10 bots" below._
   A general "brain" that works for any spell; no cheating (same info and reaction limits as now).
   - Reaction time that varies; aim that is sometimes a little off or leads too much; hesitations and fake-outs.
@@ -83,6 +83,7 @@ Right now it's a match of rounds against three AI bots (they fight you and each 
 wins the round; first to 5 round wins takes the match, then a results screen with "Play again".
 Android v0.8: between rounds a 15 s shop (gold, upgrades, items, the Homing Orb); the game opens on a title menu.
 Android v0.9: first to 3 (~6 min matches), a 10 s shop, rocks on the island, a ghost when you're out.
+Android v0.10: smarter bots (a mood each round, a wait-and-see opening, human-like aim and reactions).
 
 ### Added beyond the original plan
 - **Staff attack (slot A)**: auto-attack melee swing, 4 damage, shove 300, 0.5 s cooldown = swing animation.
