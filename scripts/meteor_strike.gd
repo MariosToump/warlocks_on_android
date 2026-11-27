@@ -6,7 +6,7 @@ extends Node2D
 ## the blast. Child of the arena (drawn on the floor; the rock above all).
 
 const ROCK := preload("res://assets/sprites/effects/meteor_rock_frames.tres")
-const BLAST := preload("res://assets/sprites/effects/fireball_impact_frames.tres")
+const BLAST := preload("res://assets/sprites/effects/meteor_blast_frames.tres")
 const FALL_FROM := Vector2(-150, -240) ## where the rock starts, from the target
 
 var caster: Wizard
@@ -78,12 +78,12 @@ func _blast() -> void:
 	if arena and not arena.is_lava_at(global_position):
 		Crater.spawn(arena, global_position)
 	if arena and arena.camera:
-		arena.camera.shake(6.0, 0.3)
+		arena.camera.shake(Feel.METEOR_SHAKE, Feel.METEOR_SHAKE_TIME)
 	var fx: EffectOneShot = load(EffectOneShot.SCENE).instantiate()
 	fx.sprite_frames = BLAST
-	fx.scale = Vector2(2.4, 2.4)
+	fx.z_index = 2 # drawn at full size (1 art px = 1 world px), like the wizards
 	get_parent().add_child(fx)
-	fx.global_position = global_position + Vector2(0, -10)
+	fx.global_position = global_position
 	Sfx.play_at("meteor_boom", global_position)
 	queue_free()
 
@@ -95,6 +95,15 @@ func _draw() -> void:
 	var col := Color("ff9a2a").lerp(Color("c22a14"), pulse)
 	col.a = 0.55 + 0.4 * t
 	draw_colored_polygon(_ellipse(maxf(radius * t, 2.0), 24), Color(0.76, 0.16, 0.08, 0.12 + 0.18 * t))
+	# Visual review 2026-11-27: the pale disc was too faint. The rock's dark
+	# shadow grows as it falls, and a solid outline pulses on the edge.
+	draw_colored_polygon(_ellipse(lerpf(radius * 0.2, radius * 0.75, t * t), 24), Color(0.05, 0.02, 0.02, 0.2 + 0.35 * t))
+	var outline := Color("ffd04a").lerp(Color("ff3a10"), pulse)
+	outline.a = 0.5 + 0.5 * pulse
+	var pts := _ellipse(radius, 160)
+	for i in pts.size():
+		var p := pts[i].round()
+		draw_rect(Rect2(p - Vector2(1, 1), Vector2(2, 2)), outline)
 	var n := 28
 	for i in n:
 		if i % 2 == 1:

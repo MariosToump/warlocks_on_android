@@ -151,6 +151,7 @@ func _ready() -> void:
 	arena.camera.set_design_zoom(follow_zoom)
 	arena.camera.global_position = player.global_position
 	arena.camera.reset_smoothing()
+	arena.camera.reset_physics_interpolation() # no first frame drawn from the old spot (all lava)
 
 	for w in all_wizards:
 		wins[w] = 0
@@ -177,7 +178,7 @@ func _add_wizard(w: Wizard, at: Vector2) -> void:
 		if source != null:
 			Sfx.play_at("hurt", w.global_position, -3.0)
 			if damage_numbers:
-				damage_numbers.add(w, amount)
+				damage_numbers.add(w, amount, source)
 			_feel_hit(w, amount, source))
 	w.died.connect(_feel_death)
 	all_wizards.append(w)
@@ -234,6 +235,16 @@ func enter_title() -> void:
 		var ai := w.get_node_or_null("AIController") as AIController
 		if ai:
 			ai.reset()
+	# Watch a bot from the first frame (the parked player is out in the lava:
+	# visual review 2026-11-27 saw a screen of lava before the camera moved).
+	var bots := all_wizards.filter(func(w): return w != player)
+	if not bots.is_empty():
+		var first: Wizard = bots.pick_random()
+		arena.camera.target = first
+		arena.camera.global_position = first.global_position
+		arena.camera.reset_smoothing()
+		arena.camera.reset_physics_interpolation()
+		_title_watch_left = title_camera_time
 	_set_controls(true)
 	touch.locked = true
 	touch.release_all()
@@ -340,6 +351,7 @@ func start_round() -> void:
 	arena.camera.target = null
 	arena.camera.global_position = c
 	arena.camera.reset_smoothing()
+	arena.camera.reset_physics_interpolation() # no first frame drawn from the old spot (all lava)
 	state = State.COUNTDOWN
 	state_left = countdown_time
 	_last_beep = -1
@@ -563,9 +575,9 @@ func _feel_hit(w: Wizard, amount: float, source: Wizard) -> void:
 	if not feel_effects or not state in [State.FIGHT, State.FREE]:
 		return
 	if w == player:
-		arena.camera.shake(clampf(amount * 0.4, 2.0, 6.0), 0.25)
-	if amount >= 10.0 and (w == player or source == player):
-		hit_stop(0.06)
+		arena.camera.shake(clampf(amount * Feel.HIT_SHAKE_PER_DAMAGE, Feel.HIT_SHAKE_MIN, Feel.HIT_SHAKE_MAX), Feel.HIT_SHAKE_TIME)
+	if amount >= Feel.HIT_STOP_DAMAGE and (w == player or source == player):
+		hit_stop(Feel.HIT_STOP_HIT)
 
 
 ## A wizard died: shake if it's on screen, freeze a moment if the player
@@ -575,9 +587,9 @@ func _feel_death(w: Wizard) -> void:
 		return
 	var view := get_viewport().get_visible_rect().size / arena.camera.zoom
 	if w.global_position.distance_to(arena.camera.global_position) < view.length() * 0.5:
-		arena.camera.shake(5.0, 0.35)
+		arena.camera.shake(Feel.DEATH_SHAKE, Feel.DEATH_SHAKE_TIME)
 	if w == player or w.last_attacker == player:
-		hit_stop(0.1)
+		hit_stop(Feel.HIT_STOP_DEATH)
 
 
 ## Slow time to a crawl for `real_seconds`, then back to normal. A newer
@@ -587,7 +599,7 @@ func hit_stop(real_seconds: float) -> void:
 		return
 	_hit_stop_token += 1
 	var token := _hit_stop_token
-	Engine.time_scale = 0.1
+	Engine.time_scale = Feel.HIT_STOP_SCALE
 	await get_tree().create_timer(real_seconds, true, false, true).timeout
 	if token == _hit_stop_token:
 		Engine.time_scale = 1.0
@@ -597,7 +609,7 @@ func hit_stop(real_seconds: float) -> void:
 func _feel_lava(_delta: float) -> void:
 	if arena.phase != _last_phase:
 		if feel_effects and state == State.FIGHT and arena.phase in [Arena.Phase.SHRINK, Arena.Phase.FINAL]:
-			arena.camera.shake(2.5, 0.6)
+			arena.camera.shake(Feel.LAVA_SHAKE, Feel.LAVA_SHAKE_TIME)
 		_last_phase = arena.phase
 	# The ground growls once when the warning line appears.
 	var warn := arena.warning_active()
@@ -690,12 +702,12 @@ func _on_player_damaged(_amount: float, source: Wizard) -> void:
 	if apply_settings and not GameSettings.haptics:
 		return
 	if source != null:
-		_buzz(40)
+		_buzz(Feel.BUZZ_HIT)
 	else:
 		var now := GameClock.now()
 		if now - _last_lava_buzz >= 0.5:
 			_last_lava_buzz = now
-			_buzz(25)
+			_buzz(Feel.BUZZ_LAVA)
 
 
 func _buzz(ms: int) -> void:

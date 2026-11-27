@@ -59,6 +59,21 @@ func _run() -> void:
 	await _seconds(1.5)
 	_check(not blue.has_trail(), "gone once it slows down")
 
+	print("reduce screen shake")
+	await create_timer(0.5).timeout
+	GameSettings.reduce_shake = true
+	cam.shake(6.0, 0.3)
+	var peak := 0.0
+	for i in 6:
+		await process_frame
+		peak = maxf(peak, cam.offset.length())
+	_check(peak <= 6.0 * Feel.REDUCED_SHAKE_SCALE * 1.5, "reduced shake stays small (%.1f px)" % peak)
+	GameSettings.reduce_shake = false
+	var pm = game.get_node_or_null("HUD/PauseMenu")
+	if pm:
+		pm._refresh()
+		_check(pm._shake.text.begins_with("Screen shake"), "pause menu has the shake option")
+
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
 

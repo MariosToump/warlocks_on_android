@@ -5,7 +5,7 @@ extends RefCounted
 ## squares, so they stay pixel-crisp. CPUParticles2D only (no GPU particle
 ## shader compile hitch on Android). At most MAX_LIVE bursts at once.
 
-const MAX_LIVE := 24
+const MAX_LIVE := Feel.VFX_MAX_LIVE
 const GROUP := "vfx_burst"
 
 ## Spark colour per kind of hit.
@@ -14,6 +14,7 @@ const COLORS := {
 	"lightning": Color(0.65, 0.9, 1.0),
 	"push": Color(0.85, 0.78, 0.65),
 	"swap": Color(0.75, 0.45, 1.0),
+	"homing": Color(0.69, 0.36, 1.0),
 	"meteor": Color(1.0, 0.4, 0.1),
 	"lava": Color(1.0, 0.35, 0.05),
 }
@@ -24,7 +25,7 @@ const SPELL_COLORS := {
 	"E": Color(0.65, 0.9, 1.0), # lightning
 	"R": Color(1.0, 0.85, 0.4), # shield
 	"A": Color(1.0, 0.6, 0.25), # staff
-	"homing": Color(1.0, 0.5, 0.2),
+	"homing": Color(0.69, 0.36, 1.0),
 	"rockwall": Color(0.7, 0.62, 0.52),
 	"boomerang": Color(0.95, 0.8, 0.5),
 	"meteor": Color(1.0, 0.4, 0.1),
@@ -88,25 +89,25 @@ static func hit(parent: Node, pos: Vector2, dir: Vector2, kind: String) -> void:
 	var at := pos + Vector2(0, -14)
 	match kind:
 		"meteor":
-			burst(parent, at, c, 22, 150.0, Vector2.ZERO, 180.0, 0.45)
+			burst(parent, at, c, Feel.SPARKS_METEOR, Feel.SPARKS_METEOR_SPEED, Vector2.ZERO, 180.0, Feel.SPARKS_METEOR_LIFE)
 		"lightning":
-			burst(parent, at, c, 14, 140.0, dir, 70.0, 0.25)
+			burst(parent, at, c, Feel.SPARKS_LIGHTNING, Feel.SPARKS_LIGHTNING_SPEED, dir, 70.0, Feel.SPARKS_LIGHTNING_LIFE)
 		_:
-			burst(parent, at, c, 16, 110.0, dir, 70.0, 0.4)
+			burst(parent, at, c, Feel.SPARKS_HIT, Feel.SPARKS_HIT_SPEED, dir, 70.0, Feel.SPARKS_HIT_LIFE)
 
 
 ## A small puff at the staff when a spell is let go.
 static func cast_puff(parent: Node, pos: Vector2, spell_id: String) -> void:
 	last_cast_id = spell_id
 	var c: Color = SPELL_COLORS.get(spell_id, Color(1.0, 0.7, 0.4))
-	var p := burst(parent, pos + Vector2(0, -26), c, 8, 40.0, Vector2.UP, 180.0, 0.3)
+	var p := burst(parent, pos + Vector2(0, -26), c, Feel.CAST_PUFF, 40.0, Vector2.UP, 180.0, 0.3)
 	if p:
 		p.gravity = Vector2(0, -30)
 
 
 ## Embers rising from a wizard that just died.
 static func death_embers(parent: Node, pos: Vector2) -> void:
-	var p := burst(parent, pos + Vector2(0, -12), COLORS["lava"], 26, 60.0, Vector2.UP, 70.0, 1.1)
+	var p := burst(parent, pos + Vector2(0, -12), COLORS["lava"], Feel.DEATH_EMBERS, 60.0, Vector2.UP, 70.0, 1.1)
 	if p:
 		p.gravity = Vector2(0, -40)
 		p.explosiveness = 0.6

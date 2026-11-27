@@ -26,6 +26,9 @@ var sinking := false
 var _sprite: Sprite2D
 var _flash := 0.0
 static var _textures := {}
+## Which of 3 painted looks this rock uses (walls vary, so a Rock Wall isn't
+## three copies of one stone).
+var variant := 0
 
 
 static func make(k: Kind, at: Vector2, on: Arena) -> Prop:
@@ -34,6 +37,7 @@ static func make(k: Kind, at: Vector2, on: Arena) -> Prop:
 	p.arena = on
 	p.global_position = at
 	p.radius = {Kind.BOULDER: 13.0, Kind.PILLAR: 11.0, Kind.WALL: 10.0}[k]
+	p.variant = randi() % 3 if k == Kind.WALL else 0
 	return p
 
 
@@ -48,7 +52,7 @@ func _ready() -> void:
 	shape.shape = circle
 	add_child(shape)
 	_sprite = Sprite2D.new()
-	_sprite.texture = _texture(kind)
+	_sprite.texture = _texture(kind, variant)
 	_sprite.centered = false
 	var size := _sprite.texture.get_size()
 	_sprite.offset = Vector2(-size.x / 2.0, -size.y + radius * 0.6)
@@ -173,62 +177,79 @@ static func first_on_ray(tree: SceneTree, from: Vector2, dir: Vector2, max_t: fl
 
 # --- art ------------------------------------------------------------------------
 
-static func _texture(k: Kind) -> Texture2D:
-	if not _textures.has(k):
-		_textures[k] = ImageTexture.create_from_image(_paint(k))
-	return _textures[k]
+static func _texture(k: Kind, v := 0) -> Texture2D:
+	var key := k * 10 + v
+	if not _textures.has(key):
+		_textures[key] = ImageTexture.create_from_image(_paint(k, v))
+	return _textures[key]
 
 
-## Pixel-shaded rock: an ellipse (boulder) or a tall column (pillar / wall),
-## lit from the top left, dark outline, a few cracks. Fixed seed per kind.
-static func _paint(k: Kind) -> Image:
-	var w := 30 if k == Kind.BOULDER else 22
-	var h := 26 if k == Kind.BOULDER else (42 if k == Kind.PILLAR else 30)
+## Pixel-shaded rock: a lumpy ellipse (boulder), a column (pillar) or a
+## chunky faceted block (wall). Visual review 2026-11-27: flat shade steps
+## (4 tones, lit from the top left), a rough edge and a dark 1 px outline,
+## so they match the pixel-art wizards instead of looking airbrushed.
+static func _paint(k: Kind, v := 0) -> Image:
+	var w := 30 if k == Kind.BOULDER else (22 if k == Kind.PILLAR else 26 + v * 2)
+	var h := 26 if k == Kind.BOULDER else (42 if k == Kind.PILLAR else 30 - v * 2)
 	var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
 	var rng := RandomNumberGenerator.new()
-	rng.seed = 7 + k
-	var base := Color(0.62, 0.52, 0.44) if k != Kind.WALL else Color(0.66, 0.46, 0.34)
+	rng.seed = 7 + k + v * 31
+	var base := Color(0.62, 0.52, 0.44) if k != Kind.WALL else Color(0.6, 0.44, 0.34)
+	# A rough edge: the radius wobbles with the angle (8 bumps, smoothed).
+	var bumps: Array[float] = []
+	for b in 8:
+		bumps.append(rng.randf_range(0.0, 0.16 if k != Kind.PILLAR else 0.08))
+	var rough := func(fx: float, fy: float) -> float:
+		var a := fposmod(atan2(fy, fx), TAU) / TAU * 8.0
+		var i0 := int(a) % 8
+		var f := a - floorf(a)
+		return 1.0 - lerpf(bumps[i0], bumps[(i0 + 1) % 8], f * f * (3.0 - 2.0 * f))
 	var inside := func(x: int, y: int) -> bool:
 		var fx := (x + 0.5) / w * 2.0 - 1.0
 		var fy := (y + 0.5) / h * 2.0 - 1.0
+		var r: float = rough.call(fx, fy)
 		if k == Kind.BOULDER:
-			return fx * fx + fy * fy <= 1.0
+			return fx * fx + fy * fy <= r * r
+		if k == Kind.WALL:
+			# A chunky block: a squircle with a lumpy rim.
+			return pow(absf(fx), 3.0) + pow(absf(fy), 3.0) <= r * r * r
 		# Column: rounded top and bottom, slightly narrower up top.
-		var half := 0.85 + 0.15 * fy
+		var half := (0.85 + 0.15 * fy) * r
 		var top := absf(fx) / half
 		if fy < -0.75:
 			return top * top + pow((fy + 0.75) / 0.25, 2) <= 1.0
 		if fy > 0.8:
 			return top * top + pow((fy - 0.8) / 0.2, 2) <= 1.0
 		return top <= 1.0
+	var tones := [0.5, 0.7, 0.9, 1.1] # flat shade steps, dark to lit
 	for y in h:
 		for x in w:
 			if not inside.call(x, y):
 				continue
 			var edge: bool = not (inside.call(x - 1, y) and inside.call(x + 1, y) and inside.call(x, y - 1) and inside.call(x, y + 1))
 			if edge:
-				img.set_pixel(x, y, Color(0.12, 0.1, 0.1))
+				img.set_pixel(x, y, Color(0.1, 0.08, 0.08))
 				continue
 			var lx := float(x) / w - 0.35
 			var ly := float(y) / h - 0.3
-			var light := clampf(1.0 - sqrt(lx * lx + ly * ly) * 1.3, 0.0, 1.0)
-			var shade := 0.45 + 0.75 * light + rng.randf_range(-0.06, 0.06)
-			var band := 0
-			if k != Kind.BOULDER and y % 7 == 0:
-				band = 1 # stacked basalt joints
-			var c := base * shade
-			if band:
-				c = base * 0.55
+			var light := clampf(1.0 - sqrt(lx * lx + ly * ly) * 1.3 + rng.randf_range(-0.04, 0.04), 0.0, 0.999)
+			var c: Color = base * tones[int(light * tones.size())]
+			if k == Kind.PILLAR and y % 9 == 0:
+				c = base * 0.5 # stacked basalt joints
 			c.a = 1.0
 			img.set_pixel(x, y, c)
-	# Cracks.
-	for i in 3:
+	# Facets on the wall (a few dark diagonal splits), cracks on the rest.
+	var cracks := 3 if k != Kind.WALL else 5
+	for i in cracks:
 		var x := rng.randi_range(4, w - 5)
 		var y := rng.randi_range(4, h - 5)
-		for s in 4:
-			if inside.call(x, y):
-				img.set_pixel(x, y, base * 0.45)
-			x += rng.randi_range(-1, 1)
+		var dx := rng.randi_range(-1, 1) if k != Kind.WALL else (1 if i % 2 else -1)
+		for st in (4 if k != Kind.WALL else 7):
+			if inside.call(x, y) and inside.call(x + 1, y) and inside.call(x - 1, y):
+				img.set_pixel(x, y, base * 0.4)
+				if k == Kind.WALL and inside.call(x, y + 1):
+					img.set_pixel(x, y + 1, base * 1.15) # lit lip under the split
+			x += dx if k == Kind.WALL else rng.randi_range(-1, 1)
 			y += 1
 	return img

@@ -3,7 +3,7 @@ extends RefCounted
 ## Player settings, kept in static vars and saved to user://settings.cfg.
 ## The game reads them when `game.apply_settings` is on (tests turn it off).
 
-const ZOOMS := {"close": 2.0, "far": 1.35} ## follow_zoom per choice (3 / 2 screen px per art px on a phone)
+const ZOOMS := {"close": 2.0, "far": 1.6} ## follow_zoom per choice (3 / 2 screen px per art px on a phone)
 const WINS := [3, 5, 7]
 const MOVES := ["joystick", "touchpad"] ## left-thumb movement styles
 
@@ -16,6 +16,7 @@ static var sound := true
 static var music := true
 static var move_mode := "joystick"
 static var heat_haze := true ## shimmer over the lava (off for slow phones)
+static var reduce_shake := false ## smaller screen shake (Feel.REDUCED_SHAKE_SCALE)
 static var _loaded := false
 
 
@@ -41,6 +42,7 @@ static func load_settings() -> void:
 	music = cf.get_value("game", "music", music)
 	move_mode = cf.get_value("game", "move_mode", move_mode)
 	heat_haze = cf.get_value("game", "heat_haze", heat_haze)
+	reduce_shake = cf.get_value("game", "reduce_shake", reduce_shake)
 	if not move_mode in MOVES:
 		move_mode = "joystick"
 
@@ -55,6 +57,7 @@ static func save_settings() -> void:
 	cf.set_value("game", "music", music)
 	cf.set_value("game", "move_mode", move_mode)
 	cf.set_value("game", "heat_haze", heat_haze)
+	cf.set_value("game", "reduce_shake", reduce_shake)
 	cf.save(path)
 
 
@@ -72,4 +75,5 @@ static func reset() -> void:
 	music = true
 	move_mode = "joystick"
 	heat_haze = true
+	reduce_shake = false
 	_loaded = true

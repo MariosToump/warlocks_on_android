@@ -58,4 +58,10 @@ static func trade(p: Projectile, w: Wizard) -> void:
 	var fx_parent := a.get_parent()
 	EffectOneShot.spawn_at_feet(PUFF, fx_parent, pa)
 	EffectOneShot.spawn_at_feet(PUFF, fx_parent, pb)
+	# Visual review 2026-11-27: the trade read as a camera glitch. A bright
+	# line joins the two spots for a moment, with a flash at each end.
+	var hand := Vector2(0, -14)
+	FlashFx.beam(fx_parent, pa + hand, pb + hand, Color(1.0, 0.45, 0.75))
+	FlashFx.ring(fx_parent, pa + hand, Color(1.0, 0.45, 0.75), 20.0)
+	FlashFx.ring(fx_parent, pb + hand, Color(1.0, 0.82, 0.3), 20.0)
 	Sfx.play_at("swap", pb)

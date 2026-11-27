@@ -154,6 +154,7 @@ func refresh() -> void:
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		row.add_child(icon)
 		var lbl := _label("%s\n%s" % [info.name, info.desc], 14)
+		lbl.add_theme_font_override("font", ThemeDB.fallback_font) # long text: the smooth font reads better small
 		lbl.custom_minimum_size.x = 230
 		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
@@ -172,6 +173,7 @@ func refresh() -> void:
 		icon.item = id
 		row.add_child(icon)
 		var lbl := _label("%s\n%s" % [info.name, info.desc], 15)
+		lbl.add_theme_font_override("font", ThemeDB.fallback_font) # long text: the smooth font reads better small
 		lbl.custom_minimum_size.x = 170
 		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD

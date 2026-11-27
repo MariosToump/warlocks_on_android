@@ -258,7 +258,7 @@ func _update_cast(delta: float) -> void:
 		if _casting: # release can end the cast (e.g. Blink)
 			Vfx.cast_puff(get_parent(), global_position,
 					_casting.spell_id if _casting.spell_id != "" else String(_casting.name))
-		squash(Vector2(0.9, 1.12))
+		squash(Feel.SQUASH_CAST)
 	if _cast_elapsed >= _casting.cast_time:
 		_casting = null
 
@@ -318,11 +318,11 @@ func take_damage(amount: float, source: Wizard = null) -> void:
 ## face where the hit came from. `from_dir` is the direction the hit was
 ## travelling (zero = keep facing). `kind` colours the sparks (Vfx.COLORS).
 func flash_hit(from_dir := Vector2.ZERO, kind := "push") -> void:
-	sprite.self_modulate = Color(4, 4, 4)
+	sprite.self_modulate = Feel.HIT_FLASH
 	Vfx.hit(get_parent(), global_position, from_dir, kind)
-	squash(Vector2(1.2, 0.85))
+	squash(Feel.SQUASH_HIT)
 	var t := create_tween()
-	t.tween_property(sprite, "self_modulate", Color.WHITE, 0.15)
+	t.tween_property(sprite, "self_modulate", Color.WHITE, Feel.HIT_FLASH_TIME)
 	if alive and not _casting:
 		if from_dir != Vector2.ZERO:
 			facing = dir_name(-from_dir)
@@ -333,7 +333,7 @@ func flash_hit(from_dir := Vector2.ZERO, kind := "push") -> void:
 
 ## Squash / stretch the sprite to `to` and spring back (feet stay planted:
 ## the sprite is drawn above its origin).
-func squash(to: Vector2, time := 0.12) -> void:
+func squash(to: Vector2, time := Feel.SQUASH_TIME) -> void:
 	if _squash_tween:
 		_squash_tween.kill()
 	sprite.scale = to

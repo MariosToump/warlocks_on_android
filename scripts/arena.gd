@@ -273,8 +273,8 @@ func _make_embers() -> void:
 	embers = CPUParticles2D.new()
 	embers.name = "Embers"
 	embers.z_index = 1
-	embers.amount = 40
-	embers.lifetime = 2.2
+	embers.amount = Feel.ARENA_EMBERS
+	embers.lifetime = Feel.ARENA_EMBER_LIFE
 	embers.emission_shape = CPUParticles2D.EMISSION_SHAPE_POINTS
 	embers.direction = Vector2.UP
 	embers.spread = 25.0
@@ -448,7 +448,14 @@ func _paint(r: int, c: int) -> void:
 	var se := vertices[r + 1][c + 1]
 	if Terrain.LAVA in [nw, ne, sw, se]:
 		var idx := _wang(nw != Terrain.LAVA, ne != Terrain.LAVA, sw != Terrain.LAVA, se != Terrain.LAVA)
-		tiles.set_cell(Vector2i(c, r), _lava_source, _lava_lookup[idx])
+		var alt := 0
+		if idx == 0:
+			# All lava: flip / turn each cell by a fixed hash of its spot, so
+			# the far lava doesn't repeat one tile in a grid (visual review 2026-11-27).
+			var hsh := (c * 73856093) ^ (r * 19349663)
+			alt = [0, TileSetAtlasSource.TRANSFORM_FLIP_H, TileSetAtlasSource.TRANSFORM_FLIP_V,
+					TileSetAtlasSource.TRANSFORM_FLIP_H | TileSetAtlasSource.TRANSFORM_FLIP_V][absi(hsh) % 4]
+		tiles.set_cell(Vector2i(c, r), _lava_source, _lava_lookup[idx], alt)
 	else:
 		var idx := _wang(nw == Terrain.CRACKED, ne == Terrain.CRACKED, sw == Terrain.CRACKED, se == Terrain.CRACKED)
 		tiles.set_cell(Vector2i(c, r), _crack_source, _crack_lookup[idx])

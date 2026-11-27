@@ -45,7 +45,7 @@ func _ready() -> void:
 	add_to_group("time_stops")
 	_sprite = AnimatedSprite2D.new()
 	_sprite.sprite_frames = FRAMES
-	_sprite.scale = Vector2.ONE * radius / 33.0 # the art's ring is 33 px wide
+	_sprite.scale = Vector2.ONE * radius / 120.0 # the art is drawn at radius 120: 1.0 = no upscaling
 	_sprite.play()
 	add_child(_sprite)
 	Sfx.play_at("timestop", global_position)

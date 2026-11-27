@@ -33,7 +33,7 @@ func _ready() -> void:
 	# then interpolated together with what it follows, so no jitter.
 	process_callback = Camera2D.CAMERA2D_PROCESS_PHYSICS
 	position_smoothing_enabled = true
-	position_smoothing_speed = 8.0
+	position_smoothing_speed = Feel.CAMERA_FOLLOW
 	get_tree().root.size_changed.connect(_apply_zoom)
 	set_design_zoom(start_zoom)
 
@@ -74,6 +74,8 @@ func screen_scale() -> float:
 ## Shake the view by up to `strength` world px, fading over `time` s. A
 ## weaker shake never cuts a stronger one short.
 func shake(strength: float, time: float) -> void:
+	if GameSettings.reduce_shake:
+		strength *= Feel.REDUCED_SHAKE_SCALE
 	var now := _shake * (_shake_left / maxf(_shake_time, 0.001))
 	if strength < now:
 		return

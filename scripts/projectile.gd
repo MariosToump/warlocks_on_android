@@ -122,6 +122,9 @@ func _check_shields() -> void:
 		sprite.rotation = direction.angle()
 		w.bubble_flash()
 		Sfx.play_at("reflect", global_position)
+		# Visual review 2026-11-27: a reflected shot looked like the original.
+		# Now it takes the reflector's team colour.
+		sprite.modulate = Color.WHITE.lerp(RoundHud.TEAM_COLORS[w.team_color], 0.6)
 		return
 
 

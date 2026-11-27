@@ -18,8 +18,14 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
-func add(w: Wizard, amount: float) -> void:
-	var col := Color(1, 0.35, 0.3) if w == game.player else Color(1, 0.95, 0.8)
+## Colours (visual review 2026-11-27: cream on grey was hard to read): hits
+## on you red, hits you landed yellow, everyone else's white. Always outlined.
+func add(w: Wizard, amount: float, source: Wizard = null) -> void:
+	var col := Color.WHITE
+	if w == game.player:
+		col = Color(1, 0.35, 0.3)
+	elif source == game.player:
+		col = Color(1.0, 0.85, 0.2)
 	# Small sideways jitter so quick hits don't stack exactly.
 	var at := w.global_position + HEAD + Vector2(randf_range(-8.0, 8.0), 0)
 	numbers.append({"world": at, "text": str(roundi(amount)), "color": col, "age": 0.0})
@@ -33,7 +39,7 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	var font := ThemeDB.fallback_font
+	var font := get_theme_default_font() # the pixel font (project theme)
 	var to_screen := get_viewport().get_canvas_transform()
 	for n in numbers:
 		var t: float = n.age / LIFE

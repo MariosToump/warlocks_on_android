@@ -29,6 +29,7 @@ var _match_title: Label
 var _standings: Label
 var _play_again: Button
 var _banner_tween: Tween
+var _count: Label
 
 
 func _ready() -> void:
@@ -52,6 +53,14 @@ func _ready() -> void:
 	_sub.offset_right = 500
 	_sub.offset_top = -198
 	_sub.offset_bottom = -160
+	# The countdown digit, big under "Round N" (it was ~10 px on a phone).
+	_count = _label(96)
+	_count.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	_count.offset_left = -200
+	_count.offset_right = 200
+	_count.offset_top = -160
+	_count.offset_bottom = -40
+	_count.add_theme_color_override("font_color", Color(1.0, 0.82, 0.35))
 
 	_feed = VBoxContainer.new()
 	_feed.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -141,9 +150,10 @@ func _process(_delta: float) -> void:
 	if game == null:
 		return
 	if game.state == game.State.COUNTDOWN:
-		_sub.text = str(ceili(game.state_left))
-		if game.shop_skipped:
-			_sub.text = "No gold to spend: no shop this time   " + _sub.text
+		_count.text = str(ceili(game.state_left))
+		_sub.text = "No gold to spend: no shop this time" if game.shop_skipped else ""
+	elif _count.text != "":
+		_count.text = ""
 	_board.queue_redraw()
 
 
@@ -158,7 +168,8 @@ func _show_banner(text: String, col := Color.WHITE, sub := "") -> void:
 
 func _on_round_started(n: int) -> void:
 	_match_panel.visible = false
-	_show_banner("Round %d" % n, Color.WHITE, str(ceili(game.countdown_time)))
+	_show_banner("Round %d" % n, Color.WHITE)
+	_count.text = str(ceili(game.countdown_time))
 
 
 func _on_fight_started() -> void:
@@ -235,8 +246,12 @@ func _on_kill(killer: Wizard, victim: Wizard) -> void:
 class Scoreboard:
 	extends Control
 
-	const ROW_H := 22
-	const PIPS_X := 150
+	## Visual review 2026-11-27: the text was ~12 px on a phone. Everything
+	## is drawn K times bigger (sizes, not a scale transform, so text stays sharp).
+	const K := 1.3
+	const ROW_H := 22.0 * K
+	const PIPS_X := 150.0 * K
+	const FONT := 21 # 16 * K
 
 	var hud: RoundHud
 
@@ -247,40 +262,40 @@ class Scoreboard:
 		var game = hud.game
 		if game == null:
 			return
-		var font := ThemeDB.fallback_font
+		var font := get_theme_default_font() # the pixel font (project theme)
 		var n: int = game.all_wizards.size()
 		var need: int = game.wins_to_take_match
-		var kills_x := PIPS_X + need * 14 + 6
-		var w_total := kills_x + 52
-		size = Vector2(w_total, n * ROW_H + 10 + ROW_H)
-		draw_rect(Rect2(0, 0, w_total, n * ROW_H + 10), Color(0, 0, 0, 0.45))
+		var kills_x := PIPS_X + need * 14 * K + 6 * K
+		var w_total := kills_x + 52 * K
+		size = Vector2(w_total, n * ROW_H + 10 * K + ROW_H)
+		draw_rect(Rect2(0, 0, w_total, n * ROW_H + 10 * K), Color(0, 0, 0, 0.45))
 		for i in n:
 			var w: Wizard = game.all_wizards[i]
-			var y := 5 + i * ROW_H
+			var y := 5 * K + i * ROW_H
 			var dim := 1.0 if w.alive or game.state != game.State.FIGHT else 0.4
 			var col: Color = hud.color_of(w)
 			col.a = dim
-			draw_rect(Rect2(8, y + 5, 10, 10), col)
+			draw_rect(Rect2(8 * K, y + 5 * K, 10 * K, 10 * K), col)
 			var text_col := Color(1, 1, 1, dim)
-			draw_string(font, Vector2(24, y + 16), game.display_name(w), HORIZONTAL_ALIGNMENT_LEFT, -1, 16, text_col)
+			draw_string(font, Vector2(24 * K, y + 16 * K), game.display_name(w), HORIZONTAL_ALIGNMENT_LEFT, -1, FONT, text_col)
 			# Health bar (0 when dead).
 			var hp := clampf(w.health / w.max_health, 0.0, 1.0) if w.alive else 0.0
-			var bar := Rect2(88, y + 7, 52, 7)
+			var bar := Rect2(88 * K, y + 7 * K, 52 * K, 7 * K)
 			draw_rect(bar, Color(0, 0, 0, 0.6 * dim))
 			var hp_col := Color(0.35, 0.85, 0.35) if hp > 0.5 else (Color(0.95, 0.75, 0.2) if hp > 0.25 else Color(0.95, 0.3, 0.2))
 			hp_col.a = dim
 			draw_rect(Rect2(bar.position, Vector2(bar.size.x * hp, bar.size.y)), hp_col)
 			for p in need:
-				var r := Rect2(PIPS_X + p * 14, y + 6, 9, 9)
+				var r := Rect2(PIPS_X + p * 14 * K, y + 6 * K, 9 * K, 9 * K)
 				if p < game.wins[w]:
 					draw_rect(r, Color(1.0, 0.75, 0.2, dim))
 				else:
 					draw_rect(r, Color(1, 1, 1, 0.35 * dim), false, 1.0)
-			draw_string(font, Vector2(kills_x, y + 16), "%d K" % game.kills[w], HORIZONTAL_ALIGNMENT_RIGHT, 46, 16, text_col)
+			draw_string(font, Vector2(kills_x, y + 16 * K), "%d K" % game.kills[w], HORIZONTAL_ALIGNMENT_RIGHT, 46 * K, FONT, text_col)
 		# Your knockback bonus: damage taken makes you fly further.
 		var me: Wizard = game.player
 		var kb := roundi(me.damage_taken * me.knockback_per_damage * 100.0)
 		if me.alive and kb > 0:
 			var kb_col := Color(1, 0.8, 0.4) if kb < 50 else Color(1, 0.45, 0.3)
-			draw_string(font, Vector2(8, n * ROW_H + 10 + 17), "Knockback +%d%%" % kb,
-					HORIZONTAL_ALIGNMENT_LEFT, -1, 16, kb_col)
+			draw_string(font, Vector2(8 * K, n * ROW_H + 10 * K + 17 * K), "Knockback +%d%%" % kb,
+					HORIZONTAL_ALIGNMENT_LEFT, -1, FONT, kb_col)

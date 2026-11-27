@@ -46,7 +46,11 @@ func _init() -> void:
 	_bake("gravity_well", Vector2i(64, 40), 12, 12.0, true, _well)
 	_bake("swap_orb", Vector2i(20, 20), 6, 14.0, true, _swap_orb)
 	_bake("swap_puff", Vector2i(48, 48), 10, 18.0, false, _swap_puff)
-	_bake("time_stop", Vector2i(72, 44), 10, 8.0, true, _time_stop)
+	# Review fixes 2026-11-27: drawn at the wizards' scale (1 art px = 1 world px, never upscaled).
+	_bake("time_stop", Vector2i(248, 148), 10, 8.0, true, _time_stop)
+	_bake("homing_orb", Vector2i(18, 18), 6, 12.0, true, _homing_orb)
+	_bake("homing_burst", Vector2i(44, 44), 8, 20.0, false, _homing_burst)
+	_bake("meteor_blast", Vector2i(168, 112), 10, 18.0, false, _meteor_blast)
 	quit()
 
 
@@ -59,7 +63,7 @@ func _bake(name: String, size: Vector2i, count: int, fps: float, loop: bool, dra
 		var img := Image.create(size.x, size.y, false, Image.FORMAT_RGBA8)
 		_late.clear()
 		draw.call(img, i, count)
-		_outline(img, INK_DARK if name in ["gravity_well", "swap_orb", "swap_puff", "time_stop"] else INK)
+		_outline(img, INK_DARK if name in ["gravity_well", "swap_orb", "swap_puff", "time_stop", "homing_orb", "homing_burst"] else INK)
 		for l in _late:
 			_pxv(img, l[0], l[1])
 		sheet.blit_rect(img, Rect2i(Vector2i.ZERO, size), Vector2i(i % cols, i / cols) * size)
@@ -292,30 +296,108 @@ func _swap_puff(img: Image, i: int, n: int) -> void:
 			_spark(p, col)
 
 
-## A frozen clock face on the ground: an icy ring with 12 gold ticks and a
-## hand that clicks forward every other frame; frost glints.
+
+
+## A frozen clock face on the ground, at full size (radius 120 world px):
+## a thin dashed icy ring, 12 small gold ticks, a hand that clicks forward
+## every other frame, frost glints. Thin lines so the fight shows through.
 func _time_stop(img: Image, i: int, _n: int) -> void:
-	var c := Vector2(35.5, 21.5)
-	var R := Vector2(33, 19)
-	_ring(img, c, R, BLUE)
-	_ring(img, c, R - Vector2(1, 1), ICE)
-	_ring(img, c, R - Vector2(3, 2), BLUE_D)
+	var c := Vector2(123.5, 73.5)
+	var R := Vector2(120, 70)
+	var dashes := 48
+	for k in dashes:
+		if k % 2 == 1:
+			continue
+		var a0 := (k + i * 0.1) * TAU / dashes
+		var a1 := (k + 1 + i * 0.1) * TAU / dashes
+		_ring(img, c, R, BLUE, a0, a1)
+		_ring(img, c, R - Vector2(1, 1), ICE, a0, a1)
 	for k in 12:
 		var a := k * TAU / 12.0
-		var dir := Vector2(cos(a), sin(a))
-		for s in (3 if k % 3 == 0 else 2):
-			_pxv(img, c + dir * (R - Vector2(4 + s, 3 + s * 0.6)), GOLD if k % 3 == 0 else AMBER)
+		var long := k % 3 == 0
+		for st in (5 if long else 3):
+			var rr := R - Vector2(4 + st, (4 + st) * R.y / R.x)
+			_pxv(img, c + Vector2(cos(a) * rr.x, sin(a) * rr.y), GOLD if long else AMBER)
 	var hand := (i / 2) * TAU / 5.0 - PI / 2.0
-	var tip := c + Vector2(cos(hand) * 18.0, sin(hand) * 11.0)
+	var tip := c + Vector2(cos(hand) * 52.0, sin(hand) * 30.0)
 	_line(img, c, tip, GOLD)
-	_line(img, c + Vector2(0, 1), tip + Vector2(0, 1), CREAM)
-	_oval(img, c, Vector2(2, 1.5), GOLD)
-	for k in 4: # frost glints that twinkle round the rim
-		var a := k * TAU / 4.0 + 0.4 + (i % 5) * 0.25
+	_oval(img, c, Vector2(2.5, 1.5), GOLD)
+	_px(img, int(c.x), int(c.y), CREAM)
+	for k in 6: # frost glints that twinkle round the rim
+		var a := k * TAU / 6.0 + 0.4 + (i % 5) * 0.2
 		var p := c + Vector2(cos(a) * R.x, sin(a) * R.y)
 		if (i + k) % 2 == 0:
 			_spark(p, WHITE)
-			_spark(p + Vector2(1, 0), ICE)
-			_spark(p + Vector2(-1, 0), ICE)
-			_spark(p + Vector2(0, 1), ICE)
-			_spark(p + Vector2(0, -1), ICE)
+			for o in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+				_spark(p + o, ICE)
+
+
+## Homing Orb in flight: a round violet orb that pulses (radius 5 -> 6),
+## with a white core and two motes orbiting it. Nothing like the fireball.
+func _homing_orb(img: Image, i: int, n: int) -> void:
+	var c := Vector2(8.5, 8.5)
+	var t := sin(i * TAU / n)
+	var r := 5.0 + 0.8 * t
+	_oval(img, c, Vector2(r, r), VIOLET_D)
+	_oval(img, c, Vector2(r - 1.2, r - 1.2), VIOLET)
+	_oval(img, c + Vector2(-1, -1), Vector2(r - 3.0, r - 3.0), LILAC)
+	_px(img, 7, 7, WHITE)
+	_px(img, 8, 7, WHITE)
+	for k in 2:
+		var a := i * TAU / n + k * PI
+		_spark(c + Vector2(cos(a), sin(a)) * (r + 2.0), LILAC if k == 0 else WHITE)
+
+
+## Homing Orb impact: a violet flash, then a thin ring and motes flying out.
+func _homing_burst(img: Image, i: int, n: int) -> void:
+	var c := Vector2(21.5, 21.5)
+	var t := i / float(n - 1)
+	if i < 2:
+		_oval(img, c, Vector2(8 - i * 2, 8 - i * 2), VIOLET if i == 0 else VIOLET_D)
+		_oval(img, c, Vector2(5 - i * 2, 5 - i * 2), LILAC)
+		_oval(img, c, Vector2(2, 2), WHITE)
+	var r := lerpf(6.0, 19.0, sqrt(t))
+	if i >= 1 and i < n - 1:
+		_ring(img, c, Vector2(r, r), VIOLET if t < 0.6 else VIOLET_D)
+	for k in 8:
+		if t > 0.75 and k % 2 == 0:
+			continue
+		var a := k * TAU / 8.0 + 0.3
+		_spark(c + Vector2(cos(a), sin(a)) * (r * 0.8), LILAC if k % 2 else WHITE)
+
+
+## Meteor impact at full size (radius 75 world px): a white-hot flash, a
+## ring of fire rolling outward, chunky rock debris flung out.
+func _meteor_blast(img: Image, i: int, n: int) -> void:
+	var c := Vector2(83.5, 55.5)
+	var t := i / float(n - 1)
+	var sq := 0.62 # seen from above, flat like the warning ring
+	if i == 0:
+		_oval(img, c, Vector2(30, 30 * sq), AMBER)
+		_oval(img, c, Vector2(20, 20 * sq), GOLD)
+		_oval(img, c, Vector2(10, 10 * sq), CREAM)
+		return
+	var r := lerpf(28.0, 76.0, sqrt(t))
+	var w := lerpf(9.0, 3.0, t)
+	var col := ORANGE if t < 0.4 else RED if t < 0.75 else RED_D
+	for y in img.get_height():
+		for x in img.get_width():
+			var d := Vector2((x - c.x) / r, (y - c.y) / (r * sq)).length()
+			if d <= 1.0 and d >= (r - w) / r:
+				img.set_pixel(x, y, col)
+	if t < 0.5: # the hot core fading
+		var cr := 18.0 * (1.0 - t * 1.6)
+		_oval(img, c, Vector2(cr, cr * sq), GOLD if t < 0.25 else AMBER)
+	if t < 0.3:
+		_oval(img, c, Vector2(7, 7 * sq), CREAM)
+	if t < 0.7: # flame tongues on the ring
+		for k in 14:
+			var a := k * TAU / 14.0 + _rng.randf() * 0.2
+			_oval(img, c + Vector2(cos(a) * r, sin(a) * r * sq), Vector2(2.5, 2.0), AMBER if k % 2 else GOLD)
+	if t < 0.9: # dark rock chunks thrown out further
+		for k in 10:
+			var a := k * TAU / 10.0 + 0.25
+			var dr := r + 6.0 + t * 10.0
+			var p := c + Vector2(cos(a) * dr, sin(a) * dr * sq - sin(t * PI) * 8.0)
+			_oval(img, p, Vector2(1.6, 1.4), PLUM_D)
+			_pxv(img, p + Vector2(-0.5, -0.5), ROSE)
