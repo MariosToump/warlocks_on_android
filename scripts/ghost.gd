@@ -5,8 +5,9 @@ extends Node2D
 ## joystick. Nothing can hit it and bots don't see it (not in "wizards").
 ## Haunt (the attack button): a small shove to living wizards close by, with
 ## no damage and no kill credit, every HAUNT_COOLDOWN seconds.
+## Tapping the minimap teleports it there.
 
-const SPEED := 200.0
+const SPEED := 577.5 ## 3.5x a wizard's walk (165), to get back fast
 const HAUNT_RADIUS := 60.0
 const HAUNT_PUSH := 220.0
 const HAUNT_COOLDOWN := 4.0
@@ -53,6 +54,16 @@ func _physics_process(delta: float) -> void:
 		_play("idle")
 	sprite.position.y = -4.0 + sin(_t * 3.0) * 2.0 # gentle float
 	queue_redraw()
+
+
+## Jump to a world point (the tapped minimap spot), kept inside the arena.
+func teleport(to: Vector2) -> void:
+	global_position = to
+	if source and source.arena:
+		var b := source.arena.get_bounds().grow(-8.0)
+		global_position = global_position.clamp(b.position, b.end)
+	_ring = 1.0
+	Sfx.play_at("blink", global_position, -6.0)
 
 
 ## Shove every living wizard within reach. False while cooling down.

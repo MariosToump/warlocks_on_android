@@ -59,6 +59,21 @@ func _run() -> void:
 	await _seconds(0.3)
 	_check(game.arena.is_lava_at(g.global_position) and is_instance_valid(g), "floats over lava")
 	player.move_dir = Vector2.ZERO
+	_check(is_equal_approx(Ghost.SPEED, player.move_speed * 3.5), "3.5x walking speed (%.0f)" % Ghost.SPEED)
+
+	print("tap the minimap to fly there")
+	var mm: Minimap = game.minimap
+	var spot := c + Vector2(-200, 150)
+	var tap := mm.get_global_rect().position + mm.to_map(spot)
+	touch._touch_down(2, tap)
+	touch._touch_up(2)
+	_check(g.global_position.distance_to(spot) < 12.0, "ghost jumps to the tapped spot (%.0f px off)" % g.global_position.distance_to(spot))
+	_check(touch._stick_index != 2, "the tap doesn't grab the joystick")
+	var corner := mm.get_global_rect().position + Vector2(2, 2) # outside the disc
+	g.global_position = c
+	touch._touch_down(2, corner)
+	touch._touch_up(2)
+	_check(g.global_position == c, "outside the disc: no jump")
 
 	print("haunt")
 	for w in [blue, green, purple]:

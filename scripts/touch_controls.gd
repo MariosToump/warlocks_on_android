@@ -49,6 +49,8 @@ var locked := false
 var touchpad := false
 ## While the player is a ghost: the attack button haunts, spells are hidden.
 var ghost: Ghost
+## Tapped while a ghost: the ghost teleports there.
+var minimap: Minimap
 
 var _stick_index := -1
 var _stick_origin := Vector2.ZERO
@@ -134,6 +136,12 @@ func _input(event: InputEvent) -> void:
 
 
 func _touch_down(index: int, pos: Vector2) -> void:
+	if ghost != null and minimap != null:
+		var spot: Variant = minimap.world_at(pos)
+		if spot != null:
+			get_viewport().set_input_as_handled()
+			ghost.teleport(spot)
+			return
 	var slot := _button_at(pos)
 	if slot != "":
 		get_viewport().set_input_as_handled()

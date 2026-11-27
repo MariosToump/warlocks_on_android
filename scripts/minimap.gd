@@ -30,6 +30,16 @@ func to_map(world: Vector2) -> Vector2:
 	return size / 2.0 + (world - game.arena.get_center()) * world_scale()
 
 
+## World point under a screen position, or null when it's outside the disc.
+func world_at(screen: Vector2) -> Variant:
+	if game == null or not visible:
+		return null
+	var local := screen - get_global_rect().position
+	if local.distance_to(size / 2.0) > DIAMETER / 2.0:
+		return null
+	return game.arena.get_center() + (local - size / 2.0) / world_scale()
+
+
 func _draw() -> void:
 	if game == null:
 		return

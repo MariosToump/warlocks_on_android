@@ -621,6 +621,7 @@ func _build_hud_extras() -> void:
 	minimap.name = "Minimap"
 	minimap.game = self
 	hud.add_child(minimap)
+	touch.minimap = minimap
 	minimap.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	minimap.offset_left = -Minimap.DIAMETER - 12.0
 	minimap.offset_right = -12.0
