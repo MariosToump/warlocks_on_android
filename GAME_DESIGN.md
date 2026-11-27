@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
+_Last updated: 2026-11-27 (todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -56,6 +56,11 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
 **Paused 2026-11-27 (the user):** todos 3, 4, 5 and 8 wait while we work on graphics and design (more animation,
 a more "real" feel; research: a bigger PixelLab plan vs doing more in Godot). Order after the pause: terrain stones
 brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) stays last.
+- [ ] 11. **Protect the code** (user, 2026-11-27; do in a couple of days): make `warlocks_on_android` private
+  (`gh repo edit --visibility private`; then only the user + invited GitHub accounts can see code or releases), add
+  an "All rights reserved" notice (LICENSE + README), and a separate public repo with only the APK (e.g.
+  `warlocks_on_android-releases`) so download links still work; each release gets published there. Later, before
+  a store release: Godot PCK encryption (custom export templates). Optional: an itch.io page for testers.
 - [ ] 0. **Graphics and design** **← next** — _visual pass 1 (Godot) done 2026-11-27, Android v0.13. Design:
   `docs/superpowers/specs/2026-11-27-visual-pass-design.md`. The user: don't darken the arena for now (so no
   normal maps yet). Next: the PixelLab finish (below), then more Godot polish after the user's phone check._
