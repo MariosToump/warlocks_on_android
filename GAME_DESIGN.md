@@ -57,7 +57,11 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
 a more "real" feel; research: a bigger PixelLab plan vs doing more in Godot). Order after the pause: terrain stones
 brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) stays last.
 - [ ] 0. **Graphics and design** **← next** — research Godot (lights, shaders, particles, juice) vs a paid PixelLab
-  plan (the account is on the free trial), then brainstorm and plan.
+  plan (the account is on the free trial), then brainstorm and plan. The user's choice (2026-11-27): do as much
+  as we can in Godot first (lights, particles, shaders, juice), then finish with PixelLab: the missing directions
+  (death E/NE, attack SE/NE, hurt E is made but not imported; the west side is mirrored in code) and an idle.
+- [ ] 10. **Hit-type hurt / death animations** (later) — 2-3 hurt and death variants picked by what hit you (e.g.
+  fire, lightning, a heavy push, lava). Best case, later still: a unique hurt and death for every spell.
 - [ ] 3. **Secondary spell effects** (paused, later) — the user's direction: an "enchanted" version of each spell
   that adds a secondary effect, with its own visuals. Details to discuss later. Bots learn each effect as it's added.
 - [ ] 4. **Extra / bonus rounds with trigger conditions** — details to discuss. Sim how often triggers fire.
