@@ -76,6 +76,7 @@ var facing := "south"
 ## Seconds of shield left (Shield spell). Reflects projectiles, blocks lightning.
 var shield_left := 0.0
 var _sprite_base_y := 0.0
+var _squash_tween: Tween
 
 # Casting: the wizard stands still for the spell's cast_time and the
 # spell fires at its release_time.
@@ -241,6 +242,10 @@ func _update_cast(delta: float) -> void:
 	if not _cast_released and _cast_elapsed >= _casting.release_time:
 		_cast_released = true
 		_casting.release(_cast_target)
+		if _casting: # release can end the cast (e.g. Blink)
+			Vfx.cast_puff(get_parent(), global_position,
+					_casting.spell_id if _casting.spell_id != "" else String(_casting.name))
+		squash(Vector2(0.9, 1.12))
 	if _cast_elapsed >= _casting.cast_time:
 		_casting = null
 
@@ -302,6 +307,7 @@ func take_damage(amount: float, source: Wizard = null) -> void:
 func flash_hit(from_dir := Vector2.ZERO, kind := "push") -> void:
 	sprite.self_modulate = Color(4, 4, 4)
 	Vfx.hit(get_parent(), global_position, from_dir, kind)
+	squash(Vector2(1.2, 0.85))
 	var t := create_tween()
 	t.tween_property(sprite, "self_modulate", Color.WHITE, 0.15)
 	if alive and not _casting:
@@ -310,6 +316,16 @@ func flash_hit(from_dir := Vector2.ZERO, kind := "push") -> void:
 		_play("hurt")
 		sprite.frame = 0
 		sprite.play()
+
+
+## Squash / stretch the sprite to `to` and spring back (feet stay planted:
+## the sprite is drawn above its origin).
+func squash(to: Vector2, time := 0.12) -> void:
+	if _squash_tween:
+		_squash_tween.kill()
+	sprite.scale = to
+	_squash_tween = create_tween()
+	_squash_tween.tween_property(sprite, "scale", Vector2.ONE, time) 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 ## Push the wizard. Scaled up by how much damage it has taken.
@@ -336,6 +352,7 @@ func reset(at: Vector2) -> void:
 	visible = true
 	modulate = Color.WHITE
 	scale = Vector2.ONE
+	sprite.scale = Vector2.ONE
 	health_changed.emit(health, max_health)
 	_play("idle")
 	reset_physics_interpolation() # a jump, not a slide

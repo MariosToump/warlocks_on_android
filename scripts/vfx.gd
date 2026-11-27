@@ -33,8 +33,9 @@ const SPELL_COLORS := {
 	"timestop": Color(0.55, 0.95, 1.0),
 }
 
-## Kind of the last hit() call (tests).
+## Kind of the last hit() / id of the last cast_puff() call (tests).
 static var last_hit_kind := ""
+static var last_cast_id := ""
 
 
 static func live_count(tree: SceneTree) -> int:
@@ -96,6 +97,7 @@ static func hit(parent: Node, pos: Vector2, dir: Vector2, kind: String) -> void:
 
 ## A small puff at the staff when a spell is let go.
 static func cast_puff(parent: Node, pos: Vector2, spell_id: String) -> void:
+	last_cast_id = spell_id
 	var c: Color = SPELL_COLORS.get(spell_id, Color(1.0, 0.7, 0.4))
 	var p := burst(parent, pos + Vector2(0, -26), c, 8, 40.0, Vector2.UP, 180.0, 0.3)
 	if p:

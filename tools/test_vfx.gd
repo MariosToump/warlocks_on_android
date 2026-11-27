@@ -43,6 +43,23 @@ func _run() -> void:
 	_check(Vfx.live_count(self) == 0, "bursts free themselves (%d left)" % Vfx.live_count(self))
 	player.flash_hit(Vector2.RIGHT, "lightning")
 	_check(Vfx.last_hit_kind == "lightning", "flash_hit passes its kind")
+	await physics_frame
+	_check(player.sprite.scale.x > 1.0, "a hit squashes the sprite (%s)" % player.sprite.scale)
+	await _seconds(0.4)
+	_check(player.sprite.scale == Vector2.ONE, "and it springs back")
+
+	print("cast puff + stretch")
+	Vfx.last_cast_id = ""
+	player.cast("Q", player.global_position + Vector2(0, 200))
+	var stretched := false
+	for i in 40:
+		await physics_frame
+		if player.sprite.scale.y > 1.0:
+			stretched = true
+	_check(Vfx.last_cast_id == "Q", "releasing a spell makes a puff (%s)" % Vfx.last_cast_id)
+	_check(stretched, "the sprite stretches on the cast")
+	await _seconds(0.4)
+	_check(player.sprite.scale == Vector2.ONE, "and settles back")
 
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
