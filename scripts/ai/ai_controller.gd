@@ -31,8 +31,11 @@ const DODGE_STEP := 50.0
 const LAVA_LOOKAHEAD := 0.3
 ## Staff: start walking in to swing from this far away.
 const STAFF_ENGAGE := 90.0
-## Lightning is used up to this distance (its range is 230).
-const LIGHTNING_REACH := 215.0
+## Lightning is used up to this share of its range (a little short of the
+## very end, so the bolt still lands after the target steps).
+const LIGHTNING_REACH := 0.93
+## Bonus for a target standing in the bolt's tip zone (wider, pushes harder).
+const LIGHTNING_TIP_BONUS := 0.35
 ## "Lava behind the target": this far past it, seen from the attacker.
 const BEHIND := 80.0
 ## Opening watch: attacks count this much, and it keeps at least this far off.
@@ -485,12 +488,15 @@ func _do_fireball() -> void:
 func _score_lightning() -> float:
 	if target == null or not _can_cast("E") or target.is_shielded():
 		return 0.0
-	if _target_distance() > LIGHTNING_REACH or _rock_in_the_way():
+	var bolt := wizard.get_spell("E") as LightningSpell
+	var reach := bolt.max_range * LIGHTNING_REACH
+	if _target_distance() > reach or _rock_in_the_way():
 		return 0.0
 	var d := _target_distance()
+	var tip := LIGHTNING_TIP_BONUS if bolt.is_tip(d) else 0.0
 	if _lava_behind(target, wizard.global_position):
-		return 1.2 + 0.5 * (1.0 - d / LIGHTNING_REACH)
-	var s := 0.7 + 0.5 * (1.0 - d / LIGHTNING_REACH)
+		return 1.2 + 0.5 * (1.0 - d / reach) + tip
+	var s := 0.7 + 0.5 * (1.0 - d / reach) + tip
 	# Blasting them away is pointless for a bot that's trying to close in.
 	if d > preferred_distance() + 60.0:
 		s *= 0.4

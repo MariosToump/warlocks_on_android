@@ -409,13 +409,14 @@ func _test_brawler_zigzags() -> void:
 	for s in ["Q", "E", "W", "A"]: # walk only: no spells, no staff
 		(blue.get_spell(s) as Spell).cooldown_left = 99.0
 	_place(blue, c)
-	_place(green, c + Vector2(520, 0))
+	# Far enough that he walks a good way before his hold (lightning reach + 20).
+	_place(green, c + Vector2(820, 0))
 	# Count changes of sideways direction (his strafe already curves the
 	# path to one side, so "both sides of the line" isn't the measure).
 	var flips := 0
 	var side := 0
 	var last_y := blue.global_position.y
-	for i in 200:
+	for i in 300:
 		await _frames(1)
 		var vy := (blue.global_position.y - last_y) * 60.0
 		last_y = blue.global_position.y

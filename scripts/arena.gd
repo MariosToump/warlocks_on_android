@@ -29,12 +29,12 @@ const CRACK_SHEET := "res://assets/tiles/stone_cracked"
 
 @export_group("Shrinking")
 @export var shrinks := false ## the game turns this on
-@export var shrink_delay := 12.0 ## seconds between shrinks
+@export var shrink_delay := 18.0 ## seconds between shrinks
 @export var shrink_step_tiles := 6.0 ## how far the edge creeps in each time
 @export var shrink_speed := 3.0 ## tiles per second while creeping
 @export var shrink_warning := 4.0 ## seconds of warning line before a shrink
 @export var min_radius_tiles := 10.0 ## 3 steps of 6 from 28
-@export var min_hold := 8.0 ## seconds at the minimum before it regrows / sudden death
+@export var min_hold := 12.0 ## seconds at the minimum before it regrows / sudden death
 @export var regrows := true ## false = sudden death after the hold (the game turns this off for rounds)
 @export var final_shrink_speed := 1.2 ## tiles per second during sudden death
 @export_group("")

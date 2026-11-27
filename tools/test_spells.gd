@@ -55,7 +55,7 @@ func _run() -> void:
 	# --- Lightning ---------------------------------------------------------
 	_place(player, c)
 	_place(blue, c + Vector2(130, 0))
-	_place(green, c + Vector2(400, 0)) # behind blue and out of range
+	_place(green, c + Vector2(400, 0)) # behind blue
 	await _frames(2)
 	_check(player.cast("E", blue.global_position), "cast lightning")
 	await _seconds(0.17)
@@ -69,13 +69,14 @@ func _run() -> void:
 	var pushed := blue.global_position.x - (c.x + 130.0)
 	_check(pushed > 140.0, "lightning pushes further than a fireball (%.0f px)" % pushed)
 
-	# Lightning out of range.
-	_place(blue, c + Vector2(300, 0))
+	# Lightning out of range (green moved off the line: it's within 450 px).
+	_place(green, c + Vector2(0, -600))
+	_place(blue, c + Vector2(520, 0))
 	var hp := blue.health
 	player.get_spell("E").cooldown_left = 0.0
 	player.cast("E", blue.global_position)
 	await _seconds(0.3)
-	_check(is_equal_approx(blue.health, hp), "out of range (300 px) misses")
+	_check(is_equal_approx(blue.health, hp), "out of range (520 px) misses")
 
 	# --- Shield ------------------------------------------------------------
 	_place(player, c)

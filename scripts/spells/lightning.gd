@@ -1,16 +1,24 @@
 class_name LightningSpell
 extends Spell
-## E: an instant short bolt in a line. Hits the first wizard on the line
-## for high knockback. A shield stops it.
+## E: an instant bolt in a line. Hits the first wizard on the line for high
+## knockback. A shield stops it. The hitbox is a capsule around the drawn bolt;
+## its last `tip_length` px are a wider "tip" that pushes harder (v0.11).
 
 const HIT := preload("res://assets/sprites/effects/lightning_hit_frames.tres")
 const BOLT := preload("res://scripts/lightning_bolt.gd")
 
 @export var damage_by_level: Array[float] = [8.0, 10.0, 12.0, 14.0]
 @export var knockback_by_level: Array[float] = [700.0, 740.0, 780.0, 820.0]
-@export var max_range := 230.0
-## How far from the line a wizard's centre can be and still get hit.
-@export var hit_width := 14.0
+@export var max_range := 450.0
+## How far from the line a wizard's centre can be and still get hit (covers
+## the drawn bolt: +-6 px jitter and a 4 px line, plus the wizard's body).
+@export var hit_width := 16.0
+@export_group("Tip")
+## The last stretch of the bolt: easier to land and pushes harder.
+@export var tip_length := 70.0
+@export var tip_width := 28.0
+@export var tip_knockback := 1.25
+@export_group("")
 
 
 func _init() -> void:
@@ -36,8 +44,8 @@ func release(target: Vector2) -> void:
 		var w := node as Wizard
 		if w == caster or not w.alive:
 			continue
-		var reach := (Wizard.SHIELD_RADIUS if w.is_shielded() else hit_width)
 		var t := (w.global_position - from).dot(dir)
+		var reach := Wizard.SHIELD_RADIUS if w.is_shielded() else width_at(t)
 		if t < 0.0 or t > max_range + reach:
 			continue
 		var off := (w.global_position - (from + dir * t)).length()
@@ -59,12 +67,25 @@ func release(target: Vector2) -> void:
 			EffectOneShot.spawn_at_feet(HIT, parent, end).scale = Vector2(0.6, 0.6)
 		else:
 			end = from + dir * best_t
+			var tip := is_tip(best_t)
 			best.take_damage(damage_by_level[level], caster)
-			best.apply_knockback(dir * knockback_by_level[level])
+			best.apply_knockback(dir * knockback_by_level[level] * (tip_knockback if tip else 1.0))
 			best.flash_hit(dir)
-			EffectOneShot.spawn_at_feet(HIT, parent, best.global_position)
+			var spark := EffectOneShot.spawn_at_feet(HIT, parent, best.global_position)
+			if tip:
+				spark.scale = Vector2(1.6, 1.6)
 
 	var bolt: Node2D = BOLT.new()
 	bolt.from = from + dir * 10.0
 	bolt.to = end
 	parent.add_child(bolt)
+
+
+## Is a hit this far along the bolt a tip hit?
+func is_tip(t: float) -> bool:
+	return t >= max_range - tip_length
+
+
+## Hit radius around the bolt this far along it.
+func width_at(t: float) -> float:
+	return tip_width if is_tip(t) else hit_width
