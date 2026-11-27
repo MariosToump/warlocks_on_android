@@ -7,3 +7,4 @@ build/
 
 tools/sim/out/
 tools/sim/*.log
+review_frames/
