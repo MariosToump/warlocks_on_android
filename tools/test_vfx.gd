@@ -75,8 +75,30 @@ func _run() -> void:
 	_check(mat.get_shader_parameter("dissolve") == 0.0 and green.visible and green.modulate == Color.WHITE,
 		"reset: whole again")
 
+	print("lava embers")
+	var arena: Arena = game.arena
+	_check(arena.embers != null and arena.embers.emitting and arena.embers.amount == 40, "embers rise off the lava")
+	_check(_embers_ok(arena), "every ember spot is lava near the edge")
+	arena._set_radius(arena.min_radius_tiles)
+	_check(_embers_ok(arena), "still on lava after a shrink")
+	arena._set_radius(0.0)
+	_check(arena.embers.emission_points.size() > 0, "and when the island is gone")
+	arena.regrow()
+
 	print("TEST %s (%d failures)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
+
+
+func _embers_ok(arena: Arena) -> bool:
+	var pts := arena.embers.emission_points
+	if pts.is_empty():
+		return false
+	for p in pts:
+		var world := arena.embers.to_global(p)
+		var from_edge := arena._tiles_from_center(world) - arena._edge_at(world, arena.radius_tiles)
+		if not arena.is_lava_at(world) or from_edge > 6.0:
+			return false
+	return true
 
 
 func _check(ok: bool, what: String) -> void:

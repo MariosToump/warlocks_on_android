@@ -57,6 +57,9 @@ var _lava_source := -1
 var _crack_source := -1
 var _full_vertices: Array[PackedByteArray] = []
 var _phase_offset := 0.0 ## wobble phase of the edge
+## Embers rising off the lava just outside the island (visual pass 1).
+var embers: CPUParticles2D
+var _embers_radius := -100.0 ## radius the ember spots were placed for
 
 
 func _ready() -> void:
@@ -71,6 +74,7 @@ func _ready() -> void:
 	line.arena = self
 	line.z_index = 1
 	add_child(line)
+	_make_embers()
 	restart_shrink_timer()
 
 
@@ -152,6 +156,7 @@ func regrow() -> void:
 	vertices = _full_vertices.duplicate(true)
 	radius_tiles = platform_radius_tiles
 	rebuild()
+	_update_ember_points()
 	restart_shrink_timer()
 
 
@@ -210,6 +215,8 @@ func _set_radius(r: float) -> void:
 			if r <= 0.0 or d.length() > r + _wobble(d.angle()):
 				vertices[row][col] = Terrain.LAVA
 				changed.append(Vector2i(col, row))
+	if absf(r - _embers_radius) >= 0.5 or r <= 0.0:
+		_update_ember_points()
 	if changed.is_empty():
 		return
 	# Cracks stay 2 vertices away from lava (the two tile sheets can't meet
@@ -230,6 +237,51 @@ func _set_radius(r: float) -> void:
 							cells[Vector2i(cc, cr)] = true
 	for cell in cells:
 		_paint(cell.y, cell.x)
+
+
+func _make_embers() -> void:
+	embers = CPUParticles2D.new()
+	embers.name = "Embers"
+	embers.z_index = 1
+	embers.amount = 40
+	embers.lifetime = 2.2
+	embers.emission_shape = CPUParticles2D.EMISSION_SHAPE_POINTS
+	embers.direction = Vector2.UP
+	embers.spread = 25.0
+	embers.gravity = Vector2(0, -18)
+	embers.initial_velocity_min = 8.0
+	embers.initial_velocity_max = 22.0
+	embers.scale_amount_min = 1.0
+	embers.scale_amount_max = 2.0
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(1.0, 0.85, 0.4, 0.0))
+	ramp.set_color(1, Color(0.6, 0.1, 0.0, 0.0))
+	ramp.add_point(0.15, Color(1.0, 0.7, 0.25, 1.0))
+	ramp.add_point(0.7, Color(1.0, 0.35, 0.05, 0.8))
+	embers.color_ramp = ramp
+	add_child(embers)
+	_update_ember_points()
+	embers.emitting = true
+
+
+## Up to 64 random lava spots 1.5-5 tiles outside the current edge.
+func _update_ember_points() -> void:
+	if embers == null:
+		return
+	_embers_radius = radius_tiles
+	var pts := PackedVector2Array()
+	var center := get_center()
+	for i in 160:
+		if pts.size() >= 64:
+			break
+		var ang := randf() * TAU
+		var r := maxf(radius_tiles + _wobble(ang), 0.0) + randf_range(1.5, 5.0)
+		var p := center + Vector2.from_angle(ang) * r * tile_size
+		if is_lava_at(p):
+			pts.append(p)
+	if pts.is_empty():
+		pts.append(center)
+	embers.emission_points = pts
 
 
 func _wobble(angle: float) -> float:
