@@ -69,7 +69,8 @@ func _ready() -> void:
 	_feed.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	_feed.offset_left = -330
 	_feed.offset_right = -12
-	_feed.offset_top = 12 + Minimap.DIAMETER + 8 # below the minimap
+	# Phones: below the minimap. PC: below the pause button (minimap is in the bar).
+	_feed.offset_top = 12 + (Minimap.DIAMETER if Platform.touch() else PauseMenu.BUTTON_SIZE.y) + 8
 	_feed.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 
 	_build_match_panel()
