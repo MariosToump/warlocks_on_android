@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-28 (performance pass: lava shrink stutter fixed, bots cheaper, stress test on the title (5 taps on the version) — see "Performance pass 2026-11-28"; spell rework: Meteor buff, Rock Wall -> Dark Mirror, Time Stop freezes wizards — see "Spell rework 2026-11-28"; 2026-11-27: review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
+_Last updated: 2026-11-28 (staff marker over enemies, Fireball in the corner — see "Staff marker 2026-11-28"; performance pass: lava shrink stutter fixed, bots cheaper, stress test on the title (5 taps on the version) — see "Performance pass 2026-11-28"; spell rework: Meteor buff, Rock Wall -> Dark Mirror, Time Stop freezes wizards — see "Spell rework 2026-11-28"; 2026-11-27: review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -56,6 +56,13 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
 **Paused 2026-11-27 (the user):** todos 3, 4, 5 and 8 wait while we work on graphics and design (more animation,
 a more "real" feel; research: a bigger PixelLab plan vs doing more in Godot). Order after the pause: terrain stones
 brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) stays last.
+- **Staff marker 2026-11-28** (the user: the staff is one of the least used skills but held the best button;
+  spec `docs/superpowers/specs/2026-11-28-staff-context-button-design.md`; Android only):
+  - No fixed staff button. A marker floats over every enemy within 85 px (the swing still reaches 30); tap = step in
+    and swing (`Wizard.attack`), hold = keep swinging, the stick or the enemy leaving stops it; glows while the
+    Blink -> staff combo is open. Staff numbers, bots and PC controls unchanged.
+  - Fireball takes the big corner button; shop slot D moves to Fireball's old spot; the corner is Haunt while a ghost.
+  - Postponed: a loadout choice in round 1 (todo 14).
 - **Performance pass 2026-11-28** (the user: steady FPS without visual changes, a player on an Android 8 phone
   stutters "when the lava moves", headroom for 8 warlocks; report `docs/perf/2026-11-28-v0.13.1.md`):
   - Cause found: while the lava crept in, every physics frame re-tested ~4,000 tile corners (1.3 ms on a desktop,

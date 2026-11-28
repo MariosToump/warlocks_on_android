@@ -6,10 +6,12 @@ extends Control
 ##   instant). Touchpad mode (setting): no ring, the whole left half is a pad
 ##   and any small slide walks at full speed that way (it trails the thumb
 ##   closely). A thumb put down between rounds is kept and walks at the start.
-## - Bottom right, big: staff attack. Swings on the spot (it never walks you
-##   anywhere), turned toward the nearest enemy if one is close, else the way
-##   you face. Hold to keep swinging. A small timer shows the cooldown.
-## - Around it: spell buttons. Drag a button to aim (a guide shows in the
+## - Staff (2026-11-28): no fixed button. A staff marker floats over every
+##   enemy within MARKER_RANGE; tap it to step in and swing at that warlock,
+##   hold to keep swinging. Walking (the stick) or the enemy leaving the range
+##   stops it. The marker glows while the Blink -> staff combo is open.
+## - Bottom right, big: Fireball (Q). While a ghost, the same spot is Haunt.
+## - Around it: the other spell buttons. Drag a button to aim (a guide shows in the
 ##   arena), release to cast. A quick tap auto-aims: at the nearest enemy in
 ##   the spell's range (on-screen ones first), leading a walker for
 ##   fireballs; if nobody is in range, toward the nearest enemy anyway.
@@ -24,20 +26,25 @@ const AIM_DEAD := 22.0 ## drag shorter than this = tap (auto-aim)
 const AIM_FULL := 110.0 ## drag length for full blink distance
 const MARGIN := 34.0
 const INSTANT_SLOTS := ["R"]
-## The attack turns toward an enemy this close (world px); further away it
-## swings the way you face.
-const ATTACK_AIM_ASSIST := 70.0
-## Button layout: the attack button bottom right, spells in an arc round it
-## (radius 170, every 32 degrees from straight left to straight up).
+## Staff markers show over enemies this close (world px, centre to centre;
+## the swing itself reaches 30).
+const MARKER_RANGE := 85.0
+## Touch radius of a marker (screen px) and where it floats (world px above
+## the feet).
+const MARKER_TOUCH_R := 44.0
+const MARKER_HEIGHT := 64.0
+## Button layout: Fireball big in the corner, spells in an arc round it
+## (radius 170, every 32 degrees from straight left to straight up). A (Haunt)
+## shares the corner and only shows while you are a ghost.
 const LAYOUT := {
+	"Q": {"offset": Vector2.ZERO, "r": 64.0},
 	"A": {"offset": Vector2.ZERO, "r": 64.0},
-	"Q": {"offset": Vector2(-170, 0), "r": 44.0},
 	"W": {"offset": Vector2(-144, -90), "r": 44.0},
 	"E": {"offset": Vector2(-74, -153), "r": 44.0},
 	"R": {"offset": Vector2(18, -169), "r": 44.0},
-	# The two shop slots (any bought spell): left of Q, and up-left of W;
-	# only drawn once something is bought.
-	"D": {"offset": Vector2(-266, 0), "r": 44.0},
+	# The two shop slots (any bought spell): where Fireball used to be, and
+	# up-left of W; only drawn once something is bought.
+	"D": {"offset": Vector2(-170, 0), "r": 44.0},
 	"F": {"offset": Vector2(-246, -106), "r": 44.0},
 }
 
@@ -59,6 +66,8 @@ var _aim_index := -1
 var _aim_slot := ""
 var _aim_vec := Vector2.ZERO
 var _attack_index := -1
+## The warlock whose marker is held.
+var _attack_target: Wizard
 var _flash := {} # slot -> seconds of press flash left
 var _guide: AimGuide
 
@@ -77,6 +86,8 @@ func _process(delta: float) -> void:
 	if wizard and _stick_index >= 0:
 		wizard.move_target = null
 		wizard.move_dir = Vector2.ZERO if locked else stick_vector()
+		if wizard.move_dir != Vector2.ZERO and wizard.attack_target != null:
+			wizard.attack(null) # walking away from a staff chase
 	if wizard and _attack_index >= 0:
 		_hold_attack()
 	_update_guide()
@@ -107,6 +118,7 @@ func release_all() -> void:
 	_aim_index = -1
 	_aim_slot = ""
 	_attack_index = -1
+	_attack_target = null
 	if wizard:
 		wizard.move_dir = Vector2.ZERO
 
@@ -149,16 +161,20 @@ func _touch_down(index: int, pos: Vector2) -> void:
 			if slot == "A" and ghost.haunt():
 				_flash["A"] = 0.15
 			return
-		if slot == "A":
-			if _attack_index < 0:
-				_attack_index = index
-				_hold_attack()
-		elif slot in INSTANT_SLOTS:
+		if slot in INSTANT_SLOTS:
 			_cast(slot, Vector2.ZERO, true)
 		elif _aim_index < 0:
 			_aim_index = index
 			_aim_slot = slot
 			_aim_vec = Vector2.ZERO
+		return
+	var marked := _marker_at(pos)
+	if marked != null:
+		get_viewport().set_input_as_handled()
+		if _attack_index < 0:
+			_attack_index = index
+			_attack_target = marked
+			_hold_attack()
 		return
 	if _is_stick_spot(pos):
 		# A new thumb always takes the stick, even if an old touch never
@@ -190,6 +206,7 @@ func _move_stick(pos: Vector2) -> void:
 func _touch_up(index: int) -> void:
 	if index == _attack_index:
 		_attack_index = -1
+		_attack_target = null
 	elif index == _stick_index:
 		_stick_index = -1
 		wizard.move_dir = Vector2.ZERO
@@ -204,17 +221,54 @@ func _touch_up(index: int) -> void:
 			_cast(slot, v, v.length() < AIM_DEAD)
 
 
-## Called every frame while the attack button is held: swing whenever the
-## staff is ready, on the spot.
+## Called every frame while a staff marker is held: step in and swing at its
+## warlock (Wizard.attack, one swing at a time). Stops when the warlock dies
+## or leaves the marker range, or while the stick is walking.
 func _hold_attack() -> void:
 	if not wizard.alive or locked:
 		return
-	var aim := wizard.global_position + _facing_vec() * 20.0
-	var near := _nearest_enemy()
-	if near and near.global_position.distance_to(wizard.global_position) <= ATTACK_AIM_ASSIST:
-		aim = near.global_position
-	if wizard.cast("A", aim):
-		_flash["A"] = 0.15
+	var t := _attack_target
+	var gone := t == null or not is_instance_valid(t) or not t.alive
+	if gone or t.global_position.distance_to(wizard.global_position) > MARKER_RANGE:
+		_attack_index = -1
+		_attack_target = null
+		if wizard.attack_target != null and (gone or wizard.attack_target == t):
+			wizard.attack(null)
+		return
+	if _stick_index >= 0 and stick_vector() != Vector2.ZERO:
+		return
+	if wizard.attack_target == null and not wizard.is_casting():
+		wizard.attack(t, true)
+
+
+## Living enemies close enough to show a staff marker (none while locked,
+## dead, a ghost or without a staff).
+func marker_targets() -> Array[Wizard]:
+	var out: Array[Wizard] = []
+	if wizard == null or locked or ghost != null or not wizard.alive or wizard.get_spell("A") == null:
+		return out
+	for n in get_tree().get_nodes_in_group("wizards"):
+		var w := n as Wizard
+		if w != wizard and w.alive and w.global_position.distance_to(wizard.global_position) <= MARKER_RANGE:
+			out.append(w)
+	return out
+
+
+## Screen position of the staff marker over `w`.
+func marker_center(w: Wizard) -> Vector2:
+	return get_viewport().get_canvas_transform() * (w.global_position + Vector2(0, -MARKER_HEIGHT))
+
+
+## The warlock whose marker is under `pos` (the closest one), or null.
+func _marker_at(pos: Vector2) -> Wizard:
+	var best: Wizard = null
+	var best_d := MARKER_TOUCH_R
+	for w in marker_targets():
+		var d := pos.distance_to(marker_center(w))
+		if d <= best_d:
+			best = w
+			best_d = d
+	return best
 
 
 func _cast(slot: String, aim_vec: Vector2, tapped: bool) -> void:
@@ -351,6 +405,7 @@ func _draw() -> void:
 		draw_arc(hint, STICK_R, 0, TAU, 48, Color(1, 0.8, 0.6, 0.18), 3.0, true)
 		draw_circle(hint, 34.0, Color(1, 0.75, 0.5, 0.15))
 
+	_draw_markers()
 	var font := ThemeDB.fallback_font
 	for slot in LAYOUT:
 		var spell := wizard.get_spell(slot)
@@ -391,12 +446,41 @@ func _draw() -> void:
 			draw_circle(c + _aim_vec.limit_length(r + 60.0), 14.0, Color(1, 0.8, 0.5, 0.5))
 
 
-## Cooldown shade: a pie slice covering `ratio` of the button, clockwise from top.
-## Drawn and touchable: owned spells; only the attack (haunt) for a ghost.
+## Drawn and touchable: owned spells (not the staff: it has markers); only
+## the attack slot (Haunt) for a ghost.
 func _shown(slot: String) -> bool:
-	return wizard.get_spell(slot) != null and (ghost == null or slot == "A")
+	if ghost != null:
+		return slot == "A" and wizard.get_spell(slot) != null
+	return slot != "A" and wizard.get_spell(slot) != null
 
 
+## Staff markers: a small dark disc with the staff icon over each enemy in
+## range, a cooldown ring while the swing recovers, an orange glow while the
+## Blink -> staff combo is open.
+func _draw_markers() -> void:
+	var staff := wizard.get_spell("A")
+	if staff == null:
+		return
+	var combo := StaffStrikeSpell.combo_open(wizard)
+	var cd := staff.cooldown_ratio()
+	for w in marker_targets():
+		var c := marker_center(w)
+		var r := 22.0
+		var held := w == _attack_target
+		draw_circle(c, r, Color(0.1, 0.06, 0.06, 0.85 if held else 0.7), true, -1.0, true)
+		if staff.icon:
+			var s := staff.icon.get_size()
+			var k := r * 1.3 / maxf(s.x, s.y)
+			draw_texture_rect(staff.icon, Rect2(c - s * k / 2.0, s * k), false, staff.icon_tint)
+		if cd > 0.0:
+			draw_arc(c, r - 2.0, -PI / 2.0, -PI / 2.0 + TAU * cd, 32, Color(1, 0.85, 0.6, 0.9), 3.0, true)
+		elif combo:
+			draw_arc(c, r + 3.0, 0, TAU, 32, Color(1, 0.55, 0.15, 0.95), 4.0, true)
+		else:
+			draw_arc(c, r, 0, TAU, 32, Color(1, 0.6, 0.2, 1.0 if held else 0.85), 2.5, true)
+
+
+## Cooldown shade: a pie slice covering `ratio` of the button, clockwise from top.
 func _draw_pie(c: Vector2, r: float, ratio: float, col: Color) -> void:
 	ratio = minf(ratio, 1.0)
 	if ratio < 0.01:

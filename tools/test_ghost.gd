@@ -95,7 +95,8 @@ func _run() -> void:
 	blue.global_position = c
 	g.global_position = c + Vector2(-40, 0)
 	_check(not g.haunt(), "cooldown")
-	_check(touch._button_at(touch._button_center("Q")) == "", "spell buttons hidden while a ghost")
+	_check(not touch._shown("Q") and touch._button_at(touch._button_center("W")) == "", "spell buttons hidden while a ghost")
+	_check(touch.marker_targets().is_empty(), "no staff markers while a ghost")
 	_check(touch._button_at(touch._button_center("A")) == "A", "attack button stays (haunt)")
 
 	print("projectiles go through it")

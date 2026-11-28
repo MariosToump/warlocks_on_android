@@ -150,40 +150,83 @@ func _run() -> void:
 	await _seconds(0.2)
 	_check(player.get_spell("E").cooldown_left > 0.0, "lightning cast on release")
 
-	# Attack button: swings on the spot, never walks toward anyone.
+	# Staff marker (2026-11-28): no fixed staff button while alive; Fireball
+	# holds the corner, D sits where Fireball was.
 	await _seconds(0.6)
+	var corner := touch._button_center("A")
+	_check(touch._button_center("Q") == corner and touch._button_at(corner) == "Q", "Fireball is in the corner")
+	_check(touch._button_center("D") == corner + Vector2(-170, 0), "D sits at the old Q spot")
+	_check(not touch._shown("A"), "no staff button while alive")
 	var enemy2 := touch._nearest_enemy()
-	player.global_position = enemy2.global_position + Vector2(-110, 0)
-	player.reset_physics_interpolation()
-	await _frames(2)
-	var hp := enemy2.health
-	var before := player.global_position
-	var a_pos := touch._button_center("A")
-	_touch(7, a_pos, true)
-	_touch(7, a_pos, false)
-	_check(player.is_casting(), "tap attack swings at once")
-	await _seconds(0.8)
-	_check(player.global_position.distance_to(before) < 2.0, "attack doesn't walk anywhere")
-	_check(is_equal_approx(enemy2.health, hp), "out of reach: no hit")
-	_check(player.attack_target == null, "no auto-target")
-
-	# In reach: turns to the enemy and hits; holding keeps swinging.
-	player.global_position = enemy2.global_position + Vector2(0, 24)
+	for n in get_nodes_in_group("wizards"):
+		if n != player and n != enemy2:
+			n.global_position = c + Vector2(0, 900) # out of the way
+	player.global_position = c
+	enemy2.global_position = c + Vector2(110, 0)
 	enemy2.knockback = Vector2.ZERO
 	player.reset_physics_interpolation()
 	await _frames(2)
-	_touch(7, a_pos, true)
-	await _seconds(0.3)
-	_check(enemy2.health < hp, "hits an enemy in reach (hp %.1f)" % enemy2.health)
-	_check(player.get_spell("A").cooldown_left > 0.0, "attack cooldown runs (timer on the button)")
-	await _shot("5_attack")
+	_check(touch.marker_targets().is_empty(), "no marker at 110 px")
+	enemy2.global_position = c + Vector2(60, 0)
+	await _frames(2)
+	_check(enemy2 in touch.marker_targets(), "marker over an enemy at 60 px")
+	var hp := enemy2.health
+	var m_pos: Vector2 = touch.marker_center(enemy2)
+	_touch(7, m_pos, true)
+	await _frames(2)
+	_check(player.attack_target == enemy2 or player.is_casting(), "tapping the marker goes for that warlock")
 	await _seconds(0.5)
-	_check(player.is_casting(), "holding swings again")
-	_touch(7, a_pos, false)
+	_check(enemy2.health < hp, "the marker swing hits (hp %.1f)" % enemy2.health)
+	await _shot("5_staff_marker")
+	enemy2.global_position = player.global_position + Vector2(24, 0)
+	enemy2.knockback = Vector2.ZERO
+	await _seconds(0.5)
+	_check(player.is_casting() or player.get_spell("A").cooldown_left > 0.0, "holding the marker keeps swinging")
+	_touch(7, m_pos, false)
+	await _seconds(0.6)
+
+	# A marker on the joystick half is the staff, not the stick.
+	player.global_position = c
+	enemy2.global_position = c + Vector2(-60, 0)
+	enemy2.knockback = Vector2.ZERO
+	player.reset_physics_interpolation()
+	enemy2.reset_physics_interpolation()
+	await _frames(2)
+	var left_m: Vector2 = touch.marker_center(enemy2)
+	_touch(8, left_m, true)
+	await _frames(2)
+	_check(left_m.x < root.get_visible_rect().size.x * 0.5 and touch._stick_index == -1,
+			"a marker on the left half doesn't grab the stick")
+	_touch(8, left_m, false)
+	# Walking stops the chase.
+	player.attack(enemy2)
+	_touch(9, Vector2(250, 500), true)
+	_drag(9, Vector2(150, 500))
+	await _frames(3)
+	_check(player.attack_target == null, "moving the stick stops the staff chase")
+	_touch(9, Vector2(150, 500), false)
+	await _frames(2)
+	# Two enemies in range: two markers. Locked: none.
+	var other: Wizard = null
+	for n in get_nodes_in_group("wizards"):
+		if n != player and n != enemy2:
+			other = n
+	other.global_position = player.global_position + Vector2(0, 60)
+	enemy2.global_position = player.global_position + Vector2(60, 0)
+	await _frames(2)
+	_check(touch.marker_targets().size() == 2, "a marker over each enemy in range")
+	touch.locked = true
+	_check(touch.marker_targets().is_empty(), "no markers between rounds")
+	touch.locked = false
+	other.global_position = c + Vector2(0, 900)
+	# The corner is Fireball now: a tap there casts it.
+	await _seconds(0.8)
+	_touch(10, corner, true)
+	_touch(10, corner, false)
+	_check(player.get_spell("Q").cooldown_left > 0.0, "tapping the corner casts Fireball")
+	await _seconds(0.6)
 
 	# Fireball aiming (v0.7): true-range guide, in-range / on-screen first, lead.
-	_touch(7, a_pos, false)
-	await _seconds(0.6)
 	var q_spell := player.get_spell("Q") as FireballSpell
 	_check(touch._reach(q_spell) == q_spell.max_range and q_spell.max_range == 850.0,
 			"aim guide shows the real fireball range (%.0f)" % touch._reach(q_spell))

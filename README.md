@@ -24,15 +24,15 @@ Made with Godot 4.7.2 (GDScript); pixel art made with PixelLab.
   and it sinks in the lava. Pillars don't move.
 - **Craters:** a fireball scorches the ground where it bursts; walking through it is slower for a few seconds.
 - **Shield:** a spell that bounces off your shield comes back at double speed and double range.
-- **Ghost:** when you're out, you float on as a ghost until the round ends. The attack button becomes
+- **Ghost:** when you're out, you float on as a ghost until the round ends. The big corner button becomes
   **Haunt**: a small shove to anyone close by (no damage), every 4 s.
 
 ### The shop
 After every round you get gold — 10, plus 5 per kill, plus 5 if you won the round — and 10 seconds to spend it
 (tap **Ready** to start sooner; when you can't afford anything the shop is skipped). The bots shop too.
 - **Upgrade a spell** (10 / 15 / 20 gold for levels 1-3): more damage and knockback, or shorter cooldowns.
-- **New spells** (v0.12): you can carry **two**. They go on the two extra buttons, left of the fireball and
-  up-left of Blink. With both full, sell one (half price back) to buy another.
+- **New spells** (v0.12): you can carry **two**. They go on the two extra buttons, left of the fireball's arc
+  (where the fireball sat before 2026-11-28) and up-left of Blink. With both full, sell one (half price back) to buy another.
 
 | Spell | Gold | What it does |
 |---|---|---|
@@ -51,8 +51,8 @@ After every round you get gold — 10, plus 5 per kill, plus 5 if you won the ro
 | Control | Action |
 |---|---|
 | Left half of the screen | Floating joystick — walk (the ring follows your thumb). Or **Touchpad** (setting): the whole left half is a pad, slide a little to walk at full speed |
-| Big button (bottom right) | Staff swing on the spot; hold to keep swinging |
-| Fireball | Tap = auto-aim (nearest enemy in range, ones you can see first, aimed ahead of a walker); drag to aim (the guide shows the full range); drag back onto the button to cancel |
+| Staff marker (over an enemy) | Shows over every enemy within 85 px. Tap = step in and swing at that warlock; hold = keep swinging; walking stops it. Glows while the Blink combo is open |
+| Fireball (big button, bottom right) | Tap = auto-aim (nearest enemy in range, ones you can see first, aimed ahead of a walker); drag to aim (the guide shows the full range); drag back onto the button to cancel |
 | Blink | Short teleport (tap = forward, or drag to aim). A staff hit within 1.5 s of your Blink pushes 40% harder |
 | Lightning | Instant bolt (450 px) with big knockback. Hit with the tip for an extra push |
 | Shield | 1.5 s bubble that reflects projectiles |
