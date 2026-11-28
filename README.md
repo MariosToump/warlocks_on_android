@@ -5,7 +5,7 @@ platform in a sea of lava. Spells mostly **knock back** rather than kill, so
 the real danger is being blasted into the lava. The platform shrinks during
 each round, so every fight ends.
 
-**Version 0.13.1** (Android release) plus the PC build (2026-11-28) — you against three AI bots in short matches of
+**Version 0.14** (2026-11-28, Android APK + Windows build) — you against three AI bots in short matches of
 rounds (5-8 minutes): 12 spells, a shop between rounds, rocks to hide behind and shove, a ghost mode when you're out.
 On phones: touch controls with a joystick and tap-to-aim; on Windows: mouse and keyboard with hold-to-aim spells and
 a command bar.
@@ -108,7 +108,7 @@ Dark Mirror against a spell they see coming once they own one (and don't shoot i
 with Time Stop before a Meteor.
 
 ## Install
-**Download:** grab the latest APK from [Releases](https://github.com/MariosToump/warlocks_on_android/releases) and open it on your phone.
+**Download:** grab the latest APK from [Releases](https://github.com/MariosToump/warlocks_on_android/releases) and open it on your phone. Windows: download `LavaWarlocks-windows.zip` from the same page, unzip, run `LavaWarlocks.exe`.
 
 Or build a debug APK and install it on a USB-connected phone (USB debugging on):
 ```bash
