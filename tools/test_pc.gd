@@ -81,6 +81,7 @@ func _test_settings_rows() -> void:
 	_check(texts.get("Fullscreen", false), "Fullscreen row shown")
 	_check(texts.has("Vibration") and not texts["Vibration"], "Vibration row hidden")
 	_check(texts.has("Move") and not texts["Move"], "Move row hidden")
+	_check(texts.has("Zoom") and not texts["Zoom"], "Zoom row hidden (the wheel zooms)")
 
 
 func _test_bar() -> void:
@@ -93,10 +94,16 @@ func _test_bar() -> void:
 	var q := bar.slot_rect("Q")
 	var w := bar.slot_rect("W")
 	_check(q.position.x < w.position.x and is_equal_approx(q.position.y, w.position.y), "Q left of W, same row")
-	_check(is_equal_approx(bar.card_rect().end.x, bar.size.x - 8.0), "card 8 px from the right")
+	_check(is_equal_approx(bar.card_rect().end.x, bar.size.x - PcBar.PAD), "card at the right edge")
 	var mm: Rect2 = game.minimap.get_global_rect()
 	_check(mm.position.x < 20.0 and bar.map_frame_rect().encloses(mm), "minimap in the bottom-left frame")
 	_check(bar.blocks_mouse(Vector2(640, bar.size.y - 5)), "the bar blocks the mouse at the bottom")
+	_check(is_equal_approx(bar.strip_rect().size.y, 84.0) and is_equal_approx(bar.slot_rect("Q").size.x, 44.0),
+			"smaller bar: strip 84, icons 44")
+	_check(is_equal_approx(game.minimap.size.x, 110.0), "smaller minimap: 110 (%.0f)" % game.minimap.size.x)
+	var cam: ArenaCamera = game.arena.camera
+	var far_out := maxf(roundf(cam.min_zoom * cam.screen_scale()), 1.0) / cam.screen_scale()
+	_check(is_equal_approx(cam.zoom.x, far_out), "starts zoomed out (zoom %.2f, furthest %.2f)" % [cam.zoom.x, far_out])
 	_check(not bar.blocks_mouse(Vector2(640, 300)), "but not mid-screen")
 	_check(bar.tooltip_text("Q").begins_with("Fireball") and "Cooldown" in bar.tooltip_text("Q"),
 			"Q tooltip: " + bar.tooltip_text("Q").replace("
@@ -113,7 +120,7 @@ func _test_bar() -> void:
 	root.size = Vector2i(1600, 720)
 	await process_frame
 	await process_frame
-	_check(is_equal_approx(bar.card_rect().end.x, bar.size.x - 8.0), "after a resize the card stays 8 px from the right")
+	_check(is_equal_approx(bar.card_rect().end.x, bar.size.x - PcBar.PAD), "after a resize the card stays at the right edge")
 	root.size = old
 	await process_frame
 

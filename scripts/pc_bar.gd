@@ -7,11 +7,13 @@ extends Control
 ## left, and a tooltip on hover. Display only: you cast with the keys.
 ## Built by game.gd when Platform.touch() is false.
 
-const BAR_H := 120.0
-const ICON := 56.0
-const GAP := 6.0
-const PAD := 8.0
-const MAP_FRAME := 166.0
+## Sizes (2026-11-28 feel pass: about 30% smaller than the first bar).
+const BAR_H := 84.0
+const ICON := 44.0
+const GAP := 5.0
+const PAD := 6.0
+const MINIMAP := 110.0
+const MAP_FRAME := MINIMAP + 12.0
 ## The spell card, row by row ("" = empty cell).
 const CARD := [["Q", "W", "E", "R"], ["D", "F", "", "A"]]
 const STARTER_DESC := {
@@ -52,7 +54,7 @@ func _ready() -> void:
 	_tip.add_theme_stylebox_override("panel", sb)
 	_tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tip_label = Label.new()
-	_tip_label.add_theme_font_size_override("font_size", 17)
+	_tip_label.add_theme_font_size_override("font_size", 15)
 	_tip_label.add_theme_color_override("font_color", C_TEXT)
 	_tip.add_child(_tip_label)
 	_tip.visible = false
@@ -84,7 +86,7 @@ func card_rect() -> Rect2:
 func centre_rect() -> Rect2:
 	var left := map_frame_rect().end.x + 12.0
 	var right := card_rect().position.x - 12.0
-	var w := minf(right - left, 460.0)
+	var w := minf(right - left, 340.0)
 	return Rect2((left + right - w) / 2.0, size.y - BAR_H + PAD, w, BAR_H - 2 * PAD)
 
 
@@ -100,7 +102,7 @@ func slot_rect(slot: String) -> Rect2:
 
 ## Where the minimap sits (centred in its frame).
 func minimap_position() -> Vector2:
-	return map_frame_rect().get_center() - Vector2(Minimap.DIAMETER, Minimap.DIAMETER) / 2.0
+	return map_frame_rect().get_center() - Vector2(MINIMAP, MINIMAP) / 2.0
 
 
 func slot_at(pos: Vector2) -> String:
@@ -227,15 +229,15 @@ func _draw_slot(slot: String, font: Font) -> void:
 		_draw_sweep(r, ratio, Color(0, 0, 0, 0.68))
 		var secs := _seconds_left(slot)
 		var t := str(ceili(secs)) if secs >= 1.0 else "%.1f" % secs
-		draw_string_outline(font, Vector2(r.position.x, r.get_center().y + 8), t,
-				HORIZONTAL_ALIGNMENT_CENTER, ICON, 22, 5, Color.BLACK)
+		draw_string_outline(font, Vector2(r.position.x, r.get_center().y + 6), t,
+				HORIZONTAL_ALIGNMENT_CENTER, ICON, 18, 4, Color.BLACK)
 		draw_string(font, Vector2(r.position.x, r.get_center().y + 8), t,
-				HORIZONTAL_ALIGNMENT_CENTER, ICON, 22, C_TEXT)
+				HORIZONTAL_ALIGNMENT_CENTER, ICON, 18, C_TEXT)
 	else:
 		draw_rect(r.grow(-1), C_READY, false, 2.0)
 	# Hotkey letter, top-left corner.
-	draw_rect(Rect2(r.position, Vector2(16, 17)), Color(0, 0, 0, 0.7))
-	draw_string(font, r.position + Vector2(3, 14), slot, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, C_TEXT)
+	draw_rect(Rect2(r.position, Vector2(13, 14)), Color(0, 0, 0, 0.7))
+	draw_string(font, r.position + Vector2(2, 11), slot, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, C_TEXT)
 
 
 func _draw_icon(tex: Texture2D, box: Rect2, tint: Color) -> void:
@@ -264,22 +266,22 @@ func _draw_centre(r: Rect2) -> void:
 	if p == null:
 		return
 	var font := get_theme_default_font()
-	var inner := r.grow(-12)
+	var inner := r.grow(-8)
 	# Health bar.
-	var hp := Rect2(inner.position + Vector2(0, 4), Vector2(inner.size.x, 26))
+	var hp := Rect2(inner.position + Vector2(0, 2), Vector2(inner.size.x, 20))
 	draw_rect(hp, C_DARK)
 	var frac := clampf(p.health / p.max_health, 0.0, 1.0) if p.alive else 0.0
 	draw_rect(Rect2(hp.position, Vector2(hp.size.x * frac, hp.size.y)), C_HP)
 	draw_rect(Rect2(hp.position, Vector2(hp.size.x * frac, 4)), Color(1, 0.5, 0.4, 0.5))
 	draw_rect(hp, C_BRONZE, false, 1.0)
 	var hp_text := "%d / %d" % [ceili(p.health), int(p.max_health)] if p.alive else "Ghost"
-	draw_string_outline(font, hp.position + Vector2(0, 20), hp_text, HORIZONTAL_ALIGNMENT_CENTER,
-			hp.size.x, 18, 4, Color.BLACK)
-	draw_string(font, hp.position + Vector2(0, 20), hp_text, HORIZONTAL_ALIGNMENT_CENTER, hp.size.x, 18, C_TEXT)
+	draw_string_outline(font, hp.position + Vector2(0, 15), hp_text, HORIZONTAL_ALIGNMENT_CENTER,
+			hp.size.x, 14, 4, Color.BLACK)
+	draw_string(font, hp.position + Vector2(0, 15), hp_text, HORIZONTAL_ALIGNMENT_CENTER, hp.size.x, 14, C_TEXT)
 	# Gold and round.
-	var y := hp.end.y + 34
+	var y := hp.end.y + 24
 	var gold: int = game.gold.get(p, 0)
-	draw_string(font, Vector2(inner.position.x, y), "Gold %d" % gold, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, C_GOLD)
+	draw_string(font, Vector2(inner.position.x, y), "Gold %d" % gold, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, C_GOLD)
 	var rn: int = game.round_number
 	draw_string(font, Vector2(inner.position.x, y), "Round %d" % rn if rn > 0 else "", HORIZONTAL_ALIGNMENT_RIGHT,
-			inner.size.x, 20, C_TEXT)
+			inner.size.x, 16, C_TEXT)

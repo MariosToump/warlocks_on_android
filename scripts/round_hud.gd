@@ -38,6 +38,8 @@ func _ready() -> void:
 
 	_board = Scoreboard.new()
 	_board.hud = self
+	if not Platform.touch():
+		_board.scale = Vector2(0.75, 0.75) # PC: smaller HUD (feel pass 2026-11-28)
 	_board.position = Vector2(12, 12)
 	add_child(_board)
 

@@ -6,12 +6,15 @@ extends Control
 
 const DIAMETER := 150.0
 
+## This minimap's size (phones: DIAMETER; the PC bar uses a smaller one).
+var diameter := DIAMETER
+
 var game: Node
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	custom_minimum_size = Vector2(DIAMETER, DIAMETER)
+	custom_minimum_size = Vector2(diameter, diameter)
 	size = custom_minimum_size
 
 
@@ -22,7 +25,7 @@ func _process(_delta: float) -> void:
 ## Minimap pixels per world pixel (the full platform fills ~87% of the disc).
 func world_scale() -> float:
 	var arena: Arena = game.arena
-	return (DIAMETER / 2.0 - 4.0) / (arena.platform_radius_tiles * arena.tile_size * 1.15)
+	return (diameter / 2.0 - 4.0) / (arena.platform_radius_tiles * arena.tile_size * 1.15)
 
 
 ## Minimap-local position of a world point.
@@ -35,7 +38,7 @@ func world_at(screen: Vector2) -> Variant:
 	if game == null or not visible:
 		return null
 	var local := screen - get_global_rect().position
-	if local.distance_to(size / 2.0) > DIAMETER / 2.0:
+	if local.distance_to(size / 2.0) > diameter / 2.0:
 		return null
 	return game.arena.get_center() + (local - size / 2.0) / world_scale()
 
@@ -45,7 +48,7 @@ func _draw() -> void:
 		return
 	var arena: Arena = game.arena
 	var c := size / 2.0
-	var r := DIAMETER / 2.0
+	var r := diameter / 2.0
 	var k := world_scale()
 	var ts := float(arena.tile_size)
 	draw_circle(c, r, Color(0.35, 0.08, 0.03, 0.8), true, -1.0, true)

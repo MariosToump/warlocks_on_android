@@ -106,6 +106,7 @@ func _build_panel() -> void:
 	var touch := Platform.touch()
 	_fullscreen.visible = not touch
 	_haptics.visible = touch
+	_zoom.visible = touch # PC: the mouse wheel zooms
 	_move.visible = touch
 	_refresh()
 	dim.visible = false

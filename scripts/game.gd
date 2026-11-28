@@ -138,6 +138,8 @@ func _ready() -> void:
 		wins_to_take_match = GameSettings.wins_to_take_match
 		touch.touchpad = GameSettings.move_mode == "touchpad"
 		arena.set_heat_haze(GameSettings.heat_haze)
+	if not touch_mode:
+		follow_zoom = arena.camera.min_zoom # PC: start as far out as the camera goes
 	arena.shrinks = shrink_arena
 	arena.regrows = not rounds # rounds end in sudden death instead
 	_lava_label = _make_lava_label()
@@ -698,12 +700,14 @@ func _build_hud_extras() -> void:
 	_player_ctl_set("minimap", minimap)
 	if pc_bar:
 		# PC: in the bar's bottom-left frame.
-		var inset := PcBar.PAD + (PcBar.MAP_FRAME - Minimap.DIAMETER) / 2.0
+		minimap.diameter = PcBar.MINIMAP
+		minimap.custom_minimum_size = Vector2(PcBar.MINIMAP, PcBar.MINIMAP)
+		var inset := PcBar.PAD + (PcBar.MAP_FRAME - PcBar.MINIMAP) / 2.0
 		minimap.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 		minimap.offset_left = inset
-		minimap.offset_right = inset + Minimap.DIAMETER
+		minimap.offset_right = inset + PcBar.MINIMAP
 		minimap.offset_bottom = -inset
-		minimap.offset_top = -inset - Minimap.DIAMETER
+		minimap.offset_top = -inset - PcBar.MINIMAP
 	else:
 		minimap.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 		minimap.offset_left = -Minimap.DIAMETER - 12.0
@@ -728,8 +732,9 @@ func _build_hud_extras() -> void:
 
 ## Settings that can change mid-match (from the pause menu).
 func apply_live_settings() -> void:
-	follow_zoom = GameSettings.zoom_value()
-	arena.camera.set_design_zoom(follow_zoom)
+	if touch_mode: # PC keeps its own (wheel) zoom
+		follow_zoom = GameSettings.zoom_value()
+		arena.camera.set_design_zoom(follow_zoom)
 	bot_difficulty = GameSettings.difficulty as Difficulty
 	touch.touchpad = GameSettings.move_mode == "touchpad"
 	arena.set_heat_haze(GameSettings.heat_haze)
