@@ -28,10 +28,14 @@
 - **PC differences, only where the input or the screen needs them:**
   - **Controls:** the existing `PlayerController` (WC3 style: right-click to walk or attack, A to swing, Q W E R D F
     for spells).
-  - **HUD:** no touch buttons, joystick or staff markers. Instead, a spell bar along the bottom centre showing
-    Q W E R D F and A, with icons, key letters and cooldowns.
-    - The old PC `SpellBar` is the starting point, restyled like the Android buttons.
-    - The shop slots show once something is bought, as on Android.
+  - **HUD:** no touch buttons, joystick or staff markers. The user (2026-11-28): no Android-style round buttons on
+    PC; it should feel like classic Warcraft III. So, a WC3-style bottom bar in our own art:
+    - Square spell icons in a framed row (Q W E R D F, plus A for the staff), each with its hotkey letter in the
+      corner, a dark clockwise cooldown sweep and the seconds left.
+    - Health, gold and the round info in the bar's centre panel; the minimap in its bottom-left frame.
+    - Hovering an icon shows a tooltip (name, what it does, cooldown).
+    - The old PC `SpellBar` is the starting point. The shop slots show once something is bought, as on Android.
+    - Inspiration only: no Warcraft art, frames or icons are copied.
   - **Ghost:** A haunts. Clicking the minimap teleports, the same rule as tapping it on Android.
   - **Pause:** Esc opens and closes the pause menu, as well as the on-screen pause button.
   - **Window:**
