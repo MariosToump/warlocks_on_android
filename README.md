@@ -1,6 +1,6 @@
 # Warlocks on Android
 
-A top-down pixel-art arena brawler for Android. Four wizards fight on a stone
+A top-down pixel-art arena brawler for Android and Windows PC (one project, two builds). Four wizards fight on a stone
 platform in a sea of lava. Spells mostly **knock back** rather than kill, so
 the real danger is being blasted into the lava. The platform shrinks during
 each round, so every fight ends.
@@ -59,9 +59,24 @@ After every round you get gold — 10, plus 5 per kill, plus 5 if you won the ro
 | Bought spells (two extra buttons) | Tap = at the nearest enemy in range; drag to aim. Meteor, Gravity Well and Time Stop are placed: a short drag places them close, a long drag far, and the guide shows the area they'll cover |
 | II button (top right) or Back | Pause: resume, restart, quit to the menu, settings |
 
+### Controls (PC: keyboard + mouse)
+| Control | Action |
+|---|---|
+| Right-click (or hold) | Walk to the mouse. Right-click an enemy to walk up and keep swinging the staff at it |
+| A | One staff swing at the enemy nearest the mouse (or near you). As a ghost: Haunt |
+| Q W E R D F | Cast at the mouse: Fireball, Blink, Lightning, Shield, and the two bought spells |
+| Esc | Pause / resume (on the title screen it closes Settings) |
+| Alt+Enter | Fullscreen on / off (also in Settings) |
+| Ghost | Hold right-click to float toward the mouse; A haunts; left-click the minimap to jump there |
+| Mouse wheel / middle drag / Home | Zoom, pan, re-centre the camera |
+
+The PC screen has a command bar along the bottom: the minimap (left), health, gold and the round (centre), and the
+spell card (right): square icons with their key, a dark sweep and seconds while a spell recharges, and a tooltip
+when you point at one. No touch buttons on PC.
+
 ### On screen
 - **Scoreboard** (top left): health, round wins and kills for everyone; below it, how much further you fly when hit.
-- **Minimap** (top right): the platform, where the lava is about to rise, and everyone's position.
+- **Minimap** (top right; on PC in the bottom bar): the platform, where the lava is about to rise, and everyone's position.
 - **Arrows** on the screen edge point at enemies you can't see. Bigger = closer; they flash while that enemy casts.
 - Damage numbers over whoever gets hit (red ones are yours); the screen edges glow red when you're in or next to lava;
   the phone vibrates when you're hit. The screen shakes on hits and kills, big hits freeze for a split second,
@@ -69,8 +84,8 @@ After every round you get gold — 10, plus 5 per kill, plus 5 if you won the ro
 
 ### Settings (pause menu or title menu)
 Zoom (Close / Far), bot difficulty (Easy / Normal / Hard), first to 3 / 5 / 7 round wins, vibration, sound, music,
-movement (Joystick / Touchpad).
-They are saved on the phone.
+movement (Joystick / Touchpad). On PC, Fullscreen instead of vibration and movement.
+They are saved on the device.
 
 The game opens on a title menu with the bots already fighting behind it. Back on the title menu leaves the game.
 
@@ -99,10 +114,18 @@ bash tools/deploy_android.sh
 ```
 The APK ends up in `build/warlocks_on_android.apk` (not committed).
 
+**PC (Windows):** run it straight from the project (`Godot --path .`), or build one `.exe` with the game inside:
+```bash
+bash tools/build_pc.sh      # -> build/pc/LavaWarlocks.exe (needs Godot's 4.7.2 Windows export templates)
+```
+On a desktop the game starts in PC mode; add `-- --touch` to the Godot command line to test the touch layer with the
+mouse.
+
 ## Development
 - Engine: Godot 4.7.2, Compatibility renderer, landscape, immersive.
-- This is the Android version of a PC project (keyboard + mouse). Gameplay is
-  written in the PC project first and brought over with `git cherry-pick`.
+- Since 2026-11-28 this one project builds both Android and Windows. `Platform.touch()` (`scripts/platform.gd`)
+  switches the touch layer (phones) or the PC bar and keys (desktop) at start. The old PC project
+  (`../lava-warlocks`) is an archive.
 - **Read [`GAME_DESIGN.md`](GAME_DESIGN.md) first** — the full design plus a
   *Progress* section with what is built, what changed from the plan, and
   what is next.

@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-28 (NEXT: todo 16, PC catch-up — one shared project with a Windows build, WC3-style PC bar; todo 17 store release prep added; staff marker over enemies, Fireball in the corner — see "Staff marker 2026-11-28"; performance pass: lava shrink stutter fixed, bots cheaper, stress test on the title (5 taps on the version) — see "Performance pass 2026-11-28"; spell rework: Meteor buff, Rock Wall -> Dark Mirror, Time Stop freezes wizards — see "Spell rework 2026-11-28"; 2026-11-27: review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
+_Last updated: 2026-11-28 (todo 16 PC build done: one project builds Android + Windows, PC command bar, Esc / Alt+Enter, ghost on mouse — see "PC build 2026-11-28"; NEXT: the user playtests on PC; todo 17 store release prep added; staff marker over enemies, Fireball in the corner — see "Staff marker 2026-11-28"; performance pass: lava shrink stutter fixed, bots cheaper, stress test on the title (5 taps on the version) — see "Performance pass 2026-11-28"; spell rework: Meteor buff, Rock Wall -> Dark Mirror, Time Stop freezes wizards — see "Spell rework 2026-11-28"; 2026-11-27: review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -56,6 +56,22 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
 **Paused 2026-11-27 (the user):** todos 3, 4, 5 and 8 wait while we work on graphics and design (more animation,
 a more "real" feel; research: a bigger PixelLab plan vs doing more in Godot). Order after the pause: terrain stones
 brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) stays last.
+- **PC build 2026-11-28** (todo 16; the user: "the same game, playable on PC with mouse and keyboard"; spec
+  `docs/superpowers/specs/2026-11-28-pc-catch-up-design.md`, plan `docs/superpowers/plans/2026-11-28-pc-catch-up.md`):
+  - One project, two builds: `lava-warlocks-mobile` is the only codebase. `Platform.touch()` (`scripts/platform.gd`):
+    touch on phones (`OS.has_feature("mobile")`) or with `-- --touch`; PC otherwise (a touchscreen laptop is PC).
+    Tests force a mode with `Platform.forced`. The old `lava-warlocks` folder is an archive (README note).
+  - PC: no touch layer (`TouchControls.enabled = false`, mouse doesn't emulate touch); the existing `PlayerController`
+    (right-click walk / attack, A swing, Q W E R D F at the mouse). Ghost: hold right-click to float, A haunts,
+    left-click the minimap teleports. Esc pauses (`pause` action), Alt+Enter / Settings "Fullscreen" (saved);
+    Vibration and Move are hidden on PC; the II button moves to the top-right corner.
+  - `PcBar` (`scripts/pc_bar.gd`): classic-RTS-style command bar in our own look (the user: no round buttons on PC):
+    120 px stone strip, minimap in a bottom-left frame, centre panel (HP, gold, round), 4x2 spell card bottom right
+    (Q W E R / D F _ A) with hotkey letters, a dark clockwise cooldown sweep + seconds, hover tooltips. Display only.
+    Right-clicks over the bar don't walk you.
+  - Windows export preset "Windows Desktop" + `tools/build_pc.sh` -> `build/pc/LavaWarlocks.exe` (one exe, data
+    embedded); the 4.7.2 Windows export templates are installed. Tests: `tools/test_pc.gd` (windowed), suite 29/29.
+    Screenshot shot: `tools/shots/pc_bar.gd`. Still to do: the user's PC playtest.
 - **Staff marker 2026-11-28** (the user: the staff is one of the least used skills but held the best button;
   spec `docs/superpowers/specs/2026-11-28-staff-context-button-design.md`; Android only):
   - No fixed staff button. A marker floats over every enemy within 85 px (the swing still reaches 30); tap = step in
@@ -121,7 +137,7 @@ brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) sta
   (game.gd shake / hit-stop / vibration, meteor_strike.gd, arena_camera.gd smoothing 8, wizard.gd squash, vfx.gd,
   arena.gd embers, heat_haze shader); no "reduce screen shake" option yet. Not run: phone performance (phone not
   connected), playtest notes (no tester feedback yet).
-- [ ] 16. **PC catch-up** **<- next** (the user, 2026-11-28: "change our focus completely to the PC version and bring
+- [x] 16. **PC catch-up** (done 2026-11-28 except the user's PC playtest; see "PC build 2026-11-28") (the user, 2026-11-28: "change our focus completely to the PC version and bring
   it up to date with our Android version"; "the same game, playable on PC with mouse and keyboard for now").
   Decided 2026-11-28: one project, two builds. `lava-warlocks-mobile` becomes the shared codebase with a Windows
   export; touch vs PC is switched at runtime; the old `lava-warlocks` folder becomes an archive. PC HUD: a classic
