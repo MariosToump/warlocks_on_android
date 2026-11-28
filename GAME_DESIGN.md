@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-28 (staff marker over enemies, Fireball in the corner — see "Staff marker 2026-11-28"; performance pass: lava shrink stutter fixed, bots cheaper, stress test on the title (5 taps on the version) — see "Performance pass 2026-11-28"; spell rework: Meteor buff, Rock Wall -> Dark Mirror, Time Stop freezes wizards — see "Spell rework 2026-11-28"; 2026-11-27: review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
+_Last updated: 2026-11-28 (NEXT: todo 16, PC catch-up with Android — the focus moves to the PC version; staff marker over enemies, Fireball in the corner — see "Staff marker 2026-11-28"; performance pass: lava shrink stutter fixed, bots cheaper, stress test on the title (5 taps on the version) — see "Performance pass 2026-11-28"; spell rework: Meteor buff, Rock Wall -> Dark Mirror, Time Stop freezes wizards — see "Spell rework 2026-11-28"; 2026-11-27: review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -121,6 +121,12 @@ brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) sta
   (game.gd shake / hit-stop / vibration, meteor_strike.gd, arena_camera.gd smoothing 8, wizard.gd squash, vfx.gd,
   arena.gd embers, heat_haze shader); no "reduce screen shake" option yet. Not run: phone performance (phone not
   connected), playtest notes (no tester feedback yet).
+- [ ] 16. **PC catch-up** **<- next** (the user, 2026-11-28: "change our focus completely to the PC version and bring
+  it up to date with our Android version"; saved, not started). Bring `lava-warlocks` up to date with Android
+  (warlocks-port skill: list the Android-only commits, cherry-pick or re-do, keep each side's exceptions: PC keeps
+  keyboard + mouse and Forward+, no touch controls / staff marker / Android HUD). Known gaps: v0.8-v0.13.1 features,
+  review fixes 2026-11-27, spell rework 2026-11-28, performance pass 2026-11-28. Start by listing the gap and
+  agreeing the order with the user.
 - [ ] 11. **Protect the code** (user, 2026-11-27; do in a couple of days): make `warlocks_on_android` private
   (`gh repo edit --visibility private`; then only the user + invited GitHub accounts can see code or releases), add
   an "All rights reserved" notice (LICENSE + README), and a separate public repo with only the APK (e.g.
@@ -149,7 +155,7 @@ brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) sta
   upgrade / sell); new spells as an icon grid (~6 per row, price on each tile), tap one for name, description,
   combo hint and Buy in an info box on the right; items as a tile row. Fits 1280x720 with no scrolling; update
   `tools/test_shop_layout.gd`. Before or with todo 12.
-- [ ] 0. **Graphics and design** **← next** — _visual pass 1 (Godot) done 2026-11-27, Android v0.13. Design:
+- [ ] 0. **Graphics and design** — _visual pass 1 (Godot) done 2026-11-27, Android v0.13. Design:
   `docs/superpowers/specs/2026-11-27-visual-pass-design.md`. The user: don't darken the arena for now (so no
   normal maps yet). Next: the PixelLab finish (below), then more Godot polish after the user's phone check._
   - Visual pass 1: `scripts/vfx.gd` builds square-pixel CPUParticles2D bursts in code (max 24 alive): sparks on
