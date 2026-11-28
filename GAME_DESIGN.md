@@ -168,6 +168,8 @@ brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) sta
 - [ ] 18. **Roadmap planning** (the user, 2026-11-28): brainstorm each topic in `docs/roadmap/2026-11-28-roadmap.md`
   before any code. Suggested order: multiplayer design first, then itch.io + feedback link, menus + intro +
   transitions, training mode, the multiplayer build, loadouts / balance / 8 warlocks, legal review + stores. <- next
+  2026-11-28: first pass done for every topic (decisions in the roadmap). Still open: money model (paid / free /
+  cosmetics, revisit later) and the multiplayer details (accept/decline, ranked accounts, regions, reconnect).
 - [ ] 17. **Store release prep** (the user, 2026-11-28; later, not now). **Plan: `docs/roadmap/2026-11-28-go-to-market.md`** (stages: friends -> free itch.io / Discord / Reddit / X -> free multiplayer beta -> Steam -> Google Play; revisit it to see where we are). itch.io first (free page, Windows zip +
   APK, optional browser build, `tools/publish_itch.sh` with butler). Steam when nearly finished (Steamworks ~$100
   per game, store page "Coming Soon" 2+ weeks for wishlists, build review; optional GodotSteam for achievements /
