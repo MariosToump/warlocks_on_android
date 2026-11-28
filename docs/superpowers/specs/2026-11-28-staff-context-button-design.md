@@ -38,8 +38,13 @@ Android only. The touch controls change; the staff itself does not.
     teaches the combo.
 - **Ghost (dead player):** the haunt still needs a button. My call: the corner button comes back only while you're a
   ghost, as the haunt button, exactly as now.
-- **The freed corner:** my call is to leave it empty for now and keep the Q-R, D and F buttons where they are, so
-  muscle memory survives. What goes there is part of todo 14 / 15.
+- **The freed corner** (the user, 2026-11-28: "another spell takes its place, it can be Fireball or something
+  else"):
+  - **Fireball (Q)** moves into the corner at the big size (r 64). It's the spell cast most often, so it gets the
+    best spot.
+  - My call: **D** (the first shop slot) moves into Fireball's old place (-170, 0), so the arc stays closed.
+  - W, E, R and F stay where they are.
+  - While you're a ghost the corner is the haunt button, as before. Q can't be cast while dead anyway.
 - **Unchanged:** the staff's numbers (reach 30, damage 2-4, push 300-390, 0.5 s), the Blink → staff combo, the bots
   (they don't use buttons), and the PC controls.
 
@@ -50,6 +55,7 @@ Android only. The touch controls change; the staff itself does not.
   - Tapping a marker swings at that warlock.
   - A marker tap on the left half doesn't start the joystick.
   - The ghost still haunts from the corner.
+- `tools/test_touch.gd` also checks that Fireball is in the corner and D is at the old Q spot.
 - `tools/test_shop_layout.gd` still passes.
 - Playtest: the bots aren't affected. Check on the phone how the marker feels in a fight.
 - Docs: README controls, and the GAME_DESIGN Progress section in both copies.
