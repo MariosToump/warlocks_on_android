@@ -17,6 +17,7 @@ static var music := true
 static var move_mode := "joystick"
 static var heat_haze := true ## shimmer over the lava (off for slow phones)
 static var reduce_shake := false ## smaller screen shake (Feel.REDUCED_SHAKE_SCALE)
+static var fullscreen := false ## PC only (Alt+Enter or Settings)
 static var _loaded := false
 
 
@@ -43,6 +44,7 @@ static func load_settings() -> void:
 	move_mode = cf.get_value("game", "move_mode", move_mode)
 	heat_haze = cf.get_value("game", "heat_haze", heat_haze)
 	reduce_shake = cf.get_value("game", "reduce_shake", reduce_shake)
+	fullscreen = cf.get_value("game", "fullscreen", fullscreen)
 	if not move_mode in MOVES:
 		move_mode = "joystick"
 
@@ -58,7 +60,17 @@ static func save_settings() -> void:
 	cf.set_value("game", "move_mode", move_mode)
 	cf.set_value("game", "heat_haze", heat_haze)
 	cf.set_value("game", "reduce_shake", reduce_shake)
+	cf.set_value("game", "fullscreen", fullscreen)
 	cf.save(path)
+
+
+## PC: fullscreen or a window, from `fullscreen` (nothing in headless runs).
+static func apply_window() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	var want := DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
+	if DisplayServer.window_get_mode() != want:
+		DisplayServer.window_set_mode(want)
 
 
 static func zoom_value() -> float:
@@ -76,4 +88,5 @@ static func reset() -> void:
 	move_mode = "joystick"
 	heat_haze = true
 	reduce_shake = false
+	fullscreen = false
 	_loaded = true

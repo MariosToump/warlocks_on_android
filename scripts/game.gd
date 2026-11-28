@@ -126,6 +126,9 @@ func _ready() -> void:
 	Platform.apply()
 	touch_mode = Platform.touch()
 	touch.enabled = touch_mode
+	if not touch_mode and apply_settings:
+		GameSettings.ensure_loaded()
+		GameSettings.apply_window()
 	if apply_settings:
 		GameSettings.ensure_loaded()
 		follow_zoom = GameSettings.zoom_value()
@@ -525,7 +528,16 @@ func _update_spectate(delta: float) -> void:
 	wizards.add_child(ghost)
 	ghost.setup(player)
 	touch.ghost = ghost
+	if not touch_mode: # on phones the joystick steers it (TouchControls)
+		_player_ctl_set("ghost", ghost)
 	arena.camera.target = ghost
+
+
+## Hand the ghost / minimap to the keyboard + mouse controller (PC).
+func _player_ctl_set(prop: String, value: Variant) -> void:
+	var ctl := player.get_node_or_null("PlayerController")
+	if ctl:
+		ctl.set(prop, value)
 
 
 func _remove_ghost() -> void:
@@ -534,6 +546,8 @@ func _remove_ghost() -> void:
 	if arena.camera.target == ghost:
 		arena.camera.target = round_winner if round_winner else player
 	touch.ghost = null
+	_player_ctl_set("ghost", null)
+	player.move_dir = Vector2.ZERO
 	ghost.queue_free()
 	ghost = null
 
@@ -669,6 +683,7 @@ func _build_hud_extras() -> void:
 	minimap.game = self
 	hud.add_child(minimap)
 	touch.minimap = minimap
+	_player_ctl_set("minimap", minimap)
 	minimap.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	minimap.offset_left = -Minimap.DIAMETER - 12.0
 	minimap.offset_right = -12.0

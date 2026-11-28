@@ -3,6 +3,8 @@ extends Control
 ## Pause button (top right, left of the minimap) and the pause panel:
 ## Resume, Restart match, and settings (zoom, bot difficulty, wins per match,
 ## vibration). The Android back button toggles it too (game.gd).
+## PC: Esc toggles it, Alt+Enter toggles fullscreen; Settings shows
+## Fullscreen instead of Vibration and Move.
 ## Runs while the tree is paused.
 
 const BUTTON_SIZE := Vector2(64, 64)
@@ -20,6 +22,7 @@ var _shake: Button
 var _move: Button
 var _sound: Button
 var _music: Button
+var _fullscreen: Button
 var _title: Label
 var _resume: Button
 var _restart_button: Button
@@ -98,6 +101,11 @@ func _build_panel() -> void:
 	_move = _button(grid, "", _cycle_move)
 	_haze = _button(grid, "", _toggle_heat_haze)
 	_shake = _button(grid, "", _toggle_reduce_shake)
+	_fullscreen = _button(grid, "", _toggle_fullscreen)
+	var touch := Platform.touch()
+	_fullscreen.visible = not touch
+	_haptics.visible = touch
+	_move.visible = touch
 	_refresh()
 	dim.visible = false
 
@@ -187,6 +195,7 @@ func _refresh() -> void:
 	_music.text = "Music: %s" % ("On" if GameSettings.music else "Off")
 	_move.text = "Move: %s" % GameSettings.move_mode.capitalize()
 	_haze.text = "Heat shimmer: %s" % ("On" if GameSettings.heat_haze else "Off")
+	_fullscreen.text = "Fullscreen: %s" % ("On" if GameSettings.fullscreen else "Off")
 	_shake.text = "Screen shake: %s" % ("Reduced" if GameSettings.reduce_shake else "Full")
 
 
@@ -219,6 +228,29 @@ func _toggle_haptics() -> void:
 func _toggle_heat_haze() -> void:
 	GameSettings.heat_haze = not GameSettings.heat_haze
 	_changed()
+
+
+func _toggle_fullscreen() -> void:
+	GameSettings.fullscreen = not GameSettings.fullscreen
+	GameSettings.apply_window()
+	_changed()
+
+
+## PC keys (this node runs while paused): Esc = pause / resume (on the
+## title it only closes the settings), Alt+Enter = fullscreen.
+func _unhandled_input(event: InputEvent) -> void:
+	var k := event as InputEventKey
+	if k and k.pressed and not k.echo and k.alt_pressed and k.keycode in [KEY_ENTER, KEY_KP_ENTER]:
+		get_viewport().set_input_as_handled()
+		_toggle_fullscreen()
+		return
+	if event.is_action_pressed("pause") and game:
+		get_viewport().set_input_as_handled()
+		if game.state == game.State.TITLE:
+			if is_open():
+				close()
+		else:
+			toggle()
 
 
 func _toggle_reduce_shake() -> void:

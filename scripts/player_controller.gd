@@ -6,6 +6,8 @@ extends Node
 ## swinging). A: one staff swing at the enemy nearest the mouse.
 ## WASD: walk with W/A/S/D. Note: W is also the Blink key and D a spell
 ## slot, so WASD mode needs its own spell keys before it is offered.
+## Ghost (dead in a fight, PC): hold right mouse to float toward the mouse,
+## A haunts, left-click the minimap to teleport there.
 
 enum MoveMode { CLICK, WASD }
 
@@ -20,6 +22,9 @@ const A_ASSIST := 120.0
 @onready var wizard: Wizard = get_parent()
 
 var _marker: ClickMarker
+## The player's ghost while dead in a fight (game.gd sets it).
+var ghost: Ghost
+var minimap: Minimap
 
 
 func _ready() -> void:
@@ -31,6 +36,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if not wizard.alive:
+		if ghost != null:
+			_steer_ghost()
 		return
 	match move_mode:
 		MoveMode.WASD:
@@ -44,6 +51,8 @@ func _process(_delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not wizard.alive:
+		if ghost != null:
+			_ghost_input(event)
 		return
 	if event.is_action_pressed("attack"):
 		_attack_key()
@@ -63,6 +72,29 @@ func _unhandled_input(event: InputEvent) -> void:
 			wizard.attack(enemy)
 		else:
 			_set_target(wizard.get_global_mouse_position(), true)
+
+
+## Ghost: float toward the mouse while right mouse is held, else stop.
+func _steer_ghost() -> void:
+	var dir := Vector2.ZERO
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+		var off := wizard.get_global_mouse_position() - ghost.global_position
+		if off.length() > 8.0:
+			dir = off.normalized()
+	wizard.move_dir = dir
+
+
+func _ghost_input(event: InputEvent) -> void:
+	if event.is_action_pressed("attack"):
+		ghost.haunt()
+		get_viewport().set_input_as_handled()
+		return
+	var mb := event as InputEventMouseButton
+	if mb and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT and minimap != null:
+		var spot: Variant = minimap.world_at(mb.position)
+		if spot != null:
+			ghost.teleport(spot)
+			get_viewport().set_input_as_handled()
 
 
 func _attack_key() -> void:
