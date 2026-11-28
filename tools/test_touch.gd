@@ -29,6 +29,7 @@ func _run() -> void:
 	touch = game.get_node("HUD/TouchControls")
 	var c: Vector2 = game.get_node("Arena").get_center()
 	_check(touch.wizard == player, "touch controls drive the player")
+	_check(game.pc_bar == null and game.touch.visible, "touch mode: no PC bar, touch layer shown")
 
 	# Joystick: finger down on the left, drag right.
 	var start := player.global_position

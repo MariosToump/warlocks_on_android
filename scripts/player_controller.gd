@@ -25,6 +25,8 @@ var _marker: ClickMarker
 ## The player's ghost while dead in a fight (game.gd sets it).
 var ghost: Ghost
 var minimap: Minimap
+## PC bar: right-clicks over it don't walk the warlock (game.gd sets it).
+var bar: PcBar
 
 
 func _ready() -> void:
@@ -45,7 +47,7 @@ func _process(_delta: float) -> void:
 			wizard.move_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		MoveMode.CLICK:
 			# Holding right mouse keeps re-targeting, which feels nicer.
-			if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) and wizard.attack_target == null:
+			if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) and wizard.attack_target == null and not _over_bar(get_viewport().get_mouse_position()):
 				_set_target(wizard.get_global_mouse_position(), false)
 
 
@@ -66,7 +68,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if move_mode != MoveMode.CLICK:
 		return
 	var mb := event as InputEventMouseButton
-	if mb and mb.pressed and mb.button_index == MOUSE_BUTTON_RIGHT:
+	if mb and mb.pressed and mb.button_index == MOUSE_BUTTON_RIGHT and not _over_bar(mb.position):
 		var enemy := _enemy_near(wizard.get_global_mouse_position(), PICK_RADIUS)
 		if enemy:
 			wizard.attack(enemy)
@@ -95,6 +97,10 @@ func _ghost_input(event: InputEvent) -> void:
 		if spot != null:
 			ghost.teleport(spot)
 			get_viewport().set_input_as_handled()
+
+
+func _over_bar(screen_pos: Vector2) -> bool:
+	return bar != null and bar.blocks_mouse(screen_pos)
 
 
 func _attack_key() -> void:

@@ -34,6 +34,7 @@ func _run() -> void:
 	_check(game.touch.visible == false, "touch layer still hidden in the round")
 	await _test_keys()
 	await _test_settings_rows()
+	await _test_bar()
 	await _test_ghost()
 	_finish()
 
@@ -82,6 +83,41 @@ func _test_settings_rows() -> void:
 	_check(texts.has("Move") and not texts["Move"], "Move row hidden")
 
 
+func _test_bar() -> void:
+	print("WC3-style bar")
+	var bar: PcBar = game.pc_bar
+	_check(bar != null, "the bar exists on PC")
+	if bar == null:
+		return
+	_check(bar.shown("Q") and bar.shown("A") and not bar.shown("D"), "Q and A shown, empty D not")
+	var q := bar.slot_rect("Q")
+	var w := bar.slot_rect("W")
+	_check(q.position.x < w.position.x and is_equal_approx(q.position.y, w.position.y), "Q left of W, same row")
+	_check(is_equal_approx(bar.card_rect().end.x, bar.size.x - 8.0), "card 8 px from the right")
+	var mm: Rect2 = game.minimap.get_global_rect()
+	_check(mm.position.x < 20.0 and bar.map_frame_rect().encloses(mm), "minimap in the bottom-left frame")
+	_check(bar.blocks_mouse(Vector2(640, bar.size.y - 5)), "the bar blocks the mouse at the bottom")
+	_check(not bar.blocks_mouse(Vector2(640, 300)), "but not mid-screen")
+	_check(bar.tooltip_text("Q").begins_with("Fireball") and "Cooldown" in bar.tooltip_text("Q"),
+			"Q tooltip: " + bar.tooltip_text("Q").replace("
+", " | "))
+	game.gold[player] = 100
+	Shop.buy_spell(game, player, "homing")
+	_check(bar.shown("D"), "a bought spell shows in D")
+	_check("curves" in bar.tooltip_text("D"), "D tooltip uses the shop text")
+	await _until(func(): return game.state == game.State.FIGHT, 5.0)
+	player.cast("Q", player.global_position + Vector2(100, 0))
+	await _seconds(0.5)
+	_check(player.get_spell("Q").cooldown_ratio() > 0.0, "Q cooling down after a cast")
+	var old := root.size
+	root.size = Vector2i(1600, 720)
+	await process_frame
+	await process_frame
+	_check(is_equal_approx(bar.card_rect().end.x, bar.size.x - 8.0), "after a resize the card stays 8 px from the right")
+	root.size = old
+	await process_frame
+
+
 func _test_ghost() -> void:
 	print("ghost on PC")
 	await _until(func(): return game.state == game.State.FIGHT, 5.0)
@@ -112,6 +148,8 @@ func _test_ghost() -> void:
 			"minimap click teleports (%.0f px from the centre)" % game.ghost.global_position.distance_to(c))
 	await _frames(2)
 	_check(player.move_dir == Vector2.ZERO, "no right mouse: the ghost stays still")
+	_check(game.pc_bar.shown("A") and not game.pc_bar.shown("Q"), "ghost: only A on the bar")
+	_check(game.pc_bar.tooltip_text("A").begins_with("Haunt"), "ghost: A is Haunt")
 
 
 func _until(cond: Callable, limit: float) -> void:

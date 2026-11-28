@@ -110,6 +110,8 @@ var haptic_count := 0
 
 var arrows: EnemyArrows
 var minimap: Minimap
+## PC only: the bottom command bar (null on touch).
+var pc_bar: PcBar
 var damage_numbers: DamageNumbers
 var vignette: DangerVignette
 var pause_menu: PauseMenu
@@ -260,6 +262,8 @@ func enter_title() -> void:
 	round_hud.visible = false
 	shop_panel.visible = false
 	minimap.visible = false
+	if pc_bar:
+		pc_bar.visible = false
 	pause_menu.set_pause_button(false)
 	title_menu.visible = true
 	_title_watch_left = 0.0
@@ -273,6 +277,8 @@ func start_from_title() -> void:
 	_park_player(false)
 	round_hud.visible = true
 	minimap.visible = true
+	if pc_bar:
+		pc_bar.visible = true
 	pause_menu.set_pause_button(true)
 	Sfx.music("music_fight")
 	start_match()
@@ -678,17 +684,32 @@ func _build_hud_extras() -> void:
 	arrows.name = "EnemyArrows"
 	arrows.game = self
 	hud.add_child(arrows)
+	if not touch_mode:
+		pc_bar = PcBar.new()
+		pc_bar.name = "PcBar"
+		pc_bar.game = self
+		hud.add_child(pc_bar)
+		_player_ctl_set("bar", pc_bar)
 	minimap = Minimap.new()
 	minimap.name = "Minimap"
 	minimap.game = self
 	hud.add_child(minimap)
 	touch.minimap = minimap
 	_player_ctl_set("minimap", minimap)
-	minimap.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	minimap.offset_left = -Minimap.DIAMETER - 12.0
-	minimap.offset_right = -12.0
-	minimap.offset_top = 12.0
-	minimap.offset_bottom = 12.0 + Minimap.DIAMETER
+	if pc_bar:
+		# PC: in the bar's bottom-left frame.
+		var inset := PcBar.PAD + (PcBar.MAP_FRAME - Minimap.DIAMETER) / 2.0
+		minimap.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+		minimap.offset_left = inset
+		minimap.offset_right = inset + Minimap.DIAMETER
+		minimap.offset_bottom = -inset
+		minimap.offset_top = -inset - Minimap.DIAMETER
+	else:
+		minimap.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		minimap.offset_left = -Minimap.DIAMETER - 12.0
+		minimap.offset_right = -12.0
+		minimap.offset_top = 12.0
+		minimap.offset_bottom = 12.0 + Minimap.DIAMETER
 	shop_panel = ShopPanel.new()
 	shop_panel.name = "ShopPanel"
 	hud.add_child(shop_panel)

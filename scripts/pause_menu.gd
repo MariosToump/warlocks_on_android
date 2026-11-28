@@ -43,8 +43,9 @@ func _ready() -> void:
 	_pause_button.pressed.connect(open)
 	add_child(_pause_button)
 	_pause_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	# Left of the 150 px minimap in the corner.
-	_pause_button.offset_right = -12.0 - Minimap.DIAMETER - 10.0
+	# Phones: left of the 150 px minimap in the corner. PC: the corner itself
+	# (the minimap is in the bottom bar).
+	_pause_button.offset_right = -12.0 - Minimap.DIAMETER - 10.0 if Platform.touch() else -12.0
 	_pause_button.offset_left = _pause_button.offset_right - BUTTON_SIZE.x
 	_pause_button.offset_top = 12.0
 	_pause_button.offset_bottom = 12.0 + BUTTON_SIZE.y
