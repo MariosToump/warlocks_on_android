@@ -20,6 +20,13 @@ const COMBO_KNOCKBACK := 1.4
 @export var hit_offset := 16.0
 ## ...with this radius.
 @export var hit_radius := 20.0
+## Lock-on (2026-11-28, everyone): a swing started on a warlock with
+## Wizard.attack() hits them if they're within LOCK_REACH (centre to centre)
+## when the staff comes down, wherever they stepped during the wind-up.
+const LOCK_REACH := 45.0
+## Chasing an attack target this close moves CHASE_BOOST times faster.
+const LOCK_RANGE := 85.0
+const CHASE_BOOST := 1.3
 
 
 func _init() -> void:
@@ -42,6 +49,11 @@ func release(target: Vector2) -> void:
 	var combo := combo_open(caster)
 	var kb: float = knockback_by_level[level] * (COMBO_KNOCKBACK if combo else 1.0)
 	var from := caster.global_position
+	var lock := caster.take_swing_target()
+	if lock != null and (not is_instance_valid(lock) or not lock.alive or lock.global_position.distance_to(from) > LOCK_REACH):
+		lock = null
+	if lock != null:
+		target = lock.global_position # turn to where they are now
 	var dir := (target - from).normalized()
 	if dir == Vector2.ZERO:
 		dir = Vector2.from_angle(Wizard.DIRS.find(caster.facing) * PI / 4.0)
@@ -56,7 +68,7 @@ func release(target: Vector2) -> void:
 			continue
 		var shielded := w.is_shielded()
 		var hit_reach := hit_radius + (Wizard.SHIELD_RADIUS - 8.0 if shielded else 0.0)
-		if w.global_position.distance_to(center) > hit_reach:
+		if w != lock and w.global_position.distance_to(center) > hit_reach:
 			continue
 		var push := w.global_position - from
 		push = push.normalized() if push.length() > 1.0 else dir

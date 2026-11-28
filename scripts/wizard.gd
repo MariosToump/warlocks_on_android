@@ -68,6 +68,9 @@ var move_dir := Vector2.ZERO
 ## Auto-attack: walk up to this wizard and keep hitting it with the staff
 ## (slot "A"). Cleared when it dies; controllers clear it when you move.
 var attack_target: Wizard = null
+## The warlock the current staff swing was started on (Wizard.attack); the
+## swing lands on them if they're still in LOCK_REACH (StaffStrikeSpell).
+var _swing_target: Wizard = null
 ## Stop auto-attacking after the next swing (a single tap of attack).
 var attack_once := false
 
@@ -224,6 +227,8 @@ func _wants_to_walk() -> bool:
 
 func _walk_velocity() -> Vector2:
 	var speed := move_speed * speed_multiplier * Crater.speed_at(get_tree(), global_position)
+	if attack_target != null and is_instance_valid(attack_target) and attack_target.alive and attack_target.global_position.distance_to(global_position) <= StaffStrikeSpell.LOCK_RANGE:
+		speed *= StaffStrikeSpell.CHASE_BOOST # closing in for a staff swing
 	if move_target != null:
 		var to: Vector2 = move_target - global_position
 		if to.length() <= speed * get_physics_process_delta_time():
@@ -256,6 +261,7 @@ func cast(slot: String, target: Vector2) -> bool:
 	if not alive or frozen or _casting or spell == null or not spell.is_ready():
 		return false
 	_casting = spell
+	_swing_target = null
 	_cast_elapsed = 0.0
 	_cast_target = target
 	_cast_released = false
@@ -287,10 +293,19 @@ func _update_auto_attack() -> void:
 	var to := attack_target.global_position - global_position
 	if to.length() <= attack_range():
 		move_target = null # in reach: stand and swing
-		if cast("A", attack_target.global_position) and attack_once:
-			attack_target = null
+		if cast("A", attack_target.global_position):
+			_swing_target = attack_target
+			if attack_once:
+				attack_target = null
 	elif not _casting:
 		move_target = attack_target.global_position # chase
+
+
+## The swing's locked warlock, once (the staff release takes it).
+func take_swing_target() -> Wizard:
+	var t := _swing_target
+	_swing_target = null
+	return t
 
 
 func is_casting() -> bool:
@@ -314,6 +329,7 @@ func _update_cast(delta: float) -> void:
 
 func _cancel_cast() -> void:
 	_casting = null
+	_swing_target = null
 
 
 # --- shield -------------------------------------------------------------------
