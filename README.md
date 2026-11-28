@@ -5,8 +5,10 @@ platform in a sea of lava. Spells mostly **knock back** rather than kill, so
 the real danger is being blasted into the lava. The platform shrinks during
 each round, so every fight ends.
 
-**Version 0.9** — you against three AI bots in short matches of rounds (5-8 minutes), with a shop between rounds,
-rocks to hide behind and shove, a ghost mode when you're out, and a Touchpad movement option.
+**Version 0.13.1** (Android release) plus the PC build (2026-11-28) — you against three AI bots in short matches of
+rounds (5-8 minutes): 12 spells, a shop between rounds, rocks to hide behind and shove, a ghost mode when you're out.
+On phones: touch controls with a joystick and tap-to-aim; on Windows: mouse and keyboard with hold-to-aim spells and
+a command bar.
 
 Made with Godot 4.7.2 (GDScript); pixel art made with PixelLab.
 
@@ -129,8 +131,8 @@ mouse.
 - **Read [`GAME_DESIGN.md`](GAME_DESIGN.md) first** — the full design plus a
   *Progress* section with what is built, what changed from the plan, and
   what is next.
-- Design records: [`docs/superpowers/specs/`](docs/superpowers/specs/)
-  (AI bots, rounds). v0.7 changes are described in GAME_DESIGN.md → Progress.
+- Design records: [`docs/superpowers/specs/`](docs/superpowers/specs/) (one per feature, e.g. the PC build and the
+  PC feel pass) and their build plans in [`docs/superpowers/plans/`](docs/superpowers/plans/).
 
 ### Project layout
 | Path | What |
@@ -138,7 +140,11 @@ mouse.
 | `scenes/game.tscn`, `scripts/game.gd` | Match flow: rounds, score, spawning, camera |
 | `scripts/round_hud.gd` | Scoreboard, banners, kill feed, results screen |
 | `scripts/arena.gd` | Lava map built in code from Wang tiles; shrinking + sudden death |
-| `scripts/wizard.gd` | A wizard: movement, health, knockback, lava, animations |
+| `scripts/wizard.gd` | A wizard: movement, health, knockback, lava, animations; staff chase + lock-on |
+| `scripts/platform.gd` | `Platform.touch()`: phone (touch layer) or PC (keyboard + mouse), decided at start |
+| `scripts/player_controller.gd` | PC controls: right-click walk / attack, A, Q W E R D F hold-to-aim, ghost on the mouse |
+| `scripts/cast_indicator.gd` | PC smart-cast indicator: range ring, lane, landing spot or area |
+| `scripts/pc_bar.gd` | PC command bar: minimap frame, health / gold / round, spell card with tooltips |
 | `scripts/spells/` | Fireball, Blink, Lightning, Shield, Staff strike, Homing Orb, Dark Mirror, Boomerang, Swap, Meteor, Gravity Well, Time Stop |
 | `scripts/boomerang.gd`, `meteor_strike.gd`, `gravity_well.gd`, `time_stop_field.gd` | The new spells' objects in the arena |
 | `tools/build_effects.gd`, `assets/sprites/effects/` | Draws the new spells' pixel-art effects in code (the older effects are PixelLab) |
@@ -146,7 +152,7 @@ mouse.
 | `tools/build_font.gd`, `assets/ui/` | Our own pixel font and the project theme |
 | `scripts/prop.gd`, `scripts/crater.gd` | Boulders, pillars, wall rocks (art drawn in code); fireball craters |
 | `scripts/ghost.gd` | The player's ghost after dying (float, haunt) |
-| `scripts/touch_controls.gd` | Joystick, spell buttons, tap auto-aim |
+| `scripts/touch_controls.gd` | Phones: joystick, spell buttons, tap auto-aim, staff markers over enemies |
 | `scripts/minimap.gd`, `scripts/enemy_arrows.gd` | Minimap, off-screen enemy arrows |
 | `scripts/damage_numbers.gd`, `scripts/danger_vignette.gd` | Damage numbers, lava glow |
 | `scripts/pause_menu.gd`, `scripts/game_settings.gd` | Pause menu, saved settings |
@@ -154,7 +160,7 @@ mouse.
 | `scripts/title_menu.gd` | Title menu |
 | `scripts/sfx.gd`, `tools/build_audio.gd`, `assets/audio/` | Sound player; the synth that makes every sound and both music loops |
 | `scripts/ai/`, `ai/` | Bot brain, personalities and difficulty profiles |
-| `tools/` | Tests, AI simulation, demo recorder, deploy script |
+| `tools/` | Tests, AI simulation, demo recorder, `deploy_android.sh`, `build_pc.sh` |
 
 ### Tests
 The whole suite in one go: `bash tools/run_tests.sh` (prints `ok` / `FAIL` per test and `suite: N/N passed`).
@@ -166,6 +172,8 @@ for t in wizard fireball spells staff ai ai_human brawler lightning arena rounds
 done
 "$GODOT" --path . -s tools/test_touch.gd   # needs a window (no --headless)
 "$GODOT" --path . -s tools/test_shop_layout.gd   # needs a window: the shop fits a phone screen
+"$GODOT" --path . -s tools/test_pc.gd   # needs a window: PC mode, keys, smart cast, the command bar, ghost
+"$GODOT" --headless --path . -s tools/test_staff_lock.gd   # staff lock-on and chase boost
 "$GODOT" --headless --path . -s tools/test_vfx.gd   # sparks, dissolve, embers, heat shimmer, shadows
 "$GODOT" --headless --path . -s tools/test_clock.gd   # gameplay timers run on game time
 "$GODOT" --headless --fixed-fps 60 --path . -s tools/test_sim.gd   # the sim sandbox (~15 s)
@@ -202,5 +210,6 @@ one set-up moment. `tools/shots/*.gd` are scripted camera shots for visual revie
 5. ~~AI bots~~ 6. ~~Rounds, score, shrinking arena, win screen~~
 7. ~~Shop between rounds~~
 8. ~~Polish~~ — screen shake, hit-stop, sounds, menu (v0.9: short matches, lava balance, ghost, rocks)
-9. ~~More spells~~ — homing orb, rock wall, boomerang, swap, meteor, gravity well, time stop (v0.12)
+9. ~~More spells~~ — homing orb, rock wall (now Dark Mirror), boomerang, swap, meteor, gravity well, time stop (v0.12)
+- ~~PC build~~ — the same game on Windows with mouse and keyboard (2026-11-28)
 10. **v1.0: a camera that tilts from top-down into a 3D view** (2.5D)

@@ -519,9 +519,11 @@ Trial: 3 generations left (out of 40). Character id `2c9f98f0-5a77-4c63-aca5-e01
 - Later: local multiplayer, then online.
 
 ## Controls
-- Right-click: move to point (like WC3), or WASD (setting).
-- Q / W / E / R / D / F: cast spell in that slot, aimed at the mouse.
-- Esc: pause.
+- **PC** (keyboard + mouse): right-click to move to a point or attack an enemy (like WC3); A swings the staff;
+  Q / W / E / R / D / F: hold to aim (indicator), release to cast at the mouse (or instant, a setting); Esc pause;
+  Alt+Enter fullscreen. WASD is not offered yet (W and D are spell keys).
+- **Phones**: floating joystick (or touchpad) on the left, spell buttons bottom right (tap = auto-aim, drag = aim),
+  staff markers over nearby enemies. Details in the README.
 
 ## Wizard stats
 - Health 100. Move speed ~140 px/s.
