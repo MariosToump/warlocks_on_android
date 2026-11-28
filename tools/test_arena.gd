@@ -46,6 +46,7 @@ func _run() -> void:
 	await _seconds(0.5)
 	_check(arena.is_lava_soon(doomed) and not arena.is_lava_at(doomed), "edge ring is flagged before it turns to lava")
 	_check(not arena.is_lava_soon(safe) and not arena.is_lava_soon(c), "inner stone is not flagged")
+	_check(_unsafe_matches(), "is_unsafe == is_lava_at or is_lava_soon (warning)")
 	_check(arena.status_text() != "", "HUD text while warning: '%s'" % arena.status_text())
 	await _until(func(): return arena.radius_tiles <= full - 4.0, 3.0)
 	await _frames(2)
@@ -53,6 +54,8 @@ func _run() -> void:
 	_check(arena.is_lava_at(doomed), "old edge is lava now")
 	_check(not arena.is_lava_at(safe) and not arena.is_lava_at(c), "inner stone stays stone")
 	_check(_tiles_match_full_rebuild(), "incremental tile update matches a full rebuild")
+	_check(_lava_matches_rule(), "every vertex follows the edge rule (dist > r + wobble)")
+	_check(_unsafe_matches(), "is_unsafe == is_lava_at or is_lava_soon (after a shrink)")
 	_check(_cracks_away_from_lava(), "cracked stone never touches lava")
 
 	print("stops at the minimum, then regrows")
@@ -66,6 +69,15 @@ func _run() -> void:
 	await _frames(2)
 	_check(is_equal_approx(arena.radius_tiles, full) and not arena.is_lava_at(doomed), "platform regrows after holding at the minimum")
 	_check(_tiles_match_full_rebuild(), "tiles correct after regrowing")
+	_check(_lava_matches_rule(), "regrown vertices follow the edge rule")
+	print("perf: one shrink frame touches only the melting vertices")
+	var t0 := Time.get_ticks_usec()
+	for i in 20:
+		arena._set_radius(arena.radius_tiles - 0.05)
+	var per_ms := (Time.get_ticks_usec() - t0) / 20000.0
+	_check(per_ms < 0.5, "a shrink step costs %.3f ms (was ~1.3 ms before the 2026-11-28 perf pass)" % per_ms)
+	_check(_lava_matches_rule(), "edge rule still holds after small steps")
+	arena.regrow()
 
 	print("sudden death (rounds: no regrowing)")
 	arena.regrows = false
@@ -81,9 +93,11 @@ func _run() -> void:
 		if arena.phase == Arena.Phase.HOLD:
 			hold_text = arena.status_text()
 	_check(hold_text.begins_with("Sudden death in"), "warns while holding ('%s')" % hold_text)
+	_check(_unsafe_matches(), "is_unsafe == is_lava_at or is_lava_soon (sudden death)")
 	_check(saw_final and arena.radius_tiles == 0.0, "after the hold the edge creeps in to nothing (r %.1f)" % arena.radius_tiles)
 	_check(arena.is_lava_at(c), "even the middle is lava in the end")
 	_check(_tiles_match_full_rebuild(), "tiles correct after sudden death")
+	_check(_lava_matches_rule(), "sudden death vertices follow the edge rule")
 	arena.regrows = true
 	arena.regrow()
 
@@ -121,14 +135,49 @@ func _east(tiles: float) -> Vector2:
 func _tiles_match_full_rebuild() -> bool:
 	var before := {}
 	for cell in arena.tiles.get_used_cells():
-		before[cell] = [arena.tiles.get_cell_source_id(cell), arena.tiles.get_cell_atlas_coords(cell)]
+		before[cell] = [arena.tiles.get_cell_source_id(cell), arena.tiles.get_cell_atlas_coords(cell),
+				arena.tiles.get_cell_alternative_tile(cell)]
 	arena.rebuild()
 	var cells := arena.tiles.get_used_cells()
 	if cells.size() != before.size():
 		return false
 	for cell in cells:
-		if before.get(cell) != [arena.tiles.get_cell_source_id(cell), arena.tiles.get_cell_atlas_coords(cell)]:
+		if before.get(cell) != [arena.tiles.get_cell_source_id(cell), arena.tiles.get_cell_atlas_coords(cell),
+				arena.tiles.get_cell_alternative_tile(cell)]:
 			return false
+	return true
+
+
+## The old brute-force rule: lava where the full map has lava, or where the
+## vertex is further from the centre than radius + wobble.
+func _lava_matches_rule() -> bool:
+	var center := Vector2(arena.map_cells, arena.map_cells) / 2.0
+	var r := arena.radius_tiles
+	for row in arena.map_cells + 1:
+		for col in arena.map_cells + 1:
+			var d := Vector2(col, row) - center
+			var key := d.length() - arena._wobble(d.angle())
+			if absf(key - r) < 1e-6:
+				continue # a tie: either answer is right
+			var want := arena._full_vertices[row][col] == Arena.Terrain.LAVA or r <= 0.0 or key > r
+			if (arena.vertices[row][col] == Arena.Terrain.LAVA) != want:
+				return false
+	return true
+
+
+## The bots' merged check gives the same answer as the two old ones, on a
+## grid of points over the whole map plus random off-grid points.
+func _unsafe_matches() -> bool:
+	var b := arena.get_bounds().grow(64.0)
+	for i in 4000:
+		var p := Vector2(randf_range(b.position.x, b.end.x), randf_range(b.position.y, b.end.y))
+		if arena.is_unsafe(p) != (arena.is_lava_at(p) or arena.is_lava_soon(p)):
+			return false
+	for x in range(int(b.position.x), int(b.end.x), 23):
+		for y in range(int(b.position.y), int(b.end.y), 23):
+			var p := Vector2(x, y)
+			if arena.is_unsafe(p) != (arena.is_lava_at(p) or arena.is_lava_soon(p)):
+				return false
 	return true
 
 

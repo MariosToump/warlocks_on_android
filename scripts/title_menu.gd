@@ -60,6 +60,25 @@ func _ready() -> void:
 	version.offset_right = -14
 	version.offset_bottom = -10
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	# Hidden: 5 quick taps on the version start the performance test
+	# (scripts/perf_stress.gd), so a player on an old phone can send numbers.
+	version.mouse_filter = Control.MOUSE_FILTER_STOP
+	version.gui_input.connect(_on_version_input)
+
+
+var _version_taps := 0
+var _version_tap_at := 0
+
+
+func _on_version_input(e: InputEvent) -> void:
+	if not (e is InputEventMouseButton and e.pressed):
+		return
+	var now := Time.get_ticks_msec()
+	_version_taps = _version_taps + 1 if now - _version_tap_at < 600 else 1
+	_version_tap_at = now
+	if _version_taps >= 5:
+		GameSettings.ensure_loaded()
+		PerfStress.launch(get_tree(), [4, 8] as Array[int], 90.0, GameSettings.heat_haze)
 
 
 func _button(parent: Node, text: String, cb: Callable) -> Button:

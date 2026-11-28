@@ -193,13 +193,14 @@ func _probably_down(w: Wizard, slot: String) -> bool:
 
 
 ## 0..1: how exposed `w` is right now, from what's on screen.
-func opportunity(w: Wizard) -> float:
+## `near_lava`: _lava_within(w, NEAR_LAVA) if the caller already knows it.
+func opportunity(w: Wizard, near_lava: Variant = null) -> float:
 	if w == null or not is_instance_valid(w):
 		return 0.0
 	var o := 0.0
 	if w.health < w.max_health * 0.35:
 		o += 0.35
-	if _lava_within(w.global_position, NEAR_LAVA):
+	if near_lava if near_lava != null else _lava_within(w.global_position, NEAR_LAVA):
 		o += 0.25
 	if shield_probably_down(w):
 		o += 0.25
@@ -260,10 +261,15 @@ func _physics_process(delta: float) -> void:
 
 # --- deciding ---------------------------------------------------------------
 
+## opportunity() of each candidate, worked out by _pick_target for this think.
+var _think_opp := {}
+
+
 func _think() -> void:
+	_think_opp.clear()
 	target = _pick_target()
 	_last_think = _now
-	if watching() and (wizard.last_hit_at != _watch_hit_mark 			or (target and opportunity(target) >= WATCH_BREAK_OPPORTUNITY)):
+	if watching() and (wizard.last_hit_at != _watch_hit_mark 			or (target and _target_opportunity() >= WATCH_BREAK_OPPORTUNITY)):
 		_watch_until = _now # hit, or someone left wide open: join in
 	_danger = _danger_projectile()
 	for id in _cast_rolls.keys():
@@ -277,7 +283,7 @@ func _think() -> void:
 		_do_recover()
 		return
 	var scores := {}
-	var go_for_it := 1.0 + risk() * opportunity(target)
+	var go_for_it := 1.0 + risk() * _target_opportunity()
 	for action in ACTIONS:
 		var s: float = call("_score_" + action) * personality.weight(action)
 		if s <= 0.0:
@@ -339,9 +345,12 @@ func _pick_target() -> Wizard:
 		var cost := wizard.global_position.distance_to(w.global_position)
 		cost -= (w.max_health - w.health) * 2.0
 		cost -= w.match_wins * LEADER_BONUS
-		if _lava_within(w.global_position, NEAR_LAVA):
+		var near_lava := _lava_within(w.global_position, NEAR_LAVA)
+		if near_lava:
 			cost -= 150.0
-		cost -= opportunity(w) * OPPORTUNITY_TARGETING * risk() * personality.opportunist_targeting
+		var opp := opportunity(w, near_lava)
+		_think_opp[w] = opp
+		cost -= opp * OPPORTUNITY_TARGETING * risk() * personality.opportunist_targeting
 		if w == target:
 			cost -= KEEP_TARGET_BONUS
 		if w == wizard.last_attacker and GameClock.now() - wizard.last_hit_at < RETALIATE_TIME:
@@ -350,6 +359,13 @@ func _pick_target() -> Wizard:
 			best_cost = cost
 			best = w
 	return best
+
+
+## opportunity(target), reusing the number _pick_target just worked out.
+func _target_opportunity() -> float:
+	if _think_opp.has(target):
+		return _think_opp[target]
+	return opportunity(target)
 
 
 ## A rock between us and the target would eat the spell.
@@ -926,7 +942,7 @@ func _aim_at(w: Wizard, speed: float) -> Vector2:
 
 ## Lava now, or stone the shrinking edge is about to swallow.
 func _unsafe(p: Vector2) -> bool:
-	return wizard.arena.is_lava_at(p) or wizard.arena.is_lava_soon(p)
+	return wizard.arena.is_unsafe(p)
 
 
 ## True if there is (soon) lava within `radius` of `p` (8 samples on a ring

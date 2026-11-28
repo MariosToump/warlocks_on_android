@@ -164,6 +164,10 @@ high-passed at 80 Hz and set to its role's loudness (`ROLE_LUFS`). `tools/build_
 (`assets/ui/pixel_font.tres`, the project theme's font). Game-feel numbers (shake, hit-stop, particles) are all in
 `scripts/feel.gd`; changes go in `docs/feel-log.md`.
 `tools/build_effects.gd` redraws the new spells' effects.
+Performance: `tools/perf_stress.gd -- [passes=4,8] [seconds=90] [haze=on|off] [vsync=off]` runs the stress test
+(endless fight, lava shrinking every 7 s, frame times split by lava phase); on the phone the same test starts with
+5 taps on the version label on the title screen. `tools/perf_lava.gd` times the lava edge code alone (headless),
+`tools/perf_lava_render.gd` the frame time while it moves. Reports live in `docs/perf/`.
 `tools/sim/` is the spell sim sandbox (not in the APK): forced spell loadouts, no menus or shop, many workers in
 parallel. `python -I tools/sim/run.py --mode ffa|duel --rounds-per-worker N --workers 16` writes a report with win
 rates and pair synergy to `tools/sim/out/<mode>/`; `--mode scenario --file tools/sim/scenarios/<name>.json` replays

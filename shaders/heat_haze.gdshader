@@ -14,8 +14,15 @@ float warm(vec3 c) {
 
 void fragment() {
 	vec4 c = texture(screen_tex, SCREEN_UV);
-	float band = floor(FRAGCOORD.y / 3.0);
-	float off = round(sin(band * 0.35 + TIME * speed) * strength);
-	vec4 d = texture(screen_tex, SCREEN_UV + vec2(off, 0.0) * SCREEN_PIXEL_SIZE);
-	COLOR = vec4(mix(c.rgb, d.rgb, warm(c.rgb) * warm(d.rgb)), 1.0);
+	float wc = warm(c.rgb);
+	if (wc <= 0.0) {
+		// Not lava: mixing by 0 below would give c exactly, so skip the
+		// second read (perf 2026-11-28).
+		COLOR = vec4(c.rgb, 1.0);
+	} else {
+		float band = floor(FRAGCOORD.y / 3.0);
+		float off = round(sin(band * 0.35 + TIME * speed) * strength);
+		vec4 d = texture(screen_tex, SCREEN_UV + vec2(off, 0.0) * SCREEN_PIXEL_SIZE);
+		COLOR = vec4(mix(c.rgb, d.rgb, wc * warm(d.rgb)), 1.0);
+	}
 }

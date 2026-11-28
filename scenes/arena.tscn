@@ -11,6 +11,7 @@ shader = ExtResource("2_lava")
 script = ExtResource("1_arena")
 
 [node name="Tiles" type="TileMapLayer" parent="."]
+rendering_quadrant_size = 8
 material = SubResource("ShaderMaterial_lava")
 
 [node name="Camera" type="Camera2D" parent="."]

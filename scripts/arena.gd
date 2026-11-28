@@ -64,6 +64,16 @@ var heat_haze: ColorRect
 var _embers_radius := -100.0 ## radius the ember spots were placed for
 var _embers_at := Vector2.ZERO ## camera position they were placed for
 var _embers_clock := 0.0
+## Perf (2026-11-28): every stone vertex inside the reach, sorted by the
+## radius at which it turns to lava (its distance minus the edge wobble),
+## biggest first. A shrink walks this list from `_melt_next` instead of
+## testing the whole grid every frame, so the cost is only the vertices
+## that actually melt. Same rule as before: lava when dist > r + wobble.
+var _melt_order := PackedInt32Array() ## row * (map_cells + 1) + col
+var _melt_at := PackedFloat64Array() ## radius below which it is lava
+var _melt_next := 0
+## Cells repainted since the last regrow; regrow() repaints only these.
+var _dirty_cells := {}
 
 
 func _ready() -> void:
@@ -71,6 +81,7 @@ func _ready() -> void:
 	map_cells = int(ceil(platform_radius_tiles)) * 2 + lava_margin_tiles * 2
 	_generate_vertices()
 	_full_vertices = vertices.duplicate(true)
+	_build_melt_order()
 	radius_tiles = platform_radius_tiles
 	rebuild()
 	camera.setup_bounds(get_bounds(), get_center())
@@ -110,6 +121,25 @@ func is_lava_soon(world_pos: Vector2) -> bool:
 	if not warning_active() or is_lava_at(world_pos):
 		return false
 	return _tiles_from_center(world_pos) > _edge_at(world_pos, next_radius_tiles) - 0.5
+
+
+## is_lava_at(p) or is_lava_soon(p) in one call (perf, 2026-11-28: the bots
+## ask this hundreds of times per think). Same rules, inlined.
+func is_unsafe(world_pos: Vector2) -> bool:
+	var g := world_pos / tile_size
+	var v := g.round()
+	var r := int(v.y)
+	var c := int(v.x)
+	if r < 0 or c < 0 or r > map_cells or c > map_cells:
+		return true
+	if vertices[r][c] == Terrain.LAVA:
+		return true
+	if not shrinks or phase == Phase.HOLD:
+		return false
+	if phase == Phase.WAIT and (time_left > shrink_warning or radius_tiles <= min_radius_tiles + 0.01):
+		return false
+	var d := g - Vector2(map_cells, map_cells) / 2.0
+	return d.length() > next_radius_tiles + _wobble(d.angle()) - 0.5
 
 
 func warning_active() -> bool:
@@ -160,7 +190,11 @@ func restart_shrink_timer() -> void:
 func regrow() -> void:
 	vertices = _full_vertices.duplicate(true)
 	radius_tiles = platform_radius_tiles
-	rebuild()
+	_melt_next = 0
+	# Only the cells the shrink touched differ from the full map.
+	for cell: Vector2i in _dirty_cells:
+		_paint(cell.y, cell.x)
+	_dirty_cells.clear()
 	_update_ember_points()
 	restart_shrink_timer()
 
@@ -215,41 +249,78 @@ func _start_hold() -> void:
 ## around the vertices that changed.
 func _set_radius(r: float) -> void:
 	radius_tiles = r
-	var center := Vector2(map_cells, map_cells) / 2.0
-	var reach := int(ceil(platform_radius_tiles + 2.0))
-	var lo := maxi(0, int(center.x) - reach)
-	var hi := mini(map_cells, int(center.x) + reach)
+	var stride := map_cells + 1
 	var changed: Array[Vector2i] = []
-	for row in range(lo, hi + 1):
-		for col in range(lo, hi + 1):
-			if vertices[row][col] == Terrain.LAVA:
-				continue
-			var d := Vector2(col, row) - center
-			if r <= 0.0 or d.length() > r + _wobble(d.angle()):
-				vertices[row][col] = Terrain.LAVA
-				changed.append(Vector2i(col, row))
+	while _melt_next < _melt_order.size() and (r <= 0.0 or _melt_at[_melt_next] > r):
+		var i := _melt_order[_melt_next]
+		_melt_next += 1
+		@warning_ignore("integer_division")
+		var row := i / stride
+		var col := i % stride
+		if vertices[row][col] != Terrain.LAVA:
+			vertices[row][col] = Terrain.LAVA
+			changed.append(Vector2i(col, row))
 	if absf(r - _embers_radius) >= 0.5 or r <= 0.0:
 		_update_ember_points()
 	if changed.is_empty():
 		return
 	# Cracks stay 2 vertices away from lava (the two tile sheets can't meet
-	# in one cell), so nearby cracks turn to plain stone.
+	# in one cell), so nearby cracks turn to plain stone. A cell's tile only
+	# depends on its 4 corners, so only cells next to a vertex that changed
+	# get repainted.
 	var cells := {}
 	for v in changed:
+		_mark_cells(cells, v.y, v.x)
 		for dr in range(-2, 3):
+			var row := v.y + dr
+			if row < 0 or row > map_cells:
+				continue
+			var line := vertices[row]
 			for dc in range(-2, 3):
-				var row := v.y + dr
 				var col := v.x + dc
-				if row < 0 or col < 0 or row > map_cells or col > map_cells:
-					continue
-				if vertices[row][col] == Terrain.CRACKED:
-					vertices[row][col] = Terrain.STONE
-				for cr in [row - 1, row]:
-					for cc in [col - 1, col]:
-						if cr >= 0 and cc >= 0 and cr < map_cells and cc < map_cells:
-							cells[Vector2i(cc, cr)] = true
-	for cell in cells:
+				if col >= 0 and col <= map_cells and line[col] == Terrain.CRACKED:
+					line[col] = Terrain.STONE
+					_mark_cells(cells, row, col)
+			vertices[row] = line
+	for cell: Vector2i in cells:
 		_paint(cell.y, cell.x)
+		_dirty_cells[cell] = true
+
+
+## The (up to) 4 cells that share vertex (row, col).
+func _mark_cells(cells: Dictionary, row: int, col: int) -> void:
+	if row > 0:
+		if col > 0:
+			cells[Vector2i(col - 1, row - 1)] = true
+		if col < map_cells:
+			cells[Vector2i(col, row - 1)] = true
+	if row < map_cells:
+		if col > 0:
+			cells[Vector2i(col - 1, row)] = true
+		if col < map_cells:
+			cells[Vector2i(col, row)] = true
+
+
+## Sort the full map's stone vertices by the radius at which they melt.
+func _build_melt_order() -> void:
+	var center := Vector2(map_cells, map_cells) / 2.0
+	var reach := int(ceil(platform_radius_tiles + 2.0))
+	var lo := maxi(0, int(center.x) - reach)
+	var hi := mini(map_cells, int(center.x) + reach)
+	var items := []
+	for row in range(lo, hi + 1):
+		for col in range(lo, hi + 1):
+			if _full_vertices[row][col] == Terrain.LAVA:
+				continue
+			var d := Vector2(col, row) - center
+			items.append([d.length() - _wobble(d.angle()), row * (map_cells + 1) + col])
+	items.sort_custom(func(a, b): return a[0] > b[0])
+	_melt_order.resize(items.size())
+	_melt_at.resize(items.size())
+	for k in items.size():
+		_melt_at[k] = items[k][0]
+		_melt_order[k] = items[k][1]
+	_melt_next = 0
 
 
 func _make_heat_haze() -> void:
