@@ -10,6 +10,7 @@ var failures := 0
 
 
 func _init() -> void:
+	Platform.forced = Platform.Mode.TOUCH # touch-layer test
 	var args := OS.get_cmdline_user_args()
 	out_dir = args[0] if args.size() > 0 else ""
 	game = load("res://scenes/game.tscn").instantiate()

@@ -52,6 +52,13 @@ var wizard: Wizard
 ## True between rounds (countdown, results): no moving or casting, and
 ## new touches pass through to the HUD (e.g. the Play again button).
 var locked := false
+## False on PC: no touch input, nothing drawn, hidden (game.gd sets it).
+var enabled := true:
+	set(v):
+		enabled = v
+		if not v:
+			visible = false
+			release_all()
 ## Touchpad movement instead of the joystick (GameSettings.move_mode).
 var touchpad := false
 ## While the player is a ghost: the attack button haunts, spells are hidden.
@@ -126,7 +133,7 @@ func release_all() -> void:
 # --- input ------------------------------------------------------------------
 
 func _input(event: InputEvent) -> void:
-	if wizard == null:
+	if wizard == null or not enabled:
 		return
 	if event is InputEventScreenTouch:
 		var t := event as InputEventScreenTouch
@@ -390,7 +397,7 @@ func _button_at(pos: Vector2) -> String:
 
 
 func _draw() -> void:
-	if wizard == null:
+	if wizard == null or not enabled:
 		return
 	# Joystick (a faint hint where it usually sits when not touched).
 	if touchpad:

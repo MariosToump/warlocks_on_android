@@ -18,6 +18,7 @@ var failures := 0
 
 
 func _init() -> void:
+	Platform.forced = Platform.Mode.TOUCH # touch-layer test
 	game = load("res://scenes/game.tscn").instantiate()
 	game.bot_ai = false
 	game.shrink_arena = false

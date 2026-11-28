@@ -118,9 +118,14 @@ var title_menu: TitleMenu
 var _title_watch_left := 0.0
 var _player_layer := 0
 var _player_mask := 0
+## False on PC (keyboard + mouse): the touch layer is off (Platform.touch()).
+var touch_mode := true
 
 
 func _ready() -> void:
+	Platform.apply()
+	touch_mode = Platform.touch()
+	touch.enabled = touch_mode
 	if apply_settings:
 		GameSettings.ensure_loaded()
 		follow_zoom = GameSettings.zoom_value()
@@ -261,7 +266,7 @@ func enter_title() -> void:
 ## Play: the player joins, a new match starts.
 func start_from_title() -> void:
 	title_menu.visible = false
-	touch.visible = true
+	touch.visible = touch_mode
 	_park_player(false)
 	round_hud.visible = true
 	minimap.visible = true
