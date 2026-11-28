@@ -23,6 +23,7 @@ var _move: Button
 var _sound: Button
 var _music: Button
 var _fullscreen: Button
+var _casting: Button
 var _title: Label
 var _resume: Button
 var _restart_button: Button
@@ -103,8 +104,10 @@ func _build_panel() -> void:
 	_haze = _button(grid, "", _toggle_heat_haze)
 	_shake = _button(grid, "", _toggle_reduce_shake)
 	_fullscreen = _button(grid, "", _toggle_fullscreen)
+	_casting = _button(grid, "", _toggle_cast_mode)
 	var touch := Platform.touch()
 	_fullscreen.visible = not touch
+	_casting.visible = not touch
 	_haptics.visible = touch
 	_zoom.visible = touch # PC: the mouse wheel zooms
 	_move.visible = touch
@@ -197,6 +200,7 @@ func _refresh() -> void:
 	_music.text = "Music: %s" % ("On" if GameSettings.music else "Off")
 	_move.text = "Move: %s" % GameSettings.move_mode.capitalize()
 	_haze.text = "Heat shimmer: %s" % ("On" if GameSettings.heat_haze else "Off")
+	_casting.text = "Casting: %s" % GameSettings.cast_mode.capitalize()
 	_fullscreen.text = "Fullscreen: %s" % ("On" if GameSettings.fullscreen else "Off")
 	_shake.text = "Screen shake: %s" % ("Reduced" if GameSettings.reduce_shake else "Full")
 
@@ -229,6 +233,11 @@ func _toggle_haptics() -> void:
 
 func _toggle_heat_haze() -> void:
 	GameSettings.heat_haze = not GameSettings.heat_haze
+	_changed()
+
+
+func _toggle_cast_mode() -> void:
+	GameSettings.cast_mode = "instant" if GameSettings.cast_mode == "indicator" else "indicator"
 	_changed()
 
 

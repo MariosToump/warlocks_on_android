@@ -35,6 +35,7 @@ func _run() -> void:
 	await _test_keys()
 	await _test_settings_rows()
 	await _test_bar()
+	await _test_smart_cast()
 	await _test_ghost()
 	_finish()
 
@@ -125,6 +126,68 @@ func _test_bar() -> void:
 	await process_frame
 
 
+func _action(action: String, down: bool) -> void:
+	var e := InputEventAction.new()
+	e.action = action
+	e.pressed = down
+	Input.parse_input_event(e)
+	await process_frame
+	await process_frame
+
+
+func _ready_all() -> void:
+	await _until(func(): return not player.is_casting(), 2.0)
+	for sp in player.get_node("Spells").get_children():
+		(sp as Spell).cooldown_left = 0.0
+
+
+func _test_smart_cast() -> void:
+	print("smart cast")
+	var ctl: PlayerController = player.get_node("PlayerController")
+	await _until(func(): return game.state == game.State.FIGHT, 5.0)
+	await _ready_all()
+	var q := player.get_spell("Q")
+	await _action("spell_q", true)
+	_check(ctl.aiming_slot == "Q" and ctl._indicator.visible, "holding Q shows the indicator")
+	_check(q.cooldown_left == 0.0, "holding Q doesn't cast yet")
+	await _action("spell_q", false)
+	_check(q.cooldown_left > 0.0, "releasing Q casts")
+	_check(ctl.aiming_slot == "" and not ctl._indicator.visible, "the indicator goes away")
+	await _ready_all()
+	player.move_target = null
+	await _action("spell_w", true)
+	var mb := InputEventMouseButton.new()
+	mb.button_index = MOUSE_BUTTON_RIGHT
+	mb.pressed = true
+	mb.position = root.get_final_transform() * Vector2(640, 300)
+	Input.parse_input_event(mb)
+	await process_frame
+	await process_frame
+	_check(ctl.aiming_slot == "" and player.move_target == null, "right-click cancels, no walk")
+	await _action("spell_w", false)
+	_check(player.get_spell("W").cooldown_left == 0.0, "a cancelled Blink isn't cast")
+	mb.pressed = false
+	Input.parse_input_event(mb)
+	await _ready_all()
+	await _action("spell_r", true)
+	_check(player.get_spell("R").cooldown_left > 0.0, "Shield casts on key down")
+	await _action("spell_r", false)
+	await _ready_all()
+	GameSettings.cast_mode = "instant"
+	await _action("spell_q", true)
+	_check(q.cooldown_left > 0.0, "instant mode: Q casts on key down")
+	await _action("spell_q", false)
+	GameSettings.cast_mode = "indicator"
+	await _ready_all()
+	await _action("spell_q", true)
+	game.pause_menu.open()
+	await process_frame
+	_check(ctl.aiming_slot == "", "pausing drops the aim")
+	game.pause_menu.close()
+	await _action("spell_q", false)
+	_check(q.cooldown_left == 0.0, "a key released while paused doesn't cast")
+
+
 func _test_ghost() -> void:
 	print("ghost on PC")
 	await _until(func(): return game.state == game.State.FIGHT, 5.0)
@@ -157,6 +220,9 @@ func _test_ghost() -> void:
 	_check(player.move_dir == Vector2.ZERO, "no right mouse: the ghost stays still")
 	_check(game.pc_bar.shown("A") and not game.pc_bar.shown("Q"), "ghost: only A on the bar")
 	_check(game.pc_bar.tooltip_text("A").begins_with("Haunt"), "ghost: A is Haunt")
+	await _action("spell_q", true)
+	_check(ctl.aiming_slot == "" and not ctl._indicator.visible, "ghost: a spell key shows no indicator")
+	await _action("spell_q", false)
 
 
 func _until(cond: Callable, limit: float) -> void:

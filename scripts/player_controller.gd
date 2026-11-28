@@ -8,6 +8,9 @@ extends Node
 ## slot, so WASD mode needs its own spell keys before it is offered.
 ## Ghost (dead in a fight, PC): hold right mouse to float toward the mouse,
 ## A haunts, left-click the minimap to teleport there.
+## Smart cast (2026-11-28): hold a spell key to see its range and hitbox
+## (CastIndicator), let go to cast at the mouse, right-click to cancel.
+## Shield / Dark Mirror, and the "instant" Casting setting, cast on key down.
 
 enum MoveMode { CLICK, WASD }
 
@@ -27,6 +30,11 @@ var ghost: Ghost
 var minimap: Minimap
 ## PC bar: right-clicks over it don't walk the warlock (game.gd sets it).
 var bar: PcBar
+## The spell key being held for a smart cast ("" when not aiming).
+var aiming_slot := ""
+var _indicator: CastIndicator
+## After a right-click cancel, holding right mouse doesn't walk until released.
+var _rmb_block := false
 
 
 func _ready() -> void:
@@ -34,20 +42,26 @@ func _ready() -> void:
 	_marker.top_level = true
 	_marker.z_index = 5
 	wizard.add_child.call_deferred(_marker)
+	_indicator = CastIndicator.new()
+	wizard.add_child.call_deferred(_indicator)
 
 
 func _process(_delta: float) -> void:
 	if not wizard.alive:
+		_stop_aiming()
 		if ghost != null:
 			_steer_ghost()
 		return
+	_update_aim()
+	if _rmb_block and not Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+		_rmb_block = false
 	match move_mode:
 		MoveMode.WASD:
 			wizard.move_target = null
 			wizard.move_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		MoveMode.CLICK:
 			# Holding right mouse keeps re-targeting, which feels nicer.
-			if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) and wizard.attack_target == null and not _over_bar(get_viewport().get_mouse_position()):
+			if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) and not _rmb_block and wizard.attack_target == null and not _over_bar(get_viewport().get_mouse_position()):
 				_set_target(wizard.get_global_mouse_position(), false)
 
 
@@ -61,19 +75,66 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	for slot in SPELL_SLOTS:
-		if event.is_action_pressed("spell_" + slot.to_lower()):
-			wizard.cast(slot, wizard.get_global_mouse_position())
+		var action: String = "spell_" + slot.to_lower()
+		if event.is_action_pressed(action):
+			_spell_key_down(slot)
 			get_viewport().set_input_as_handled()
 			return
+		if event.is_action_released(action) and slot == aiming_slot:
+			wizard.cast(slot, wizard.get_global_mouse_position())
+			_stop_aiming()
+			get_viewport().set_input_as_handled()
+			return
+	var mb := event as InputEventMouseButton
+	if aiming_slot != "" and mb and mb.pressed and mb.button_index == MOUSE_BUTTON_RIGHT:
+		_stop_aiming() # right-click cancels the cast, and doesn't walk
+		_rmb_block = true
+		get_viewport().set_input_as_handled()
+		return
 	if move_mode != MoveMode.CLICK:
 		return
-	var mb := event as InputEventMouseButton
 	if mb and mb.pressed and mb.button_index == MOUSE_BUTTON_RIGHT and not _over_bar(mb.position):
 		var enemy := _enemy_near(wizard.get_global_mouse_position(), PICK_RADIUS)
 		if enemy:
 			wizard.attack(enemy)
 		else:
 			_set_target(wizard.get_global_mouse_position(), true)
+
+
+func _spell_key_down(slot: String) -> void:
+	var spell := wizard.get_spell(slot)
+	if spell == null:
+		return
+	if GameSettings.cast_mode == "instant" or CastIndicator.instant(spell):
+		_stop_aiming()
+		wizard.cast(slot, wizard.get_global_mouse_position())
+		return
+	aiming_slot = slot # another key while aiming switches to that spell
+	_update_aim()
+
+
+## Keep the indicator on the mouse; drop the aim if the key went up unseen
+## (paused, or the controls were off when it was released).
+func _update_aim() -> void:
+	if aiming_slot == "":
+		return
+	var spell := wizard.get_spell(aiming_slot)
+	if spell == null or not Input.is_action_pressed("spell_" + aiming_slot.to_lower()):
+		_stop_aiming()
+		return
+	_indicator.show_for(spell, wizard, wizard.get_global_mouse_position())
+
+
+func _stop_aiming() -> void:
+	aiming_slot = ""
+	if _indicator:
+		_indicator.hide_now()
+
+
+func _notification(what: int) -> void:
+	# Controls switched off (countdown, round over) or the game paused.
+	if what == NOTIFICATION_DISABLED or what == NOTIFICATION_PAUSED:
+		_stop_aiming()
 
 
 ## Ghost: float toward the mouse while right mouse is held, else stop.

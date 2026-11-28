@@ -18,6 +18,9 @@ static var move_mode := "joystick"
 static var heat_haze := true ## shimmer over the lava (off for slow phones)
 static var reduce_shake := false ## smaller screen shake (Feel.REDUCED_SHAKE_SCALE)
 static var fullscreen := false ## PC only (Alt+Enter or Settings)
+## PC: "indicator" = hold a spell key to aim, cast on release; "instant" = cast on key down.
+static var cast_mode := "indicator"
+const CAST_MODES := ["indicator", "instant"]
 static var _loaded := false
 
 
@@ -45,6 +48,9 @@ static func load_settings() -> void:
 	heat_haze = cf.get_value("game", "heat_haze", heat_haze)
 	reduce_shake = cf.get_value("game", "reduce_shake", reduce_shake)
 	fullscreen = cf.get_value("game", "fullscreen", fullscreen)
+	cast_mode = cf.get_value("game", "cast_mode", cast_mode)
+	if not cast_mode in CAST_MODES:
+		cast_mode = "indicator"
 	if not move_mode in MOVES:
 		move_mode = "joystick"
 
@@ -61,6 +67,7 @@ static func save_settings() -> void:
 	cf.set_value("game", "heat_haze", heat_haze)
 	cf.set_value("game", "reduce_shake", reduce_shake)
 	cf.set_value("game", "fullscreen", fullscreen)
+	cf.set_value("game", "cast_mode", cast_mode)
 	cf.save(path)
 
 
@@ -89,4 +96,5 @@ static func reset() -> void:
 	heat_haze = true
 	reduce_shake = false
 	fullscreen = false
+	cast_mode = "indicator"
 	_loaded = true

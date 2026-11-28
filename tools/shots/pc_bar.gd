@@ -1,6 +1,6 @@
 extends SceneTree
 ## Screenshot of the PC bar mid-fight (a spell cooling down, a bought spell,
-## the tooltip over Q):  godot --path . -s tools/shots/pc_bar.gd -- <out.png>
+## Q held: the smart-cast indicator):  godot --path . -s tools/shots/pc_bar.gd -- <out.png>
 
 var game: Node
 
@@ -26,9 +26,15 @@ func _run() -> void:
 	var p: Wizard = game.player
 	game.gold[p] = 100
 	Shop.buy_spell(game, p, "homing")
-	p.cast("Q", p.global_position + Vector2(150, 0))
+	p.cast("E", p.global_position + Vector2(150, 0)) # E cooling down on the bar
 	await create_timer(0.6).timeout
-	Input.warp_mouse(root.get_final_transform() * game.pc_bar.slot_rect("Q").get_center())
+	# Hold Q with the mouse up-right of the player: the Fireball indicator.
+	var at: Vector2 = game.get_viewport().get_canvas_transform() * (p.global_position + Vector2(220, -90))
+	Input.warp_mouse(root.get_final_transform() * at)
+	var e := InputEventAction.new()
+	e.action = "spell_q"
+	e.pressed = true
+	Input.parse_input_event(e)
 	await create_timer(0.3).timeout
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(out)
