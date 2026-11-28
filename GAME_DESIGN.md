@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-28 (released v0.14: everything below since v0.13.1, APK + Windows zip; PC feel pass: zoomed-out start, smart cast with indicators, smaller PC HUD, staff lock-on for everyone — see "PC feel pass 2026-11-28"; todo 16 PC build done: one project builds Android + Windows, PC command bar, Esc / Alt+Enter, ghost on mouse — see "PC build 2026-11-28"; NEXT: the user playtests on PC; todo 17 store release prep added; staff marker over enemies, Fireball in the corner — see "Staff marker 2026-11-28"; performance pass: lava shrink stutter fixed, bots cheaper, stress test on the title (5 taps on the version) — see "Performance pass 2026-11-28"; spell rework: Meteor buff, Rock Wall -> Dark Mirror, Time Stop freezes wizards — see "Spell rework 2026-11-28"; 2026-11-27: review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
+_Last updated: 2026-11-28 (roadmap planning, no code changes for now, performance first rule — see todo 18 and docs/roadmap/2026-11-28-roadmap.md; released v0.14: everything below since v0.13.1, APK + Windows zip; PC feel pass: zoomed-out start, smart cast with indicators, smaller PC HUD, staff lock-on for everyone — see "PC feel pass 2026-11-28"; todo 16 PC build done: one project builds Android + Windows, PC command bar, Esc / Alt+Enter, ghost on mouse — see "PC build 2026-11-28"; NEXT: the user playtests on PC; todo 17 store release prep added; staff marker over enemies, Fireball in the corner — see "Staff marker 2026-11-28"; performance pass: lava shrink stutter fixed, bots cheaper, stress test on the title (5 taps on the version) — see "Performance pass 2026-11-28"; spell rework: Meteor buff, Rock Wall -> Dark Mirror, Time Stop freezes wizards — see "Spell rework 2026-11-28"; 2026-11-27: review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -19,6 +19,13 @@ Two projects share this design:
   **Exception — Android-only (v0.7 - v0.9, by choice):** fireball range 850 (PC: 700), the v0.7 HUD, pause menu and
   settings; v0.8 shop, Homing Orb, sound/music, title menu; everything in v0.9. PC is still at milestone 6. Expect a conflict in `fireball.gd` / `game.gd` / `round_hud.gd` / `touch_controls.gd` when cherry-picking.
 
+- **Standing rules (the user, 2026-11-28):**
+  - **Performance first, always:** FPS drops and stress testing come before anything else. It should "run on a
+    toaster". Every feature, effect or mode passes the stress test (`tools/perf_stress.gd`, phone-performance-check)
+    on the low-end phone before it is done.
+  - **No code changes for now:** planning only, until the user says to build. All topics (multiplayer, training mode,
+    Dead Cells-style menus/intro, fight transitions, itch.io and other sites, in-game feedback, balance / loadouts /
+    gold, 8 warlocks, legal for Google Play / Steam) are in `docs/roadmap/2026-11-28-roadmap.md` (todo 18).
 ### Next up (todo list, saved 2026-11-26; Android first)
 **v0.9** (everything except the camera) — _all done 2026-11-26 and released as v0.9; details under "Android v0.9" below_:
 - [x] 0a. Start banner "Fight!" → "Burn!" with a fiery whoosh.
@@ -158,6 +165,9 @@ brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) sta
   WC3-style bottom bar in our own art (square spell icons with hotkeys and cooldown sweep, tooltips, centre panel,
   minimap frame), no round buttons (the user). Windows export templates (~1 GB) download approved if needed. Spec:
   `docs/superpowers/specs/2026-11-28-pc-catch-up-design.md`.
+- [ ] 18. **Roadmap planning** (the user, 2026-11-28): brainstorm each topic in `docs/roadmap/2026-11-28-roadmap.md`
+  before any code. Suggested order: multiplayer design first, then itch.io + feedback link, menus + intro +
+  transitions, training mode, the multiplayer build, loadouts / balance / 8 warlocks, legal review + stores. <- next
 - [ ] 17. **Store release prep** (the user, 2026-11-28; later, not now). itch.io first (free page, Windows zip +
   APK, optional browser build, `tools/publish_itch.sh` with butler). Steam when nearly finished (Steamworks ~$100
   per game, store page "Coming Soon" 2+ weeks for wishlists, build review; optional GodotSteam for achievements /
