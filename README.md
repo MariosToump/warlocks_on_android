@@ -37,12 +37,12 @@ After every round you get gold — 10, plus 5 per kill, plus 5 if you won the ro
 | Spell | Gold | What it does |
 |---|---|---|
 | Homing Orb | 15 | A slow purple orb that curves toward the nearest enemy. A shield sends it back at you! |
-| Rock Wall | 15 | Raises 3 rocks in front of you, across your aim, for 4-5.5 s |
+| Dark Mirror | 15 | Dark glass panes round you for 2.5 s: a spell that flies into them goes straight back to its caster at the same speed (lightning too). Covers 1/3 of the ring, 2/3 at level 1, all of it at level 2+ |
 | Boomerang | 15 | A spinning blade flies out 420 px and comes back, hitting each wizard on its path up to twice. The hit on the way back pulls them toward you |
 | Swap | 15 | A fast orb: on a hit, you and the target trade places. On the lava's edge? Swap, and now they are |
-| Meteor | 20 | A meteor falls on the spot you pick: a warning ring for 1 s, then a huge blast and a crater |
+| Meteor | 20 | A meteor falls on the spot you pick: a warning ring for 0.85 s, then a huge blast (20-26 damage, a very big push) and a crater |
 | Gravity Well | 20 | A violet vortex drags nearby enemies to its centre for 2.5 s. You can walk out of the rim, not the middle. Try it at the lava's edge |
-| Time Stop | 20 | Freezes every spell flying inside a circle for 2 s, then lets them go |
+| Time Stop | 20 | Freezes every enemy wizard inside a circle for 1.5-2.1 s (no walking, no casting). Hits on them push 20% harder, and a wizard hit inside stays marked (+20%) for 2.5 s after |
 - **Items** (2 at most, sell for half price): Boots +15% speed, Stone Cloak -20% knockback taken,
   Fire Ring -50% lava damage, Focus Gem -10% cooldowns.
 - A new match starts everyone from scratch.
@@ -87,7 +87,8 @@ human mistakes (slow reactions, shots that miss), remember the spells they *see*
 you're hurt, near the lava or out of shield. They never read your cooldowns.
 
 The bots gang up on whoever has won the most rounds this match, don't waste spells on rocks, and raise a
-Rock Wall against a spell they see coming once they own one.
+Dark Mirror against a spell they see coming once they own one (and don't shoot into yours), and freeze you
+with Time Stop before a Meteor.
 
 ## Install
 **Download:** grab the latest APK from [Releases](https://github.com/MariosToump/warlocks_on_android/releases) and open it on your phone.
@@ -115,7 +116,7 @@ The APK ends up in `build/warlocks_on_android.apk` (not committed).
 | `scripts/round_hud.gd` | Scoreboard, banners, kill feed, results screen |
 | `scripts/arena.gd` | Lava map built in code from Wang tiles; shrinking + sudden death |
 | `scripts/wizard.gd` | A wizard: movement, health, knockback, lava, animations |
-| `scripts/spells/` | Fireball, Blink, Lightning, Shield, Staff strike, Homing Orb, Rock Wall, Boomerang, Swap, Meteor, Gravity Well, Time Stop |
+| `scripts/spells/` | Fireball, Blink, Lightning, Shield, Staff strike, Homing Orb, Dark Mirror, Boomerang, Swap, Meteor, Gravity Well, Time Stop |
 | `scripts/boomerang.gd`, `meteor_strike.gd`, `gravity_well.gd`, `time_stop_field.gd` | The new spells' objects in the arena |
 | `tools/build_effects.gd`, `assets/sprites/effects/` | Draws the new spells' pixel-art effects in code (the older effects are PixelLab) |
 | `scripts/feel.gd`, `scripts/flash_fx.gd` | All game-feel numbers in one place; code-drawn flashes, beams, after-images |
@@ -148,7 +149,8 @@ done
 python -I tools/sim/test_analyze.py   # sim analysis maths
 "$GODOT" --headless --path . -s tools/test_audio.gd   # limiter, voice limits, feedback sounds
 "$GODOT" --headless --path . -s tools/test_spell_edges.gd   # shop spells: dead caster, stones, lava, shields
-"$GODOT" --headless --path . -s tools/test_rock_wall.gd
+"$GODOT" --headless --path . -s tools/test_dark_mirror.gd
+"$GODOT" --headless --path . -s tools/test_time_stop.gd
 python tools/audio_check.py   # loudness / peaks / bass / loop seams of every sound (numpy, scipy, pyloudnorm)
 ```
 Each prints `ok` / `FAIL` lines and exits non-zero on failure.

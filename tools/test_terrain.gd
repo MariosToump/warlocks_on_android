@@ -94,30 +94,6 @@ func _run() -> void:
 	await _seconds(1.5)
 	_check(not is_instance_valid(b3) or b3.sinking, "rolled into the lava and sank")
 
-	print("Rock Wall")
-	game.gold[player] = 100
-	_check(Shop.buy_spell(game, player, "rockwall"), "buy Rock Wall in the shop (slot F)")
-	var wall_spell := player.get_spell("F") as RockWallSpell
-	_place(player, c)
-	_place(blue, c + Vector2(300, 0))
-	hp = blue.health
-	await _frames(2)
-	_check(player.cast("F", c + Vector2(200, 0)), "cast it toward the right")
-	await _seconds(0.3)
-	var walls := get_nodes_in_group("props").filter(func(n): return n.kind == Prop.Kind.WALL)
-	_check(walls.size() == 3, "3 rocks come up (%d)" % walls.size())
-	var mid := Vector2.ZERO
-	for r in walls:
-		mid += r.global_position / walls.size()
-	_check(mid.distance_to(c + Vector2(wall_spell.distance, 0)) < 3.0, "in front of the caster, across the aim")
-	blue.cast("Q", player.global_position)
-	await _seconds(0.9)
-	_check(is_equal_approx(player.health, 100.0), "the wall blocks a fireball")
-	await _seconds(wall_spell.life_by_level[0])
-	await _frames(20)
-	walls = get_nodes_in_group("props").filter(func(n): return n.kind == Prop.Kind.WALL)
-	_check(walls.is_empty(), "and crumbles after %.0f s" % wall_spell.life_by_level[0])
-
 	print("fireball craters")
 	for n in get_nodes_in_group("craters") + get_nodes_in_group("props"):
 		n.free() # (an earlier boulder rolled right where this one bursts)

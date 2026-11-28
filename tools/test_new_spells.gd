@@ -1,5 +1,6 @@
 extends SceneTree
-## The v0.12 shop spells: Boomerang, Swap, Meteor, Gravity Well, Time Stop
+## The v0.12 shop spells: Boomerang, Swap, Meteor, Gravity Well (Time Stop:
+## tools/test_time_stop.gd since its 2026-11-28 rework).
 ## (behaviour + bots). Bots are passive dummies unless a test adds a brain.
 ##   godot --headless --path . -s tools/test_new_spells.gd
 
@@ -46,7 +47,6 @@ func _run() -> void:
 	await _test_swap()
 	await _test_meteor()
 	await _test_well()
-	await _test_time_stop()
 
 	print("TEST PASSED (0 failures)" if failures == 0 else "TEST FAILED (%d failures)" % failures)
 	quit(1 if failures else 0)
@@ -176,6 +176,8 @@ func _test_meteor() -> void:
 	_check(is_equal_approx(blue.health, 100.0), "nothing before the 0.85 s warning ends")
 	await _seconds(0.3)
 	_check(blue.health < 100.0 and blue.knockback.x > 0.0, "then the blast hurts and pushes outward")
+	_check(is_equal_approx(blue.health, 80.0), "level 0 hits for 20 (meteor buff 2026-11-28; hp %.0f)" % blue.health)
+	_check(blue.knockback.length() > 700.0, "and shoves hard (%.0f px/s, the old meteor ~575 here)" % blue.knockback.length())
 	_check(is_equal_approx(green.health, 100.0), "120 px away: untouched")
 	_check(is_equal_approx(purple.health, 100.0), "a shield blocks it")
 	var crater := false
@@ -249,62 +251,6 @@ func _test_well() -> void:
 	_remove_bot(runner)
 	Shop.sell_spell(game, player, "well")
 	Shop.sell_spell(game, blue, "well")
-
-
-# --- Time Stop ---------------------------------------------------------------
-
-func _test_time_stop() -> void:
-	print("time stop")
-	_park_all()
-	var slot := _give(player, "timestop")
-	var at := c + Vector2(300, 200)
-	_place(player, c + Vector2(0, 200))
-	_cast_now(player, slot, at)
-	_place(blue, at + Vector2(-250, 0))
-	(blue.get_spell("Q") as Spell).release(at + Vector2(400, 0))
-	var fb := _find("projectiles") as Projectile
-	var dir := fb.direction
-	await _seconds(0.6)
-	var p1 := fb.global_position
-	await _seconds(0.8)
-	_check(is_instance_valid(fb) and fb.global_position.distance_to(p1) < 1.0 \
-		and fb.global_position.distance_to(at) <= 121.0, "a fireball inside the circle is frozen")
-	await _seconds(0.8) # the stop lasts 2.0 s
-	_check(not is_instance_valid(fb) or (fb.global_position.distance_to(p1) > 20.0 and fb.direction == dir),
-		"then it carries on the same way")
-	_park_all()
-	_cast_now(player, slot, c + Vector2(0, 200))
-	_place(blue, c + Vector2(0, 200))
-	blue.move_dir = Vector2.RIGHT
-	await _seconds(0.5)
-	blue.move_dir = Vector2.ZERO
-	_check(blue.global_position.x - c.x > 50.0, "wizards inside walk normally")
-
-	print("time stop: bots")
-	_park_all()
-	var ai := _idle_bot(purple, "trickster")
-	_give(purple, "timestop")
-	_place(purple, c)
-	_place(blue, c + Vector2(400, 0))
-	await _frames(2)
-	(blue.get_spell("Q") as Spell).release(purple.global_position)
-	await _frames(20)
-	ai._danger = _find("projectiles") as Projectile
-	_check(ai._score_timestop() > 0.0, "scores Time Stop against an incoming spell (%.2f)" % ai._score_timestop())
-	_park_all()
-	var gai := _idle_bot(green, "caster")
-	_place(green, c)
-	_place(blue, c + Vector2(500, 0))
-	await _frames(2)
-	gai.target = blue
-	_place(player, c + Vector2(0, 200))
-	var before := gai._score_fireball()
-	_cast_now(player, slot, c + Vector2(250, 0))
-	_check(before > 0.0 and gai._score_fireball() == 0.0, "bots don't throw into a Time Stop")
-	_remove_bot(ai)
-	_remove_bot(gai)
-	Shop.sell_spell(game, player, "timestop")
-	Shop.sell_spell(game, purple, "timestop")
 
 
 # --- helpers -----------------------------------------------------------------

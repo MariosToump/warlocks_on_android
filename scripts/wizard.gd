@@ -78,6 +78,17 @@ var pull := Vector2.ZERO
 var facing := "south"
 ## Seconds of shield left (Shield spell). Reflects projectiles, blocks lightning.
 var shield_left := 0.0
+## Time Stop (2026-11-28): standing in an enemy's field freezes us (no
+## walking, no casting; knockback still moves us). Hits taken in it push
+## TIME_MARK_KNOCKBACK x harder, and a wizard hit in it stays "marked" (same
+## bonus) for TIME_MARK s after it gets out.
+const TIME_MARK := 2.5
+const TIME_MARK_KNOCKBACK := 1.2
+const FROZEN_TINT := Color(0.62, 0.85, 1.3)
+var frozen := false
+var time_mark_left := 0.0
+var _in_time_stop := false
+var _hit_in_time_stop := false
 var _sprite_base_y := 0.0
 var _squash_tween: Tween
 
@@ -115,13 +126,15 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not alive:
 		return
-	_update_auto_attack()
-	_update_cast(delta)
+	_update_time_stop(delta)
+	if not frozen:
+		_update_auto_attack()
+		_update_cast(delta)
 	_update_shield(delta)
 	# Attacks can be cut short by walking once the hit has landed.
 	if _casting and _casting.cancel_on_move and _cast_released and _wants_to_walk():
 		_casting = null
-	var walk := Vector2.ZERO if _casting else _walk_velocity()
+	var walk := Vector2.ZERO if _casting or frozen else _walk_velocity()
 	knockback *= exp(-knockback_friction * delta)
 	if knockback.length() < 2.0:
 		knockback = Vector2.ZERO
@@ -130,8 +143,35 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_clamp_to_arena()
 	_update_lava(delta)
-	_update_animation(walk)
+	if not frozen:
+		_update_animation(walk)
 	_update_trail()
+
+
+func _update_time_stop(delta: float) -> void:
+	var was := frozen
+	var marked_before := time_mark_left > 0.0
+	_in_time_stop = TimeStopField.holds(self)
+	frozen = _in_time_stop
+	if _in_time_stop:
+		if _hit_in_time_stop:
+			time_mark_left = TIME_MARK # counts down once we're out
+	else:
+		_hit_in_time_stop = false
+		time_mark_left = maxf(time_mark_left - delta, 0.0)
+	if frozen != was:
+		modulate = FROZEN_TINT if frozen else Color.WHITE
+		if frozen:
+			sprite.pause()
+		else:
+			sprite.play()
+	if marked_before or time_mark_left > 0.0 or was != frozen:
+		queue_redraw()
+
+
+## Hits push this much harder right now (Time Stop field / mark).
+func time_knockback() -> float:
+	return TIME_MARK_KNOCKBACK if _in_time_stop or time_mark_left > 0.0 else 1.0
 
 
 func _update_trail() -> void:
@@ -153,6 +193,15 @@ func has_trail() -> bool:
 func _draw() -> void:
 	if alive:
 		draw_shadow(self, SHADOW_AT, SHADOW)
+	if alive and (time_mark_left > 0.0 or _hit_in_time_stop):
+		# Time Stop mark: a ticking icy ring at the feet (hits push harder).
+		var ticks := 12
+		for i in ticks:
+			if i == int(GameClock.now() * 6.0) % ticks:
+				continue
+			var a := i * TAU / ticks
+			var p := (SHADOW_AT + Vector2(cos(a) * 12.0, sin(a) * 5.0)).round()
+			draw_rect(Rect2(p - Vector2(1, 1), Vector2(2, 2)), Color(0.55, 0.95, 1.0, 0.9))
 	var n := _trail.size()
 	for i in range(1, n):
 		var k := float(i) / n
@@ -204,7 +253,7 @@ func slot_of(id: String) -> String:
 ## it can't be cast right now (dead, already casting, on cooldown, empty).
 func cast(slot: String, target: Vector2) -> bool:
 	var spell := get_spell(slot)
-	if not alive or _casting or spell == null or not spell.is_ready():
+	if not alive or frozen or _casting or spell == null or not spell.is_ready():
 		return false
 	_casting = spell
 	_cast_elapsed = 0.0
@@ -344,7 +393,9 @@ func squash(to: Vector2, time := Feel.SQUASH_TIME) -> void:
 ## Push the wizard. Scaled up by how much damage it has taken.
 func apply_knockback(impulse: Vector2) -> void:
 	if alive:
-		knockback += impulse * (1.0 + damage_taken * knockback_per_damage) * knockback_taken_multiplier
+		if _in_time_stop:
+			_hit_in_time_stop = true
+		knockback += impulse * (1.0 + damage_taken * knockback_per_damage) * knockback_taken_multiplier * time_knockback()
 
 
 func reset(at: Vector2) -> void:
@@ -359,6 +410,15 @@ func reset(at: Vector2) -> void:
 	alive = true
 	_casting = null
 	shield_left = 0.0
+	time_mark_left = 0.0
+	if frozen:
+		sprite.play()
+	frozen = false
+	_in_time_stop = false
+	_hit_in_time_stop = false
+	for c in get_children():
+		if c is DarkMirror:
+			c.queue_free()
 	bubble.visible = false
 	sprite.self_modulate = Color.WHITE
 	sprite.modulate = Color.WHITE

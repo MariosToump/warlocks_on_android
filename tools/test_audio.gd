@@ -28,7 +28,7 @@ func _run() -> void:
 		if s == null or s.get_length() <= 0.0:
 			missing.append(n)
 	_check(missing.is_empty(), "all %d sounds load (%s)" % [Sfx.SOUNDS.size(), missing])
-	for n in ["reflect", "kill", "lava_warn", "heartbeat", "match_win", "match_lose", "denied", "rockwall",
+	for n in ["reflect", "kill", "lava_warn", "heartbeat", "match_win", "match_lose", "denied", "mirror", "mirror_reflect",
 			"boomerang_return", "ghost", "homing_hum"]:
 		_check(Sfx.SOUNDS.has(n), "new sound '%s'" % n)
 	_check((Sfx.SOUNDS["lava"] as AudioStreamWAV).get_length() >= 6.0, "lava loop is 6 s or more")

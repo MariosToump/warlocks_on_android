@@ -1,12 +1,14 @@
 class_name TimeStopSpell
 extends Spell
-## Bought in the shop (v0.12): freeze every projectile inside a 120 px circle
-## up to 450 px away for 2 s (see TimeStopField). Blocks a volley, or traps
-## your own spells to release them later.
+## Bought in the shop (v0.12; reworked 2026-11-28): a 120 px circle up to
+## 450 px away that freezes every enemy wizard inside it (see TimeStopField).
+## Hits on them push 20% harder, and that lasts 2.5 s after they get out. Set
+## up a Meteor, a Lightning into the lava, a Fireball they can't dodge.
 
 const FRAMES := preload("res://assets/sprites/effects/time_stop_frames.tres")
 
-@export var duration_by_level: Array[float] = [2.0, 2.2, 2.4, 2.6]
+## Was 2.0-2.6 s for spells; a frozen wizard is far stronger, so shorter.
+@export var duration_by_level: Array[float] = [1.5, 1.7, 1.9, 2.1]
 @export var max_range := 450.0
 
 

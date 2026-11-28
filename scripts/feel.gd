@@ -14,7 +14,7 @@ const DEATH_SHAKE := 5.0 ## a wizard dies on screen (3-8)
 const DEATH_SHAKE_TIME := 0.35 ## (0.2-0.5)
 const LAVA_SHAKE := 2.5 ## the lava starts closing in (1-4)
 const LAVA_SHAKE_TIME := 0.6 ## (0.3-1.0)
-const METEOR_SHAKE := 6.0 ## a meteor lands near the camera (4-10)
+const METEOR_SHAKE := 9.0 # was 6 (2026-11-28, meteor buff) ## a meteor lands near the camera (4-10)
 const METEOR_SHAKE_TIME := 0.3 ## (0.2-0.5)
 ## "Reduce screen shake" (pause menu): every shake is scaled by this.
 const REDUCED_SHAKE_SCALE := 0.35 ## (0-0.5)

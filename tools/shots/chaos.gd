@@ -16,7 +16,7 @@ func _init() -> void:
 func _run() -> void:
 	await frames(2)
 	grab()
-	var ids := ["homing", "meteor", "well", "boomerang", "swap", "timestop", "rockwall", "meteor"]
+	var ids := ["homing", "meteor", "well", "boomerang", "swap", "timestop", "mirror", "meteor"]
 	var i := 0
 	for w in [player, blue, green, purple]:
 		give(w, ids[i]); give(w, ids[i + 1]); i += 2

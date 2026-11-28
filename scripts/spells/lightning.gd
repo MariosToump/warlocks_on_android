@@ -45,7 +45,8 @@ func release(target: Vector2) -> void:
 		if w == caster or not w.alive:
 			continue
 		var t := (w.global_position - from).dot(dir)
-		var hit_reach := Wizard.SHIELD_RADIUS if w.is_shielded() else width_at(t)
+		var mirrored := DarkMirror.covers(w, from - w.global_position)
+		var hit_reach := DarkMirror.RADIUS if mirrored else Wizard.SHIELD_RADIUS if w.is_shielded() else width_at(t)
 		if t < 0.0 or t > max_range + hit_reach:
 			continue
 		var off := (w.global_position - (from + dir * t)).length()
@@ -62,7 +63,22 @@ func release(target: Vector2) -> void:
 
 	var parent := caster.get_parent()
 	if best:
-		if best.is_shielded():
+		if DarkMirror.covers(best, from - best.global_position):
+			# Dark Mirror: the bolt stops on the glass and goes straight back
+			# down its own line into the caster (unless they're shielded).
+			end = from + dir * maxf(best_t - DarkMirror.RADIUS, 0.0)
+			DarkMirror.of(best).flash()
+			Sfx.play_at("mirror_reflect", end)
+			if not caster.is_shielded():
+				caster.take_damage(damage_by_level[level], best)
+				caster.apply_knockback(-dir * knockback_by_level[level])
+				caster.flash_hit(-dir, "lightning")
+				EffectOneShot.spawn_at_feet(HIT, parent, caster.global_position)
+			var back: Node2D = BOLT.new()
+			back.from = end
+			back.to = from + dir * 4.0
+			parent.add_child(back)
+		elif best.is_shielded():
 			end = from + dir * maxf(best_t - Wizard.SHIELD_RADIUS, 0.0)
 			EffectOneShot.spawn_at_feet(HIT, parent, end).scale = Vector2(0.6, 0.6)
 		else:

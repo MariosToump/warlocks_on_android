@@ -7,7 +7,7 @@ extends Node2D
 
 const ROCK := preload("res://assets/sprites/effects/meteor_rock_frames.tres")
 const BLAST := preload("res://assets/sprites/effects/meteor_blast_frames.tres")
-const FALL_FROM := Vector2(-150, -240) ## where the rock starts, from the target
+const FALL_FROM := Vector2(-190, -300) ## where the rock starts, from the target
 
 var caster: Wizard
 var radius := 75.0
@@ -44,7 +44,7 @@ func _physics_process(delta: float) -> void:
 	age += delta
 	var t := clampf(age / delay, 0.0, 1.0)
 	_rock.position = FALL_FROM.lerp(Vector2(0, -8), t * t) # speeds up as it falls
-	_rock.scale = Vector2.ONE * lerpf(0.7, 1.2, t)
+	_rock.scale = Vector2.ONE * lerpf(0.55, 1.0, t) # 2026-11-28: bigger art, never upscaled
 	queue_redraw()
 	if age >= delay:
 		_blast()

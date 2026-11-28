@@ -19,9 +19,9 @@ const SPELLS := {
 	"homing": {"name": "Homing Orb", "home": "D", "price": 15,
 			"script": preload("res://scripts/spells/homing_orb.gd"),
 			"desc": "Slow orb that curves toward the nearest enemy."},
-	"rockwall": {"name": "Rock Wall", "home": "F", "price": 15,
-			"script": preload("res://scripts/spells/rock_wall.gd"),
-			"desc": "Raise 3 rocks in front of you: cover for a few seconds."},
+	"mirror": {"name": "Dark Mirror", "home": "F", "price": 15,
+			"script": preload("res://scripts/spells/dark_mirror.gd"),
+			"desc": "Dark glass round you sends spells back at their caster."},
 	"boomerang": {"name": "Boomerang", "home": "D", "price": 15,
 			"script": preload("res://scripts/spells/boomerang.gd"),
 			"desc": "Spinning blade: flies out, comes back, can hit twice."},
@@ -30,13 +30,13 @@ const SPELLS := {
 			"desc": "Fast orb: on a hit you and the target trade places."},
 	"meteor": {"name": "Meteor", "home": "F", "price": 20,
 			"script": preload("res://scripts/spells/meteor.gd"),
-			"desc": "Calls a meteor on a spot: 1 s warning, then a huge blast."},
+			"desc": "Calls a meteor on a spot: a short warning, then a huge blast."},
 	"well": {"name": "Gravity Well", "home": "F", "price": 20,
 			"script": preload("res://scripts/spells/gravity_well.gd"),
 			"desc": "A vortex that drags nearby enemies to its centre."},
 	"timestop": {"name": "Time Stop", "home": "F", "price": 20,
 			"script": preload("res://scripts/spells/time_stop.gd"),
-			"desc": "Freezes every spell flying inside a circle for 2 s."},
+			"desc": "Freezes enemies in a circle. Hits on them push 20% harder."},
 }
 
 const ITEMS := {
@@ -54,7 +54,7 @@ const BOT_PRIORITY := {
 	"Caster": ["up:Q", "item:gem", "spell:meteor", "up:Q", "spell:homing", "up:E", "item:ring", "up:R", "up:D", "up:W", "up:F"],
 	"Brawler": ["up:E", "spell:swap", "spell:well", "item:cloak", "up:A", "item:boots", "up:R", "up:W", "up:F", "up:D", "up:Q"],
 	"Trickster": ["up:W", "spell:boomerang", "spell:timestop", "item:boots", "up:Q", "up:E", "item:gem", "up:D", "up:R", "up:F"],
-	"Bot": ["up:Q", "item:boots", "up:E", "spell:homing", "spell:rockwall", "item:cloak", "up:W", "up:R", "up:D", "up:F"],
+	"Bot": ["up:Q", "item:boots", "up:E", "spell:homing", "spell:mirror", "item:cloak", "up:W", "up:R", "up:D", "up:F"],
 }
 
 

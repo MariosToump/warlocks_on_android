@@ -14,7 +14,7 @@ func _run() -> void:
 	player.global_position = c
 	cam_on(player)
 	var spots := [["Q", ""], ["E", ""], ["A", ""], ["W", ""], ["R", ""], ["", "homing"], ["", "boomerang"],
-			["", "swap"], ["", "meteor"], ["", "well"], ["", "rockwall"], ["", "timestop"]]
+			["", "swap"], ["", "meteor"], ["", "well"], ["", "mirror"], ["", "timestop"]]
 	for s in spots:
 		player.global_position = c
 		player.knockback = Vector2.ZERO

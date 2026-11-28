@@ -42,7 +42,7 @@ var _late: Array = []
 func _init() -> void:
 	_rng.seed = 7 # same art every run
 	_bake("boomerang", Vector2i(24, 24), 8, 16.0, true, _boomerang)
-	_bake("meteor_rock", Vector2i(32, 32), 6, 12.0, true, _meteor)
+	_bake("meteor_rock", Vector2i(56, 56), 6, 12.0, true, _meteor) # 2026-11-28: bigger (was 32)
 	_bake("gravity_well", Vector2i(64, 40), 12, 12.0, true, _well)
 	_bake("swap_orb", Vector2i(20, 20), 6, 14.0, true, _swap_orb)
 	_bake("swap_puff", Vector2i(48, 48), 10, 18.0, false, _swap_puff)
@@ -50,7 +50,8 @@ func _init() -> void:
 	_bake("time_stop", Vector2i(248, 148), 10, 8.0, true, _time_stop)
 	_bake("homing_orb", Vector2i(18, 18), 6, 12.0, true, _homing_orb)
 	_bake("homing_burst", Vector2i(44, 44), 8, 20.0, false, _homing_burst)
-	_bake("meteor_blast", Vector2i(168, 112), 10, 18.0, false, _meteor_blast)
+	_bake("meteor_blast", Vector2i(232, 156), 12, 18.0, false, _meteor_blast) # 2026-11-28: bigger (was 168x112)
+	_bake("dark_mirror_icon", Vector2i(24, 24), 1, 1.0, false, _mirror_icon)
 	quit()
 
 
@@ -177,39 +178,58 @@ func _boomerang(img: Image, i: int, n: int) -> void:
 
 ## A burning rock falling down-right, flames streaming up-left (flickering).
 func _meteor(img: Image, i: int, _n: int) -> void:
-	var c := Vector2(20, 20)
+	# 2026-11-28 (user: "it should feel like a meteor"): 1.75x the old rock,
+	# a long flame tail and more embers.
+	var k := 1.75
+	var c := Vector2(37, 37)
 	var back := Vector2(-1, -1).normalized()
 	# flames: layered tongues, hottest near the rock
-	var layers := [[RED, 15.0, 6.0], [ORANGE, 12.0, 4.8], [AMBER, 9.0, 3.6], [GOLD, 6.0, 2.4], [CREAM, 3.5, 1.4]]
+	var layers := [[RED_D, 44.0, 12.0], [RED, 38.0, 10.5], [ORANGE, 31.0, 8.6], [AMBER, 23.0, 6.6], [GOLD, 16.0, 4.6], [CREAM, 9.0, 2.8]]
 	for L in layers:
 		var col: Color = L[0]
-		var length: float = L[1] + _rng.randf_range(-1.5, 1.5)
+		var length: float = L[1] + _rng.randf_range(-2.5, 2.5)
 		var width: float = L[2]
 		for s in int(length * 2.0):
 			var t := s / 2.0
-			var wob := sin(t * 0.9 + i * 1.7) * 1.2
+			var wob := sin(t * 0.6 + i * 1.7) * 1.8
 			var half := width * (1.0 - t / length)
 			var mid := c + back * t + back.orthogonal() * wob
-			for k in range(-ceili(half), ceili(half) + 1):
-				if absf(k) <= half:
-					_pxv(img, mid + back.orthogonal() * k, col)
-	# loose embers
-	for e in 3:
-		_pxv(img, c + back * _rng.randf_range(12, 17) + back.orthogonal() * _rng.randf_range(-5, 5), GOLD)
+			for o in range(-ceili(half), ceili(half) + 1):
+				if absf(o) <= half:
+					_pxv(img, mid + back.orthogonal() * o, col)
+	# loose embers trailing behind
+	for e in 7:
+		_pxv(img, c + back * _rng.randf_range(24, 44) + back.orthogonal() * _rng.randf_range(-10, 10), GOLD if e % 2 else AMBER)
 	# the rock: lumpy dark stone with glowing cracks
-	for y in 32:
-		for x in 32:
+	for y in img.get_height():
+		for x in img.get_width():
 			var p := Vector2(x, y)
 			var d := p.distance_to(c)
-			var lump := 6.0 + 0.9 * sin(atan2(y - c.y, x - c.x) * 3.0 + 1.0)
+			var lump := (6.0 + 0.9 * sin(atan2(y - c.y, x - c.x) * 3.0 + 1.0)) * k
 			if d <= lump:
-				var lit := (p - c).dot(back) > 1.5
-				_px(img, x, y, PLUM if lit else PLUM_D)
-	for k in 5: # cracks
-		var t := k / 4.0
-		_pxv(img, c + Vector2(-3 + t * 6, -1 + sin(t * 5.0) * 2.0), AMBER if (k + i) % 3 else GOLD)
-	_pxv(img, c + Vector2(1, 3), ORANGE)
-	_pxv(img, c + Vector2(2, 2), AMBER)
+				var lit := (p - c).dot(back) > 2.5
+				var rim := (p - c).dot(back) > lump - 3.0
+				_px(img, x, y, ROSE if rim else PLUM if lit else PLUM_D)
+	for o in 9: # cracks
+		var t := o / 8.0
+		_pxv(img, c + Vector2(-5 + t * 10, -1 + sin(t * 5.0) * 3.5), AMBER if (o + i) % 3 else GOLD)
+	for o in 4:
+		_pxv(img, c + Vector2(1 + o, 5 - o), ORANGE if o % 2 else AMBER)
+
+
+## Dark Mirror shop icon: three dark glass panes on an arc, violet glints.
+func _mirror_icon(img: Image, _i: int, _n: int) -> void:
+	var c := Vector2(11.5, 15.5)
+	for p in 3:
+		var a := -PI / 2.0 + (p - 1) * 0.75
+		var mid := c + Vector2(cos(a) * 8.0, sin(a) * 8.0)
+		var along := Vector2(-sin(a), cos(a))
+		for u in range(-3, 4):
+			for v in range(-5, 2):
+				var q := mid + along * u + Vector2(0, v)
+				_pxv(img, q, VIOLET_D if absf(u) < 3 and v > -5 and v < 1 else PLUM_D)
+		_pxv(img, mid + along * -1 + Vector2(0, -3), LILAC)
+		_pxv(img, mid + along * -1 + Vector2(0, -2), VIOLET)
 
 
 ## A violet vortex seen from the 3/4 view (flattened): three spiral arms
@@ -366,38 +386,47 @@ func _homing_burst(img: Image, i: int, n: int) -> void:
 		_spark(c + Vector2(cos(a), sin(a)) * (r * 0.8), LILAC if k % 2 else WHITE)
 
 
-## Meteor impact at full size (radius 75 world px): a white-hot flash, a
-## ring of fire rolling outward, chunky rock debris flung out.
+## Meteor impact (2026-11-28: bigger, the hitbox is still radius 85): a
+## white-hot flash, a thick ring of fire rolling out to ~104 px, flame
+## tongues, big rock debris flung high and far, then a smoke ring.
 func _meteor_blast(img: Image, i: int, n: int) -> void:
-	var c := Vector2(83.5, 55.5)
+	var c := Vector2(115.5, 75.5)
 	var t := i / float(n - 1)
 	var sq := 0.62 # seen from above, flat like the warning ring
 	if i == 0:
-		_oval(img, c, Vector2(30, 30 * sq), AMBER)
-		_oval(img, c, Vector2(20, 20 * sq), GOLD)
-		_oval(img, c, Vector2(10, 10 * sq), CREAM)
+		_oval(img, c, Vector2(44, 44 * sq), ORANGE)
+		_oval(img, c, Vector2(34, 34 * sq), AMBER)
+		_oval(img, c, Vector2(22, 22 * sq), GOLD)
+		_oval(img, c, Vector2(12, 12 * sq), CREAM)
 		return
-	var r := lerpf(28.0, 76.0, sqrt(t))
-	var w := lerpf(9.0, 3.0, t)
-	var col := ORANGE if t < 0.4 else RED if t < 0.75 else RED_D
+	var r := lerpf(34.0, 104.0, sqrt(t))
+	var w := lerpf(14.0, 4.0, t)
+	var col := ORANGE if t < 0.35 else RED if t < 0.7 else RED_D
+	if t > 0.8:
+		col = PLUM_D # smoke at the end
 	for y in img.get_height():
 		for x in img.get_width():
 			var d := Vector2((x - c.x) / r, (y - c.y) / (r * sq)).length()
 			if d <= 1.0 and d >= (r - w) / r:
 				img.set_pixel(x, y, col)
-	if t < 0.5: # the hot core fading
-		var cr := 18.0 * (1.0 - t * 1.6)
+			elif t < 0.35 and d <= 1.0 and d >= (r - w - 3.0) / r:
+				img.set_pixel(x, y, AMBER) # a hot inner edge early on
+	if t < 0.55: # the hot core fading
+		var cr := 28.0 * (1.0 - t * 1.6)
 		_oval(img, c, Vector2(cr, cr * sq), GOLD if t < 0.25 else AMBER)
 	if t < 0.3:
-		_oval(img, c, Vector2(7, 7 * sq), CREAM)
-	if t < 0.7: # flame tongues on the ring
-		for k in 14:
-			var a := k * TAU / 14.0 + _rng.randf() * 0.2
-			_oval(img, c + Vector2(cos(a) * r, sin(a) * r * sq), Vector2(2.5, 2.0), AMBER if k % 2 else GOLD)
-	if t < 0.9: # dark rock chunks thrown out further
-		for k in 10:
-			var a := k * TAU / 10.0 + 0.25
-			var dr := r + 6.0 + t * 10.0
-			var p := c + Vector2(cos(a) * dr, sin(a) * dr * sq - sin(t * PI) * 8.0)
-			_oval(img, p, Vector2(1.6, 1.4), PLUM_D)
+		_oval(img, c, Vector2(11, 11 * sq), CREAM)
+	if t < 0.75: # flame tongues on the ring
+		for o in 20:
+			var a := o * TAU / 20.0 + _rng.randf() * 0.2
+			_oval(img, c + Vector2(cos(a) * r, sin(a) * r * sq - 2.0), Vector2(3.5, 3.0), AMBER if o % 2 else GOLD)
+	if t < 0.95: # big dark rock chunks thrown out further and up
+		for o in 14:
+			var a := o * TAU / 14.0 + 0.25
+			var dr := r + 8.0 + t * 16.0
+			var p := c + Vector2(cos(a) * dr, sin(a) * dr * sq - sin(t * PI) * 16.0)
+			var big := 2.6 if o % 3 == 0 else 1.8
+			_oval(img, p, Vector2(big, big * 0.85), PLUM_D)
 			_pxv(img, p + Vector2(-0.5, -0.5), ROSE)
+			if t < 0.5:
+				_spark(p + Vector2(1, 1), AMBER)

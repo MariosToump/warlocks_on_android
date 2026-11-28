@@ -10,7 +10,7 @@ import glob, json, math, os, sys
 from itertools import combinations
 
 Z = 1.96
-NAMES = {"homing": "Homing Orb", "rockwall": "Rock Wall", "boomerang": "Boomerang", "swap": "Swap",
+NAMES = {"homing": "Homing Orb", "mirror": "Dark Mirror", "boomerang": "Boomerang", "swap": "Swap",
          "meteor": "Meteor", "well": "Gravity Well", "timestop": "Time Stop"}
 
 

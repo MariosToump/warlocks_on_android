@@ -9,10 +9,10 @@ extends Node
 ## movement actions set a goal that is followed every physics frame.
 
 ## Every action has _score_<name>() -> float and _do_<name>() -> void.
-const ACTIONS := ["dodge", "recover", "shield", "reposition", "fireball", "lightning", "staff", "blink_in", "homing", "rockwall",
+const ACTIONS := ["dodge", "recover", "shield", "reposition", "fireball", "lightning", "staff", "blink_in", "homing", "mirror",
 	"boomerang", "swap", "meteor", "well", "timestop", "evade"]
 ## Actions that attack (held back by hesitation, the opening watch, moods).
-const ATTACKS := ["fireball", "lightning", "staff", "blink_in", "homing", "boomerang", "swap", "meteor", "well"]
+const ATTACKS := ["fireball", "lightning", "staff", "blink_in", "homing", "boomerang", "swap", "meteor", "well", "timestop"]
 ## Bonus for sticking with the current action / target (stops jitter).
 const KEEP_ACTION_BONUS := 0.1
 const KEEP_TARGET_BONUS := 80.0
@@ -44,7 +44,7 @@ const WATCH_ATTACK := 0.15
 const WATCH_DISTANCE := 260.0
 ## An enemy this exposed ends the watch at once.
 const WATCH_BREAK_OPPORTUNITY := 0.6
-const DEFENCES := ["dodge", "shield", "rockwall", "timestop", "evade"]
+const DEFENCES := ["dodge", "shield", "mirror", "evade"]
 ## Seen shield / blink: "probably down" for this share of our own base cooldown.
 const COOLDOWN_GUESS := 0.9
 ## Opportunity: target cost bonus per point (x risk).
@@ -357,10 +357,15 @@ func _rock_in_the_way() -> bool:
 	return Prop.blocks(get_tree(), wizard.global_position, target.global_position)
 
 
-## A projectile would be stopped on the way: a rock, or a Time Stop (it would
-## hang there, and maybe get turned on us later).
+## A projectile would be wasted: a rock eats it, or the target's Dark
+## Mirror faces us and would send it back.
 func _shot_blocked() -> bool:
-	return _rock_in_the_way() or TimeStopField.on_line(get_tree(), wizard.global_position, target.global_position)
+	return _rock_in_the_way() or _mirrored()
+
+
+## The target's Dark Mirror faces us: whatever we throw comes back.
+func _mirrored() -> bool:
+	return DarkMirror.covers(target, wizard.global_position - target.global_position)
 
 
 func _can_cast(slot: String) -> bool:
@@ -421,33 +426,28 @@ func _score_homing() -> float:
 	if target == null or slot == "" or not _can_cast(slot) or target.is_shielded():
 		return 0.0
 	var d := _target_distance()
-	if d < 140.0 or d > 700.0 or TimeStopField.on_line(get_tree(), wizard.global_position, target.global_position):
+	if d < 140.0 or d > 700.0 or _mirrored():
 		return 0.0
 	return 0.85
 
 
-## Rock Wall (if bought): cover from a spell we've seen coming when the
-## shield is down; a little less than a clean dodge.
-func _score_rockwall() -> float:
-	var slot := wizard.slot_of("rockwall")
-	if slot == "" or not _can_cast(slot) or _danger == null:
+## Dark Mirror (if bought): face a spell we've seen coming and send it back.
+## Better than the shield (it returns to its caster), so it beats a dodge.
+func _score_mirror() -> float:
+	var slot := wizard.slot_of("mirror")
+	if slot == "" or not _can_cast(slot) or _danger == null or not is_instance_valid(_danger):
 		return 0.0
-	if not _roll(_danger)[0]:
+	if DarkMirror.of(wizard) or not _roll(_danger)[0]:
 		return 0.0
-	if _danger.global_position.distance_to(wizard.global_position) < 70.0:
-		return 0.0 # too late, the wall would come up behind it
-	# Balance 2026-11-27: dodge (2.0) always won, so bots never raised a wall
-	# (0.1 a minute). Now the wall is the answer when there's no room to
-	# sidestep, and still an option with the shield ready.
-	if _dodge_point(_danger) == null:
-		return 2.4
-	var shield := wizard.get_spell("R")
-	return 1.0 if shield and shield.is_ready() else 1.9
+	var d := _danger.global_position.distance_to(wizard.global_position)
+	if d < DarkMirror.RADIUS + 6.0:
+		return 0.0 # too late: it's already through the glass
+	return 2.2 if _dodge_point(_danger) == null else 2.05
 
 
-func _do_rockwall() -> void:
+func _do_mirror() -> void:
 	if _danger and is_instance_valid(_danger):
-		_cast(wizard.slot_of("rockwall"), _danger.global_position)
+		_cast(wizard.slot_of("mirror"), _danger.global_position)
 
 
 ## Boomerang (if bought): mid range, a bit better when the target stands
@@ -507,12 +507,15 @@ func _score_meteor() -> float:
 		s += 0.3
 	if target.is_casting():
 		s += 0.2
+	if target.frozen:
+		s += 0.8 # held in a Time Stop: it can't walk out
 	return s
 
 
 func _do_meteor() -> void:
 	# Aim where it's heading: it lands in 0.85 s.
-	_cast(wizard.slot_of("meteor"), target.global_position + target.velocity * 0.5)
+	var lead := Vector2.ZERO if target.frozen else target.velocity * 0.5
+	_cast(wizard.slot_of("meteor"), target.global_position + lead)
 
 
 ## Gravity Well (if bought): drag a target in, best one near the lava.
@@ -533,24 +536,31 @@ func _do_well() -> void:
 	_cast(wizard.slot_of("well"), at)
 
 
-## Time Stop (if bought): freeze a spell we've seen coming; better when the
-## shield is down.
+## Time Stop (if bought, reworked 2026-11-28): freeze the target where it
+## stands. Best when it's near the lava (a frozen wizard can't walk back) or
+## when a big follow-up is ready (Meteor, Lightning).
 func _score_timestop() -> float:
 	var slot := wizard.slot_of("timestop")
-	if slot == "" or not _can_cast(slot) or _danger == null or not is_instance_valid(_danger):
+	if target == null or slot == "" or not _can_cast(slot) or target.frozen:
 		return 0.0
-	var d := _danger.global_position.distance_to(wizard.global_position)
-	if d < 50.0 or d > 450.0:
+	var spell := wizard.get_spell(slot) as TimeStopSpell
+	var d := _target_distance()
+	if d < 80.0 or d > spell.max_range:
 		return 0.0
-	if _dodge_point(_danger) == null:
-		return 2.3 # no room to sidestep: freeze it instead
-	var shield := wizard.get_spell("R")
-	return 1.0 if shield and shield.is_ready() else 1.5
+	var s := 0.6
+	if _lava_within(target.global_position, NEAR_LAVA):
+		s += 0.4
+	var meteor := wizard.slot_of("meteor")
+	if meteor != "" and wizard.get_spell(meteor).is_ready():
+		s += 0.4
+	var bolt := wizard.get_spell("E")
+	if bolt and bolt.is_ready() and d < (bolt as LightningSpell).max_range:
+		s += 0.2
+	return s
 
 
 func _do_timestop() -> void:
-	if _danger and is_instance_valid(_danger):
-		_cast(wizard.slot_of("timestop"), _danger.global_position + _danger.direction * 40.0)
+	_cast(wizard.slot_of("timestop"), target.global_position + target.velocity * 0.15)
 
 
 ## Get out of a Meteor's ring (once we've had time to see it) or a Gravity
@@ -631,7 +641,7 @@ func _score_lightning() -> float:
 		return 0.0
 	var bolt := wizard.get_spell("E") as LightningSpell
 	var reach := bolt.max_range * LIGHTNING_REACH
-	if _target_distance() > reach or _rock_in_the_way():
+	if _target_distance() > reach or _rock_in_the_way() or _mirrored():
 		return 0.0
 	var d := _target_distance()
 	var tip := LIGHTNING_TIP_BONUS if bolt.is_tip(d) else 0.0

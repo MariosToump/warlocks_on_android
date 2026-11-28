@@ -6,8 +6,10 @@ extends Spell
 
 const FRAMES := preload("res://assets/sprites/effects/meteor_rock_frames.tres")
 
-@export var damage_by_level: Array[float] = [14.0, 15.0, 16.0, 18.0]
-@export var knockback_by_level: Array[float] = [740.0, 790.0, 840.0, 890.0] ## was 650-800 (balance 2026-11-27)
+## 2026-11-28 (user: "it should feel like a meteor"): was 14-18 damage and
+## 740-890 push (650-800 before 2026-11-27). The blast radius stays 85.
+@export var damage_by_level: Array[float] = [20.0, 22.0, 24.0, 26.0]
+@export var knockback_by_level: Array[float] = [980.0, 1040.0, 1100.0, 1160.0]
 @export var max_range := 600.0
 
 

@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://lj7o584l2hbf"
-path="res://.godot/imported/rockwall.wav-85c480c6cad769c0faca044854805031.sample"
+uid="uid://b524ah7ecuid4"
+path="res://.godot/imported/mirror.wav-6eecd8bb38a02daad45e4d3469689c19.sample"
 
 [deps]
 
-source_file="res://assets/audio/rockwall.wav"
-dest_files=["res://.godot/imported/rockwall.wav-85c480c6cad769c0faca044854805031.sample"]
+source_file="res://assets/audio/mirror.wav"
+dest_files=["res://.godot/imported/mirror.wav-6eecd8bb38a02daad45e4d3469689c19.sample"]
 
 [params]
 

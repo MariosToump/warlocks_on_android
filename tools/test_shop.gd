@@ -99,7 +99,7 @@ func _run() -> void:
 	print("two shop slots (v0.12)")
 	game.gold[player] = 100
 	_check(player.slot_of("homing") == "D", "slot_of finds the Homing Orb in D")
-	_check(Shop.buy_spell(game, player, "rockwall") and player.get_spell("F") is RockWallSpell, "Rock Wall lands in F")
+	_check(Shop.buy_spell(game, player, "mirror") and player.get_spell("F") is DarkMirrorSpell, "Dark Mirror lands in F")
 	var g1 := Shop.gold_of(game, player)
 	_check(not Shop.can_buy_spell(game, player, "boomerang") and not Shop.buy_spell(game, player, "boomerang") \
 		and Shop.gold_of(game, player) == g1, "both slots full: can't buy a third, no gold taken")
@@ -111,7 +111,7 @@ func _run() -> void:
 	await _frames(1)
 	_check(Shop.buy_spell(game, player, "boomerang") and player.slot_of("boomerang") == "D", "Boomerang takes the free slot")
 	Shop.sell_spell(game, player, "boomerang")
-	Shop.sell_spell(game, player, "rockwall")
+	Shop.sell_spell(game, player, "mirror")
 	await _frames(1)
 	_check(Shop.buy_spell(game, player, "meteor") and player.slot_of("meteor") == "F", "Meteor takes its home slot F")
 	_check(Shop.buy_spell(game, player, "swap") and player.slot_of("swap") == "D", "Swap takes D")

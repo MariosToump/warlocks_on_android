@@ -1,8 +1,8 @@
 extends SceneTree
 ## Edge cases for the shop spells (spell audit 2026-11-27, warlocks-spell-author
 ## step 7): the caster dies mid-cast, a stone in the way, lava, a shield, the
-## caster dying while the spell is still out. Rock Wall has its own file
-## (tools/test_rock_wall.gd).
+## caster dying while the spell is still out. Dark Mirror and Time Stop have
+## their own files (tools/test_dark_mirror.gd, tools/test_time_stop.gd).
 ##   godot --headless --path . -s tools/test_spell_edges.gd
 
 var game: Node
@@ -14,7 +14,7 @@ var arena: Arena
 var c: Vector2
 var failures := 0
 
-const GROUPS := ["projectiles", "boomerangs", "meteors", "wells", "time_stops"]
+const GROUPS := ["projectiles", "boomerangs", "meteors", "wells", "time_stops", "mirrors"]
 
 
 func _init() -> void:
@@ -41,7 +41,7 @@ func _run() -> void:
 	game.state = game.State.FREE
 
 	print("caster dies mid-cast: nothing comes out")
-	for id in ["homing", "boomerang", "swap", "meteor", "well", "timestop", "rockwall"]:
+	for id in ["homing", "boomerang", "swap", "meteor", "well", "timestop", "mirror"]:
 		_park_all()
 		_place(player, c)
 		_place(blue, c + Vector2(220, 0))
@@ -254,22 +254,35 @@ func _time_stop() -> void:
 	_park_all()
 	var slot := _give(player, "timestop")
 	_place(player, c)
-	_place(blue, c + Vector2(500, 0))
+	_place(blue, c + Vector2(300, 0))
 	await _frames(2)
-	blue.cast("Q", player.global_position)
-	await _seconds(0.45)
-	var fb := _find_projectile()
-	_check(fb != null, "a fireball is coming")
-	if fb:
-		_cast_now(player, slot, fb.global_position)
-		await _frames(3)
-		player.take_damage(1000.0) # the caster dies: the field still runs its time
-		var at := fb.global_position
-		await _seconds(0.5)
-		_check(is_instance_valid(fb) and fb.global_position.distance_to(at) < 2.0, "the fireball stays frozen after the caster died")
-		await _seconds(2.5)
-		_check(_count("time_stops") == 0, "the field ends on time")
-		_check(not is_instance_valid(fb) or fb.global_position.distance_to(at) > 20.0, "the fireball flies on afterwards")
+	_cast_now(player, slot, blue.global_position)
+	await _frames(3)
+	player.take_damage(1000.0) # the caster dies: the field still runs its time
+	await _seconds(0.3)
+	_check(blue.frozen, "blue stays frozen after the caster died")
+	await _seconds(1.5)
+	_check(_count("time_stops") == 0 and not blue.frozen, "the field ends on time")
+	# On lava: a frozen wizard still burns.
+	_park_all()
+	var edge := _lava_point(Vector2.RIGHT) + Vector2(30, 0)
+	_place(player, edge + Vector2(-350, 0))
+	_place(blue, edge)
+	await _frames(2)
+	_cast_now(player, slot, edge)
+	await _seconds(1.0)
+	_check(blue.health < blue.max_health, "frozen on the lava, it burns (hp %.0f)" % blue.health)
+	# A shield doesn't stop the freeze (it's not a spell that flies).
+	_park_all()
+	_place(player, c)
+	_place(blue, c + Vector2(300, 0))
+	await _frames(2)
+	blue.cast("R", blue.global_position)
+	await _frames(3)
+	_cast_now(player, slot, blue.global_position)
+	await _frames(3)
+	_check(blue.frozen, "a shielded wizard is frozen too")
+	await _seconds(2.0)
 	_place(player, c)
 	Shop.sell_spell(game, player, "timestop")
 

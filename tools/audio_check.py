@@ -12,8 +12,8 @@ import pyloudnorm as pyln
 
 ROLES = {"cast": -18, "impact": -17, "death": -15, "jingle": -18, "warning": -20, "soft": -21, "hum": -26,
          "ui": -21, "ambience": -24, "music": -16}
-ROLE_OF = {**{k: "cast" for k in "fireball homing lightning shield blink boomerang meteor_fall well swap timestop staff".split()},
-           **{k: "impact" for k in "hit meteor_boom fight hurt reflect rockwall".split()},
+ROLE_OF = {**{k: "cast" for k in "fireball homing lightning shield blink boomerang meteor_fall well swap timestop staff mirror".split()},
+           **{k: "impact" for k in "hit meteor_boom fight hurt reflect mirror_reflect".split()},
            "death": "death", "kill": "death", "win": "jingle", "lose": "jingle", "match_win": "jingle",
            "match_lose": "jingle", "lava_warn": "warning", "heartbeat": "warning", "boomerang_return": "soft",
            "ghost": "soft", "homing_hum": "hum", "beep": "ui", "coin": "ui", "click": "ui", "denied": "ui",

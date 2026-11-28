@@ -24,7 +24,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if _done or _frozen():
+	if _done:
 		return
 	age += delta
 	if caster == null or not is_instance_valid(caster) or not caster.alive or age > MAX_LIFE:

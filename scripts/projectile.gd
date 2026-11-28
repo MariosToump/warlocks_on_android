@@ -51,7 +51,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if _done or _frozen():
+	if _done:
 		return
 	age += delta
 	if homing_turn > 0.0:
@@ -62,13 +62,6 @@ func _physics_process(delta: float) -> void:
 	_check_shields()
 	if _travelled >= max_range:
 		_explode(0.6)
-
-
-## Inside a Time Stop: stand still and stop animating.
-func _frozen() -> bool:
-	var f := TimeStopField.freezes(get_tree(), global_position)
-	sprite.speed_scale = 0.0 if f else 1.0
-	return f
 
 
 func _steer(delta: float) -> void:
@@ -100,6 +93,8 @@ func homing_target() -> Wizard:
 ## projectile turns around, now belongs to the shielded wizard, and (the
 ## first time) comes back at double speed and double range.
 func _check_shields() -> void:
+	if _check_mirrors():
+		return
 	for node in get_tree().get_nodes_in_group("wizards"):
 		var w := node as Wizard
 		if w == caster or not w.is_shielded():
@@ -126,6 +121,35 @@ func _check_shields() -> void:
 		# Now it takes the reflector's team colour.
 		sprite.modulate = Color.WHITE.lerp(RoundHud.TEAM_COLORS[w.team_color], 0.6)
 		return
+
+
+## Dark Mirror (2026-11-28): flying into an enemy's mirror panes sends the
+## spell straight back at whoever cast it, same speed and range (a pure
+## reflect). It now belongs to the mirror's wizard. True if it bounced.
+func _check_mirrors() -> bool:
+	for node in get_tree().get_nodes_in_group("wizards"):
+		var w := node as Wizard
+		if w == caster or not w.alive:
+			continue
+		var out := global_position - w.global_position
+		if out.length() > DarkMirror.RADIUS or direction.dot(out) >= 0.0 or not DarkMirror.covers(w, out):
+			continue
+		var n := out.normalized() if out != Vector2.ZERO else -direction
+		var sender := caster
+		if is_instance_valid(sender) and sender.alive and sender != w:
+			direction = (sender.global_position - w.global_position).normalized()
+		else:
+			direction = -direction
+		global_position = w.global_position + n * (DarkMirror.RADIUS + 1.0)
+		caster = w
+		_travelled = 0.0
+		age = 0.0 # a new threat: bots need their reaction time again
+		sprite.rotation = direction.angle()
+		DarkMirror.of(w).flash()
+		Sfx.play_at("mirror_reflect", global_position)
+		sprite.modulate = Color.WHITE.lerp(RoundHud.TEAM_COLORS[w.team_color], 0.6)
+		return true
+	return false
 
 
 func _on_body_entered(body: Node) -> void:

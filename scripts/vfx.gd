@@ -26,7 +26,7 @@ const SPELL_COLORS := {
 	"R": Color(1.0, 0.85, 0.4), # shield
 	"A": Color(1.0, 0.6, 0.25), # staff
 	"homing": Color(0.69, 0.36, 1.0),
-	"rockwall": Color(0.7, 0.62, 0.52),
+	"mirror": Color(0.69, 0.36, 1.0),
 	"boomerang": Color(0.95, 0.8, 0.5),
 	"meteor": Color(1.0, 0.4, 0.1),
 	"well": Color(0.6, 0.4, 1.0),

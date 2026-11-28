@@ -1,44 +1,43 @@
 class_name TimeStopField
 extends Node2D
-## The Time Stop spell on the ground (v0.12): every projectile inside
-## `radius` stands still (and stops animating) until the field ends, then
-## carries on as it was. Wizards aren't affected. Child of the arena.
+## The Time Stop spell on the ground. Rework 2026-11-28 (the user's design):
+## it freezes WIZARDS, not spells. Every wizard but the caster standing inside
+## `radius` can't walk or cast until the field ends (knockback still moves
+## them, so a hit can knock them out). Hits taken inside push 20% harder, and
+## a wizard hit inside keeps that bonus for Wizard.TIME_MARK s after it gets
+## out (see Wizard._update_time_stop). Projectiles fly through as normal.
+## Child of the arena.
 
 const FRAMES := preload("res://assets/sprites/effects/time_stop_frames.tres")
 
 var caster: Wizard
 var radius := 120.0
-var duration := 2.0
+var duration := 1.5
 var age := 0.0
 var _sprite: AnimatedSprite2D
 
 
-static func spawn(at: Vector2, by: Wizard, p_duration: float) -> TimeStopField:
+static func spawn(at: Vector2, by: Wizard, p_duration: float, p_radius := 120.0) -> TimeStopField:
 	var f := TimeStopField.new()
 	f.caster = by
 	f.duration = p_duration
+	f.radius = p_radius
 	by.arena.add_child(f)
 	f.global_position = at
 	return f
 
 
-## Is `pos` inside any running Time Stop?
-static func freezes(tree: SceneTree, pos: Vector2) -> bool:
-	for n in tree.get_nodes_in_group("time_stops"):
+## Is `w` held by any running Time Stop (not its own)?
+static func holds(w: Wizard) -> bool:
+	for n in w.get_tree().get_nodes_in_group("time_stops"):
 		var f := n as TimeStopField
-		if f.age < f.duration and f.global_position.distance_to(pos) <= f.radius:
+		if f.caster != w and f.running() and f.global_position.distance_to(w.global_position) <= f.radius:
 			return true
 	return false
 
 
-## Does the straight line a -> b cross a running Time Stop? (bots)
-static func on_line(tree: SceneTree, a: Vector2, b: Vector2) -> bool:
-	for n in tree.get_nodes_in_group("time_stops"):
-		var f := n as TimeStopField
-		var p := Geometry2D.get_closest_point_to_segment(f.global_position, a, b)
-		if f.age < f.duration and p.distance_to(f.global_position) <= f.radius:
-			return true
-	return false
+func running() -> bool:
+	return age < duration and not is_queued_for_deletion()
 
 
 func _ready() -> void:

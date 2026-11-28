@@ -131,10 +131,16 @@ func _init() -> void:
 		voice({"wave": "square", "f0": 220.0, "dur": 0.07, "vol": 0.2, "duty": 0.4}),
 		voice({"wave": "square", "f0": 175.0, "dur": 0.1, "vol": 0.2, "duty": 0.4, "delay": 0.09}),
 	]), "ui")
-	_save("rockwall", _mix([ # stone grinding up out of the ground
-		voice({"wave": "noise", "dur": 0.45, "attack": 0.05, "lowpass": 0.2, "lowpass_end": 0.08, "vol": 0.5, "crackle": 0.6}),
-		voice({"wave": "saw", "f0": 120.0, "f1": 70.0, "dur": 0.4, "vol": 0.2, "drive": 6.0, "lowpass": 0.2}),
-		voice({"wave": "square", "f0": 300.0, "f1": 200.0, "dur": 0.1, "vol": 0.1, "delay": 0.32, "drive": 3.0, "lowpass": 0.3}),
+	_save("mirror", _mix([ # dark glass rising: a low swell under a glassy shimmer
+		voice({"wave": "tri", "f0": 220.0, "f1": 330.0, "dur": 0.5, "attack": 0.12, "vol": 0.2, "vib": 7.0, "vib_depth": 0.02}),
+		voice({"wave": "sine", "f0": 1760.0, "dur": 0.45, "attack": 0.05, "vol": 0.12, "vib": 11.0, "vib_depth": 0.015}),
+		voice({"wave": "sine", "f0": 2637.0, "dur": 0.35, "vol": 0.08, "delay": 0.06, "vib": 13.0, "vib_depth": 0.015}),
+		voice({"wave": "noise", "dur": 0.2, "attack": 0.08, "lowpass": 0.6, "vol": 0.06}),
+	]), "cast")
+	_save("mirror_reflect", _mix([ # a glass ping and a reversed zip back
+		voice({"wave": "sine", "f0": 2093.0, "dur": 0.25, "vol": 0.25}),
+		voice({"wave": "tri", "f0": 1318.0, "dur": 0.3, "vol": 0.18, "delay": 0.02}),
+		voice({"wave": "square", "f0": 1800.0, "f1": 500.0, "dur": 0.12, "vol": 0.12, "duty": 0.3}),
 	]), "impact")
 	_save("boomerang_return", voice({"wave": "saw", "f0": 260.0, "f1": 520.0, "dur": 0.35, "attack": 0.15,
 			"vib": 30.0, "vib_depth": 0.25, "vol": 0.2, "lowpass": 0.35}), "soft")

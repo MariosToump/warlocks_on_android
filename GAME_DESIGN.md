@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-27 (review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
+_Last updated: 2026-11-28 (spell rework: Meteor buff, Rock Wall -> Dark Mirror, Time Stop freezes wizards — see "Spell rework 2026-11-28"; 2026-11-27: review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -56,6 +56,21 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
 **Paused 2026-11-27 (the user):** todos 3, 4, 5 and 8 wait while we work on graphics and design (more animation,
 a more "real" feel; research: a bigger PixelLab plan vs doing more in Godot). Order after the pause: terrain stones
 brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) stays last.
+- **Spell rework 2026-11-28** (the user; spec `docs/superpowers/specs/2026-11-28-meteor-mirror-timestop-design.md`,
+  sim `docs/sim/2026-11-28-spell-rework/`; Android only, not released yet):
+  - Meteor buffed: 20-26 damage (was 14-18), push 980-1160 (was 740-890), same 85 px hitbox; bigger rock (56 px,
+    long flame tail) and blast art (232x156, ring to ~104 px), shake 6 -> 9. Duel win rate 46% -> 50%.
+  - **Rock Wall replaced by Dark Mirror** (id `mirror`, F, 15 g): glass panes round you for 2.5 s (3 s at level 3)
+    send any projectile straight back to its caster at the same speed, and Lightning back down its line. Covers
+    1/3 of the ring when bought, 2/3 at level 1, all of it at level 2+ (the user's lvl 1/2/3; bought = level 0 in
+    code). Panes sway a little; the wizard's hitbox is unchanged. Placed spells and the staff aren't reflected.
+    Bots raise it against a seen spell (beats a dodge) and don't shoot into one. Duel 45%, cast 0.9/min (Rock Wall 0.08).
+  - **Time Stop now freezes wizards** (not spells): enemies in the 120 px circle can't walk or cast for 1.5-2.1 s
+    (was 2-2.6 s); knockback still moves them; hits inside push x1.2 and a wizard hit inside keeps x1.2 for 2.5 s
+    after it gets out. Bots use it as an attack and follow up with Meteor. Duel 48% -> 61%.
+  - Meteor + Time Stop is the first real combo the sim finds (+16 pp, 76% win rate). Open for the user: Time Stop and
+    Gravity Well are both ~61%; Dark Mirror still below average.
+  - Tests: `test_dark_mirror` (was `test_rock_wall`), `test_time_stop` (new); suite 28/28. Playtest: all targets met.
 - **Review fixes 2026-11-27** (the user: do all of them except the PC port; checklist `docs/fixes-2026-11-27.md`):
   - Audio: Master limiter (-1 dB), every sound high-passed at 80 Hz and set to its role's loudness
     (`ROLE_LUFS` in `tools/build_audio.gd`), mid-range layers so phones hear hits and music, 7 s seamless lava loop,
@@ -459,12 +474,12 @@ Trial: 3 generations left (out of 40). Character id `2c9f98f0-5a77-4c63-aca5-e01
 | E | Lightning | Instant line (450 px on Android), high knockback; the tip pushes harder. |
 | R | Shield | 1.5 s bubble that reflects projectiles. |
 | D/F | Homing orb | Slow projectile that follows the nearest enemy (shop, 15). |
-| D/F | Rock wall | 3 rocks across your aim for 4-5.5 s (shop, 15). |
+| D/F | Dark mirror | Glass panes round you for 2.5 s send spells back to their caster; 1/3, 2/3, full ring by level (shop, 15; replaced Rock Wall 2026-11-28). |
 | D/F | Boomerang | Out 420 px and back, hits each wizard up to twice (shop, 15). |
-| D/F | Meteor | 1 s warning ring, then a 75 px blast with a big push and a crater (shop, 20). |
+| D/F | Meteor | 0.85 s warning ring, then an 85 px blast, 20-26 damage, push 980-1160, a crater (shop, 20). |
 | D/F | Gravity well | Pulls enemies within 160 px to a point for 2.5 s; weaker at the rim (shop, 20). |
 | D/F | Swap | Fast orb; on a hit, you and the target trade places (shop, 15). |
-| D/F | Time stop | Freezes projectiles in a 120 px circle for 2 s (shop, 20). |
+| D/F | Time stop | Freezes enemy wizards in a 120 px circle for 1.5-2.1 s; hits push +20%, and 2.5 s after for those hit inside (shop, 20). |
 Shop spells (v0.12, Android only; the PC copy has Q-R): at most two at a time, in slots D and F; sell one for half its price to buy another.
 Every spell has a cooldown and 3 upgrade levels (more damage, knockback or shorter cooldown).
 
