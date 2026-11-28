@@ -51,7 +51,7 @@ After every round you get gold — 10, plus 5 per kill, plus 5 if you won the ro
 | Control | Action |
 |---|---|
 | Left half of the screen | Floating joystick — walk (the ring follows your thumb). Or **Touchpad** (setting): the whole left half is a pad, slide a little to walk at full speed |
-| Staff marker (over an enemy) | Shows over every enemy within 85 px. Tap = step in and swing at that warlock; hold = keep swinging; walking stops it. Glows while the Blink combo is open |
+| Staff marker (over an enemy) | Shows over every enemy within 85 px. Tap = rush in (1.3x speed) and swing at that warlock; the swing locks on and lands if they are still within 45 px; hold = keep swinging; walking stops it. Glows while the Blink combo is open |
 | Fireball (big button, bottom right) | Tap = auto-aim (nearest enemy in range, ones you can see first, aimed ahead of a walker); drag to aim (the guide shows the full range); drag back onto the button to cancel |
 | Blink | Short teleport (tap = forward, or drag to aim). A staff hit within 1.5 s of your Blink pushes 40% harder |
 | Lightning | Instant bolt (450 px) with big knockback. Hit with the tip for an extra push |
@@ -64,11 +64,11 @@ After every round you get gold — 10, plus 5 per kill, plus 5 if you won the ro
 |---|---|
 | Right-click (or hold) | Walk to the mouse. Right-click an enemy to walk up and keep swinging the staff at it |
 | A | One staff swing at the enemy nearest the mouse (or near you). As a ghost: Haunt |
-| Q W E R D F | Cast at the mouse: Fireball, Blink, Lightning, Shield, and the two bought spells |
+| Q W E R D F | Hold to aim: an indicator shows the range and what the spell covers (lane, landing spot or area); let go to cast at the mouse, right-click to cancel. Shield and Dark Mirror cast at once. Settings → Casting: Instant casts on key down instead |
 | Esc | Pause / resume (on the title screen it closes Settings) |
 | Alt+Enter | Fullscreen on / off (also in Settings) |
 | Ghost | Hold right-click to float toward the mouse; A haunts; left-click the minimap to jump there |
-| Mouse wheel / middle drag / Home | Zoom, pan, re-centre the camera |
+| Mouse wheel / middle drag / Home | Zoom (the game starts fully zoomed out), pan, re-centre the camera |
 
 The PC screen has a command bar along the bottom: the minimap (left), health, gold and the round (centre), and the
 spell card (right): square icons with their key, a dark sweep and seconds while a spell recharges, and a tooltip
@@ -84,7 +84,7 @@ when you point at one. No touch buttons on PC.
 
 ### Settings (pause menu or title menu)
 Zoom (Close / Far), bot difficulty (Easy / Normal / Hard), first to 3 / 5 / 7 round wins, vibration, sound, music,
-movement (Joystick / Touchpad). On PC, Fullscreen instead of vibration and movement.
+movement (Joystick / Touchpad). On PC: Fullscreen and Casting (Indicator / Instant) instead of zoom, vibration and movement.
 They are saved on the device.
 
 The game opens on a title menu with the bots already fighting behind it. Back on the title menu leaves the game.

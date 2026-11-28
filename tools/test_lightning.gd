@@ -104,6 +104,10 @@ func _test_shield_still_blocks() -> void:
 func _test_bot_uses_reach() -> void:
 	print("bots use the new reach")
 	_park_all()
+	# Random rocks can land between the two and (rightly) block the bolt.
+	for rock in get_nodes_in_group("props"):
+		rock.queue_free()
+	await _frames(1)
 	var ai := AIController.new()
 	ai.personality = preload("res://ai/personalities/caster.tres")
 	ai.profile = preload("res://ai/profiles/normal.tres")

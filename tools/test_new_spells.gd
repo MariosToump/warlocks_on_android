@@ -239,6 +239,9 @@ func _test_well() -> void:
 	_check(ai._score_well() > 0.0, "scores the well at 300 px (%.2f)" % ai._score_well())
 	_remove_bot(ai)
 	_park_all()
+	# Random rocks can block the way out.
+	for rock in get_nodes_in_group("props"):
+		rock.queue_free()
 	var runner := _make_bot(purple, "trickster")
 	for s in ["Q", "W", "E", "R", "A"]:
 		(purple.get_spell(s) as Spell).cooldown_left = 99.0

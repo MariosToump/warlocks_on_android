@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-28 (todo 16 PC build done: one project builds Android + Windows, PC command bar, Esc / Alt+Enter, ghost on mouse — see "PC build 2026-11-28"; NEXT: the user playtests on PC; todo 17 store release prep added; staff marker over enemies, Fireball in the corner — see "Staff marker 2026-11-28"; performance pass: lava shrink stutter fixed, bots cheaper, stress test on the title (5 taps on the version) — see "Performance pass 2026-11-28"; spell rework: Meteor buff, Rock Wall -> Dark Mirror, Time Stop freezes wizards — see "Spell rework 2026-11-28"; 2026-11-27: review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
+_Last updated: 2026-11-28 (PC feel pass: zoomed-out start, smart cast with indicators, smaller PC HUD, staff lock-on for everyone — see "PC feel pass 2026-11-28"; todo 16 PC build done: one project builds Android + Windows, PC command bar, Esc / Alt+Enter, ghost on mouse — see "PC build 2026-11-28"; NEXT: the user playtests on PC; todo 17 store release prep added; staff marker over enemies, Fireball in the corner — see "Staff marker 2026-11-28"; performance pass: lava shrink stutter fixed, bots cheaper, stress test on the title (5 taps on the version) — see "Performance pass 2026-11-28"; spell rework: Meteor buff, Rock Wall -> Dark Mirror, Time Stop freezes wizards — see "Spell rework 2026-11-28"; 2026-11-27: review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -56,6 +56,20 @@ secondary effects > extra rounds > lightning. Build order (user's choice): bots 
 **Paused 2026-11-27 (the user):** todos 3, 4, 5 and 8 wait while we work on graphics and design (more animation,
 a more "real" feel; research: a bigger PixelLab plan vs doing more in Godot). Order after the pause: terrain stones
 brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) stays last.
+- **PC feel pass 2026-11-28** (the user, after the first PC build; spec
+  `docs/superpowers/specs/2026-11-28-pc-feel-pass-design.md`):
+  - PC starts fully zoomed out (camera `min_zoom`, 1 screen px per art px at 1280x720); the wheel still zooms; Zoom
+    row hidden on PC.
+  - Smart cast (PC): hold a spell key -> `CastIndicator` (range ring + lane / Lightning tip / Blink landing / placed
+    area, grey while cooling down); release casts at the mouse; right-click cancels. Shield and Dark Mirror cast on
+    key down. Settings "Casting: Indicator / Instant" (`GameSettings.cast_mode`, saved).
+  - Smaller PC HUD (~30%): bar strip 84, icons 44, minimap 110 (`Minimap.diameter`), scoreboard x0.75.
+  - Staff lock-on, everyone incl. bots (the user: "keep it fair"): a swing started with `Wizard.attack()` lands on
+    its warlock if they're within 45 px when the staff comes down; chasing within 85 px is 1.3x speed
+    (`StaffStrikeSpell.LOCK_REACH / LOCK_RANGE / CHASE_BOOST`). Free swings unchanged. Test `tools/test_staff_lock.gd`.
+  - Harness, 20 matches normal, before -> after: round wins Player 25 -> 26%, Brawler 24 -> 21%, Caster 29 -> 31%,
+    Trickster 22 -> 22%; lava deaths 62 -> 64%; fights 49 -> 50 s; match 8:13 -> 7:58. All targets met; the
+    shifts are within noise (~160 rounds per bot).
 - **PC build 2026-11-28** (todo 16; the user: "the same game, playable on PC with mouse and keyboard"; spec
   `docs/superpowers/specs/2026-11-28-pc-catch-up-design.md`, plan `docs/superpowers/plans/2026-11-28-pc-catch-up.md`):
   - One project, two builds: `lava-warlocks-mobile` is the only codebase. `Platform.touch()` (`scripts/platform.gd`):
