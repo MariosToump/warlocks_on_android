@@ -5,7 +5,7 @@ Do not copy names, art, text or data from any existing map. Everything here is o
 
 ## Progress (keep this up to date — read it before starting work)
 
-_Last updated: 2026-11-28 (NEXT: todo 16, PC catch-up with Android — the focus moves to the PC version; staff marker over enemies, Fireball in the corner — see "Staff marker 2026-11-28"; performance pass: lava shrink stutter fixed, bots cheaper, stress test on the title (5 taps on the version) — see "Performance pass 2026-11-28"; spell rework: Meteor buff, Rock Wall -> Dark Mirror, Time Stop freezes wizards — see "Spell rework 2026-11-28"; 2026-11-27: review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
+_Last updated: 2026-11-28 (NEXT: todo 16, PC catch-up — one shared project with a Windows build, WC3-style PC bar; todo 17 store release prep added; staff marker over enemies, Fireball in the corner — see "Staff marker 2026-11-28"; performance pass: lava shrink stutter fixed, bots cheaper, stress test on the title (5 taps on the version) — see "Performance pass 2026-11-28"; spell rework: Meteor buff, Rock Wall -> Dark Mirror, Time Stop freezes wizards — see "Spell rework 2026-11-28"; 2026-11-27: review fixes done except the PC port — see "Review fixes 2026-11-27"; reviews: visual, audio, spell checklist, port, release, feel — see "Reviews 2026-11-27"; todo 13 step 1: sim sandbox + pair data; todos 12-15: more spells, combos, swappable starters, shop icon grid; todo 11: protect the code, in a couple of days; Android v0.13.1: ghost flies at 3.5x speed and teleports by tapping the minimap; v0.13: visual pass 1 in Godot (sparks, death dissolve, lava embers, heat shimmer, squash/stretch, shadows); v0.12.1: the shop fits phone screens; v0.12 released: Brawler rework + 5 new shop spells drawn in Godot + two shop slots. The user will test them on the phone. 2026-11-27: gameplay todos paused; next is graphics and design (steps a-f under todo 0), then the terrain stones brainstorm)_
 
 Each project has a `README.md` (how to play, controls, layout, tests).
 Two projects share this design:
@@ -122,11 +122,18 @@ brainstorm (6), then secondary effects (3), extra rounds (4); 8 warlocks (5) sta
   arena.gd embers, heat_haze shader); no "reduce screen shake" option yet. Not run: phone performance (phone not
   connected), playtest notes (no tester feedback yet).
 - [ ] 16. **PC catch-up** **<- next** (the user, 2026-11-28: "change our focus completely to the PC version and bring
-  it up to date with our Android version"; saved, not started). Bring `lava-warlocks` up to date with Android
-  (warlocks-port skill: list the Android-only commits, cherry-pick or re-do, keep each side's exceptions: PC keeps
-  keyboard + mouse and Forward+, no touch controls / staff marker / Android HUD). Known gaps: v0.8-v0.13.1 features,
-  review fixes 2026-11-27, spell rework 2026-11-28, performance pass 2026-11-28. Start by listing the gap and
-  agreeing the order with the user.
+  it up to date with our Android version"; "the same game, playable on PC with mouse and keyboard for now").
+  Decided 2026-11-28: one project, two builds. `lava-warlocks-mobile` becomes the shared codebase with a Windows
+  export; touch vs PC is switched at runtime; the old `lava-warlocks` folder becomes an archive. PC HUD: a classic
+  WC3-style bottom bar in our own art (square spell icons with hotkeys and cooldown sweep, tooltips, centre panel,
+  minimap frame), no round buttons (the user). Windows export templates (~1 GB) download approved if needed. Spec:
+  `docs/superpowers/specs/2026-11-28-pc-catch-up-design.md`.
+- [ ] 17. **Store release prep** (the user, 2026-11-28; later, not now). itch.io first (free page, Windows zip +
+  APK, optional browser build, `tools/publish_itch.sh` with butler). Steam when nearly finished (Steamworks ~$100
+  per game, store page "Coming Soon" 2+ weeks for wishlists, build review; optional GodotSteam for achievements /
+  lobbies; players expect fullscreen, key remapping, controller / Steam Deck support). Before selling anywhere:
+  check PixelLab / music / SFX licenses allow commercial use, Godot license notice in the credits, todo 11 (code
+  private + rights notice). Google Play is a separate one-time $25.
 - [ ] 11. **Protect the code** (user, 2026-11-27; do in a couple of days): make `warlocks_on_android` private
   (`gh repo edit --visibility private`; then only the user + invited GitHub accounts can see code or releases), add
   an "All rights reserved" notice (LICENSE + README), and a separate public repo with only the APK (e.g.
